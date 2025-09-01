@@ -1,0 +1,103 @@
+/* src/Pages/Evaluation/DataSets/uploadCsvModal.module.css */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(15, 23, 42, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(2px);
+}
+
+.modal {
+    background-color: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 800px;
+    color: #e2e8f0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    border-bottom: 1px solid #334155;
+}
+
+.title {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.closeButton {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 4px;
+}
+
+.body {
+    padding: 48px 24px;
+}
+
+.uploadCard {
+    width: 100%;
+    max-width: 640px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.uploadHeader {
+    margin-bottom: 24px;
+}
+
+.uploadTitle {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 4px 0;
+    color: #f1f5f9;
+}
+
+.uploadSubtitle {
+    font-size: 13px;
+    color: #9ca3af;
+    margin: 0;
+}
+
+.fileInputHidden {
+    display: none;
+}
+
+.dropArea {
+    border: 1px dashed #334155;
+    border-radius: 8px;
+    padding: 48px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: #9ca3af;
+    cursor: pointer;
+    transition: all 0.2s;
+    background-color: #020817;
+}
+
+.dropArea.isDragging,
+.dropArea:hover {
+    border-color: #a5b4fc;
+    color: #a5b4fc;
+}
+
+.dropText {
+    font-size: 14px;
+}

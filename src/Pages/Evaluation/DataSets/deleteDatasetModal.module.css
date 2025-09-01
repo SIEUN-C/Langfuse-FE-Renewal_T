@@ -1,0 +1,97 @@
+/* src/Pages/Evaluation/DataSets/deleteDatasetModal.module.css */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(15, 23, 42, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    backdrop-filter: blur(2px);
+}
+
+.modal {
+    background-color: #1f2937;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 480px;
+    color: #e2e8f0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.header {
+    padding: 16px;
+    border-bottom: 1px solid #374151;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.title {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.closeButton {
+    background: none;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+}
+
+.body {
+    padding: 16px;
+    font-size: 14px;
+    color: #d1d5db;
+}
+
+.body p {
+    margin: 0 0 16px 0;
+}
+
+.body p strong {
+    color: #f9fafb;
+    font-weight: 600;
+}
+
+.input {
+    width: 100%;
+    background-color: #0f172a;
+    border: 1px solid #374151;
+    border-radius: 6px;
+    padding: 8px 12px;
+    color: #e2e8f0;
+    font-size: 14px;
+}
+
+.input:focus {
+    outline: none;
+    border-color: #4f46e5;
+}
+
+.footer {
+    padding: 16px;
+    border-top: 1px solid #374151;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.deleteButton {
+    background-color: #dc2626;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.deleteButton:disabled {
+    background-color: #4b5563;
+    cursor: not-allowed;
+}

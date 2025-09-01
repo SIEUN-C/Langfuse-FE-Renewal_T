@@ -1,0 +1,286 @@
+/* src/Pages/Evaluation/DataSets/datasetsTable.module.css */
+
+.main {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 0%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+}
+
+.searchBox {
+    display: flex;
+    height: 32px;
+    flex: 1 1 0%;
+    align-items: center;
+    border: 1px solid #334155;
+    background-color: #020817;
+    padding-left: 8px;
+    border-radius: 6px;
+    min-width: 150px;
+    max-width: 256px;
+}
+
+.searchIcon {
+    color: #94a3b8;
+}
+
+.searchInput {
+    display: flex;
+    height: 32px;
+    width: 100%;
+    border: none;
+    background-color: transparent;
+    padding: 8px;
+    font-size: 14px;
+    color: #e2e8f0;
+}
+
+.searchInput:focus {
+    outline: none;
+}
+
+.toolbarRight {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-left: auto;
+}
+
+.chipBtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    border: 1px solid #334155;
+    background-color: #020817;
+    color: #e2e8f0;
+    height: 32px;
+    padding: 4px 12px;
+    cursor: pointer;
+}
+
+.chipBtn:hover {
+    background-color: #1e293b;
+}
+
+.chipBadge {
+    margin-left: 4px;
+    border-radius: 4px;
+    background-color: #334155;
+    padding: 2px 4px;
+    font-size: 12px;
+}
+
+.iconBtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    border-radius: 6px;
+    border: 1px solid #334155;
+    background-color: #020817;
+    color: #e2e8f0;
+    height: 32px;
+    width: 32px;
+    cursor: pointer;
+}
+
+.iconBtn:hover:not(:disabled) {
+    background-color: #1e293b;
+}
+
+.iconBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+
+.tableContainer {
+    display: flex;
+    width: 100%;
+    max-width: 100%;
+    flex: 1 1 0%;
+    flex-direction: column;
+    overflow: auto;
+    border-top: 1px solid #1e293b;
+}
+
+.tableScroller {
+    position: relative;
+    width: 100%;
+    overflow: auto;
+}
+
+.table {
+    width: 100%;
+    caption-side: bottom;
+    border-spacing: 0;
+    font-size: 14px;
+}
+
+.thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.thead th {
+    height: 40px;
+    border-bottom: 1px solid #334155;
+    /* 헤더 구분선 색상 조정 */
+    background-color: #020817;
+    text-align: left;
+    vertical-align: middle;
+    font-weight: 500;
+    color: #94a3b8;
+    padding: 4px;
+}
+
+.thead th:first-child {
+    padding-left: 8px;
+}
+
+/* 👇 tbody tr에 border-bottom을 추가하여 행 구분선을 만듭니다. */
+.tbody tr {
+    border-bottom: 1px solid #1e293b;
+    transition: background-color 0.2s;
+}
+
+.tbody tr:hover {
+    background-color: #1e293b;
+}
+
+/* 마지막 행의 아래쪽 테두리는 제거합니다. */
+.tbody tr:last-child {
+    border-bottom: 0;
+}
+
+.td {
+    vertical-align: middle;
+    overflow: hidden;
+    padding: 4px;
+    font-size: 12px;
+}
+
+.td:first-child {
+    padding-left: 8px;
+}
+
+.cellContent {
+    display: flex;
+    align-items: center;
+    height: 24px;
+}
+
+.namePill {
+    display: inline-block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    border-radius: 4px;
+    background-color: rgba(99, 102, 241, 0.22);
+    padding: 2px 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #c7d2fe;
+    border: none;
+    cursor: pointer;
+}
+
+.namePill:hover {
+    background-color: rgba(99, 102, 241, 0.3);
+}
+
+.metaCell {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    border-radius: 4px;
+    border: 1px solid #334155;
+    padding: 2px 8px;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.tdActions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    /* 오른쪽 정렬 */
+    height: 24px;
+    position: relative;
+}
+
+.emptyCell {
+    padding: 24px;
+    text-align: center;
+    color: #64748b;
+}
+
+.footerBar {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+    display: flex;
+    width: 100%;
+    justify-content: flex-end;
+    border-top: 1px solid #1e293b;
+    background-color: #020817;
+    padding: 8px;
+    font-weight: 500;
+    color: #e2e8f0;
+}
+
+.footerBar>div {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.footerBar>div:not(:last-child) {
+    margin-right: 24px;
+}
+
+.rowsPerPage select {
+    height: 32px;
+    width: 70px;
+    border-radius: 6px;
+    border: 1px solid #334155;
+    background-color: #020817;
+    padding: 0 8px;
+    color: #e2e8f0;
+}
+
+.pageInput {
+    display: flex;
+    width: 50px;
+    border-radius: 6px;
+    border: 1px solid #334155;
+    background-color: #020817;
+    color: #e2e8f0;
+    padding: 4px 8px;
+    text-align: center;
+    height: 32px;
+}
+
+.pagerBtns {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}

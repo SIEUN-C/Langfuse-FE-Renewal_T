@@ -1,0 +1,111 @@
+/* src/Pages/Evaluation/DataSets/importCsvView.module.css */
+
+.importViewContainer {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    padding: 16px 24px;
+    overflow: hidden;
+}
+
+.importViewHeader {
+    text-align: center;
+    padding-bottom: 24px;
+    flex-shrink: 0;
+}
+
+.importViewTitle {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+}
+
+.importViewDescription {
+    font-size: 14px;
+    color: #9ca3af;
+    margin: 0;
+}
+
+.importViewGrid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    width: 100%;
+    flex-grow: 1;
+    min-height: 0;
+}
+
+.importViewCard {
+    border: 1px solid #334155;
+    border-radius: 8px;
+    background-color: #020817;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: background-color 0.2s ease;
+}
+
+.isDraggingOver {
+    background-color: #1e293b;
+}
+
+.importViewCardTitle {
+    font-size: 14px;
+    font-weight: 500;
+    padding: 12px 16px;
+    border-bottom: 1px solid #334155;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    color: #e2e8f0;
+}
+
+.importViewCardTitle svg {
+    color: #9ca3af;
+}
+
+.importViewCardContent {
+    padding: 8px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow-y: auto;
+    min-height: 150px;
+}
+
+.importViewFooter {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding-top: 24px;
+    flex-shrink: 0;
+}
+
+.columnTag {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    background-color: #0f172a;
+    cursor: grab;
+    user-select: none;
+}
+
+.isDragging {
+    background-color: #312e81;
+    border-color: #a5b4fc;
+}
+
+.columnTagName {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.columnTagType {
+    font-size: 12px;
+    color: #9ca3af;
+}

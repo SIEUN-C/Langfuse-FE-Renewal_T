@@ -1,0 +1,46 @@
+.page {
+  --page-pad: 24px;
+  display: grid;
+  gap: 22px;
+  padding: var(--page-pad);
+  color: #e5e7eb;
+  background: transparent;
+}
+
+/* 히어로 */
+.hero { text-align: center; margin-top: 4px; }
+.title { font-size: 28px; font-weight: 800; margin: 0 0 8px 0; }
+.subtitle { margin: 0 auto; max-width: 960px; color: #9ca3af; font-size: 14px; }
+
+/* CTA */
+.ctaRow { display: flex; gap: 12px; justify-content: center; margin-top: 16px; flex-wrap: wrap; }
+.primaryWhite {
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset;
+  transition: filter 0.12s ease;
+}
+.primaryWhite:hover { filter: brightness(0.98); }
+.secondary {
+  display: inline-flex; align-items: center; padding: 10px 16px;
+  border-radius: 10px; border: 1px solid #374151; color: #e5e7eb; text-decoration: none;
+  transition: background-color 0.12s ease;
+}
+.secondary:hover { background: rgba(148,163,184,0.06); }
+
+/* 기능 카드 */
+.features {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  max-width: 1080px;
+  margin: 0 auto 12px;
+}
+.card { background: #0b1222; border: 1px solid #1f2937; border-radius: 12px; padding: 16px; }
+.cardTitle { font-weight: 700; margin-bottom: 6px; }
+.cardDesc { color: #94a3b8; font-size: 14px; }

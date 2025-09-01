@@ -1,0 +1,51 @@
+/* src/Pages/Evaluation/DataSets/datasetsEmpty.module.css */
+
+.emptyWrap {
+    max-width: 980px;
+    margin: 28px auto 0;
+    text-align: center;
+}
+
+.emptyTitle {
+    font-size: 28px;
+    font-weight: 800;
+    margin: 0 0 10px;
+}
+
+.emptyDesc {
+    max-width: 840px;
+    margin: 0 auto 18px;
+    opacity: 0.9;
+}
+
+.emptyActions {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin: 8px 0 24px;
+}
+
+.emptyGrid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(260px, 1fr));
+    gap: 12px;
+    max-width: 840px;
+    margin: 0 auto;
+}
+
+.card {
+    border: 1px solid rgba(127, 127, 127, 0.25);
+    border-radius: 10px;
+    padding: 14px 16px;
+    text-align: left;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.cardTitle {
+    font-weight: 800;
+    margin-bottom: 6px;
+}
+
+.cardDesc {
+    opacity: 0.9;
+}

@@ -1,0 +1,57 @@
+/* src/Pages/Evaluation/DataSets/createDatasetModal.module.css */
+
+.modal {
+    width: 520px;
+    max-width: calc(100vw - 24px);
+    border: 1px solid rgba(127, 127, 127, 0.35);
+    border-radius: 12px;
+    background: #0f1115;
+    padding: 12px;
+}
+
+.modalTitle {
+    font-weight: 700;
+    font-size: 16px;
+    margin: 4px 4px 8px;
+}
+
+.modalBody {
+    padding: 0 4px 8px;
+}
+
+.modalActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 8px 4px 4px;
+}
+
+.label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.input,
+.textarea {
+    width: 100%;
+    box-sizing: border-box;
+    border-radius: 8px;
+    border: 1px solid rgba(127, 127, 127, 0.35);
+    background: transparent;
+    color: inherit;
+    padding: 8px 10px;
+    outline: none;
+    font-size: var(--fz);
+}
+
+.textarea {
+    min-height: 88px;
+    resize: vertical;
+}
+
+.help {
+    font-size: 12px;
+    opacity: 0.85;
+    margin-top: 6px;
+}

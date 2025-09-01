@@ -1,0 +1,92 @@
+/* src/Pages/Evaluation/DataSets/DatasetsPage.module.css */
+
+/* ====== globals / scale ====== */
+:root {
+  --chrome-offset: 116px;
+  --fz: 13px;
+  --pad-y: 6px;
+  --pad-x: 10px;
+}
+
+/* ====== page ====== */
+.page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  /* 부모 요소의 전체 높이를 차지하도록 설정 */
+  padding: 12px 16px 16px;
+  font-size: var(--fz);
+}
+
+.section {
+  max-width: none;
+  margin: 0;
+  padding: 0 8px;
+}
+
+.sectionTitle {
+  display: none !important;
+}
+
+/* 공통 버튼 */
+.primaryBtn {
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(127, 127, 127, 0.35);
+  background: #1f6feb;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.secondaryBtn {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(127, 127, 127, 0.35);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.dangerBtn {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 87, 87, 0.5);
+  background: rgba(255, 87, 87, 0.12);
+  color: #ff6b6b;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.primaryBtn:disabled,
+.dangerBtn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.alertError {
+  max-width: 780px;
+  margin: 16px 8px;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 87, 87, 0.35);
+  background: rgba(255, 87, 87, 0.08);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 6px 0 12px;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}

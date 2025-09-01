@@ -1,0 +1,90 @@
+/* src/Pages/Evaluation/DataSets/datasetsShared.module.css */
+
+/* 공통 버튼 */
+.primaryBtn {
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(127, 127, 127, 0.35);
+    background: #1f6feb;
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.secondaryBtn {
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(127, 127, 127, 0.35);
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+}
+
+.dangerBtn {
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 87, 87, 0.5);
+    background: rgba(255, 87, 87, 0.12);
+    color: #ff6b6b;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.primaryBtn:disabled,
+.dangerBtn:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
+.newBtn {
+    padding: 8px 14px;
+    border-radius: 9999px;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    background: #fff;
+    color: #0f1115;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.newBtn:hover {
+    filter: brightness(0.96);
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 34px;
+    padding: 0 12px;
+    border-radius: 10px;
+    font-weight: 700;
+    border: 1px solid rgba(127, 127, 127, 0.35);
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.btnNewDataset {
+    background: #fff;
+    color: #0f1115;
+    border-color: rgba(0, 0, 0, 0.14);
+}
+
+.btnGhost {
+    background: transparent;
+}
+
+.btn:hover {
+    filter: brightness(0.96);
+}
+
+.modalBackdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 60;
+}
