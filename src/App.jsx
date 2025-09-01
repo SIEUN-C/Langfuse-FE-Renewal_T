@@ -23,9 +23,9 @@ import ProjectGate from './components/ProjectId/ProjectGate';
 import Dataset from './Pages/Evaluation/DataSets/DatasetsPage'
 import JudgePage from './Pages/Evaluation/Judge/JudgePage';
 
-// import Dashboards from './pages/Dashboards/Dashboards';
-// import DashboardNew from './pages/Dashboards/DashboardNew';
-// import DashboardDetail from './pages/Dashboards/DashboardDetail';
+import Dashboards from "./Pages/Dashboards/Dashboards";
+import DashboardNew from "./Pages/Dashboards/DashboardNew";
+import DashboardDetail from "./Pages/Dashboards/DashboardDetail";
 // import WidgetNew from './pages/Dashboards/WidgetNew';
 
 import SettingsPage from './Pages/Settings/SettingsPage';
@@ -108,10 +108,26 @@ export default function App() {
         <Route path="evaluation/:id" element={<Navigate to="/scores/:id" replace />} />
         <Route path="evaluation/:id/edit" element={<Navigate to="/scores/:id/edit" replace />} /> */}
 
-        {/* <Route path="dashboards" element={<Dashboards />} />
-        <Route path="dashboards/new" element={<DashboardNew />} />
-        <Route path="dashboards/widgets/new" element={<WidgetNew />} />
-        <Route path="dashboards/:dashboardId" element={<DashboardDetail />} /> */}
+          {/* Playground와 동일한 패턴으로 수정 */}
+          <Route path="project/:projectId/dashboards" element={<Dashboards />} />
+        <Route
+          path="project/:projectId/dashboards/new"
+          element={<DashboardNew />}
+        />
+       
+        <Route
+          path="project/:projectId/dashboards/:dashboardId"
+          element={<DashboardDetail />}
+        /> 
+
+         {/* <Route
+          path="project/:projectId/dashboards/widgets/new"
+          element={<WidgetNew />}
+        />
+        */}
+
+        {/* 짧은 경로는 ProjectGate 사용*/}
+        <Route path="dashboards" element={<ProjectGate />} />
 
         <Route path="settings" element={<SettingsPage />}>
           <Route index element={<General />} />

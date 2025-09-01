@@ -11,9 +11,7 @@ import ProjectIdBanner from "./ProjectIdBanner";
  * 이 컴포넌트는 어떤 페이지에도 재사용 가능 (예: Datasets, Sessions 등).
  */
 export default function ProjectGate() {
-
-    const location = useLocation();
-    const { projectId } = useProjectId({ location, validateAgainstSession: true });
+    const { projectId, setProjectId } = useProjectId();
 
     // 훅이 아직 URL/쿼리/localStorage를 탐색 중인 상태
     if (projectId === null) return null;
@@ -21,6 +19,8 @@ export default function ProjectGate() {
     // 못 찾았으면 배너 노출 → onSave가 setProjectId를 호출하면 저장됨(localStorage 포함)
     if (projectId === "") return <ProjectIdBanner onSave={setProjectId} />;
 
-    // 찾았으면 표준 경로로 이동
-    return <Navigate to={`/project/${projectId}/playground`} replace />;
+   // 현재 경로에서 타겟 패스 추출
+   const targetPath = location.pathname.replace(/^\//, ''); // 맨 앞 / 제거
+
+   return <Navigate to={`/project/${projectId}/${targetPath}`} replace />;
 }
