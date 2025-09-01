@@ -1,7 +1,7 @@
-/* ==============================================================
-   ModelAdvancedSettingsPopover.module.css
-   - [수정] Playground 팀의 CSS 코드를 그대로 적용하여 UI를 일치시킵니다.
-============================================================== */
+/*
+  src/Pages/Prompts/ModelAdvancedSettingsPopover.module.css
+  Playground의 CSS 코드를 그대로 적용하여 UI를 일치시킵니다.
+*/
 
 /* 메인 컨테이너 */
 .advWrap {
@@ -19,7 +19,6 @@
     opacity: 0;
     transform: translateY(10px);
   }
-
   to {
     opacity: 1;
     transform: translateY(0);
