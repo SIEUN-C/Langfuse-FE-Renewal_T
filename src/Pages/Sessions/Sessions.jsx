@@ -2,14 +2,14 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import styles from './Sessions.module.css';
 import { Columns } from 'lucide-react';
-import ColumnVisibilityModal from '../ColumnVisibilityModal.jsx';
-import { DataTable } from '../../../components/DataTable/DataTable.jsx';
+import ColumnVisibilityModal from '../Tracing/ColumnVisibilityModal.jsx';
+import { DataTable } from '../../components/DataTable/DataTable.jsx';
 import { sessionTableColumns } from './sessionColumns.jsx';
-import FilterButton from '../../../components/FilterButton/FilterButton.jsx';
-import FilterControls from '../../../components/FilterControls/FilterControls';
+import FilterButton from '../../components/FilterButton/FilterButton.jsx';
+import FilterControls from '../../components/FilterControls/FilterControls.jsx';
 import DateRangePicker from 'components/DateRange/DateRangePicker.jsx';
 import { fetchSessions } from './SessionApi.js';
-import { sessionsFilterConfig } from '../../../components/FilterControls/filterConfig'; // [수정] sessionsFilterConfig를 import 합니다.
+import { sessionsFilterConfig } from '../../components/FilterControls/filterConfig.js'; // [수정] sessionsFilterConfig를 import 합니다.
 
 const Sessions = () => {
     const [sessions, setSessions] = useState([]);
@@ -39,7 +39,7 @@ const Sessions = () => {
             setSessions(fetchedSessions);
             const initialFavorites = {};
             fetchedSessions.forEach(s => {
-              initialFavorites[s.id] = s.isFavorited || false;
+                initialFavorites[s.id] = s.isFavorited || false;
             });
             setFavoriteState(initialFavorites);
         } catch (err) {
@@ -94,7 +94,7 @@ const Sessions = () => {
             />
         );
     };
-    
+
     return (
         <div className={styles.container}>
             <div className={styles.filterBar}>

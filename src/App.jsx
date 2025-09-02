@@ -8,8 +8,8 @@ import Login from './Pages/Login/LoginPage'
 import Home from './Pages/Home/Home';
 
 import Tracing from './Pages/Tracing/Tracing';
-import Sessions from './Pages/Tracing/Sessions/Sessions';
-import SessionDetail from './Pages/Tracing/Sessions/SessionDetail';
+import Sessions from './Pages/Sessions/Sessions';
+import SessionDetail from './Pages/Sessions/SessionDetail';
 
 import Prompts from './Pages/Prompts/Prompts';
 import PromptsDetail from './Pages/Prompts/PromptsDetail';
