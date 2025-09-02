@@ -30,6 +30,11 @@ import { fetchPromptVersions } from './PromptsDetailApi.js';
 import { deletePromptVersion, fetchPrompts } from './promptsApi.js';
 // --- ▲▲▲ [추가]  프롬프트 이동 화살표 구현 + 버전 삭제 ▲▲▲ ---
 import NewExperimentModal from './NewExperimentModal';
+// --- ▼▼▼ [추가] Comments ▼▼▼ ---
+import SidePanel from '../../components/SidePanel/SidePanel.jsx';
+import Comments from '../../components/Comments/Comments.jsx';
+import { useComments } from '../../hooks/useComments.js';
+// --- ▲▲▲ [추가] Comments ▲▲▲ ---
 
 // --- ▼▼▼ [추가] Reference 멘션 기능 구현 ▼▼▼ ---
 // 이 컴포넌트는 텍스트를 분석하여 참조 태그를 클릭 가능한 멘션으로 렌더링합니다.
@@ -78,7 +83,7 @@ const PromptContentViewer = ({ content }) => {
     return elements;
   }, [content, navigate]);
 
-  return <pre>{parsedContent}</pre>;
+  return <pre>{parsedContent.length > 0 ? parsedContent : content}</pre>;
 };
 // --- ▲▲▲ [추가] Reference 멘션 기능 구현 ▲▲▲ ---
 
@@ -106,6 +111,19 @@ export default function PromptsDetail() {
   const [isVersionMenuOpen, setVersionMenuOpen] = useState(false);
   const versionMenuRef = useRef(null);
   // --- ▲▲▲ [추가] 버전 삭제 ▲▲▲ ---
+  // --- ▼▼▼ [추가] Comments ▼▼▼ ---
+  const [isCommentsOpen, setIsCommentsOpen] = useState(false);
+
+  // useComments 훅을 사용하여 댓글 데이터 및 함수를 가져옵니다.
+  // selectedVersion이 있을 때만 objectId를 전달합니다.
+  const {
+    comments,
+    isLoading: isCommentsLoading,
+    error: commentsError,
+    addComment,
+    removeComment,
+  } = useComments(projectId, 'PROMPT', selectedVersion?.dbId);
+  // --- ▲▲▲ [추가] Comments ▲▲▲ ---
 
   // 2. Memoized Values
   const filteredVersions = useMemo(() => {
@@ -139,8 +157,18 @@ export default function PromptsDetail() {
 
   const variables = useMemo(() => {
     if (!selectedVersion) return [];
-    const content = selectedVersion.prompt;
-    const textToScan = `${content.system || ''} ${content.user || ''}`;
+    const promptData = selectedVersion.prompt;
+    let textToScan = '';
+
+    if (Array.isArray(promptData)) {
+      textToScan = promptData.map(m => m.content || '').join(' ');
+    } else if (typeof promptData === 'string') {
+      textToScan = promptData;
+    } else if (promptData && typeof promptData === 'object') {
+      // 이전 구조 호환성 유지
+      textToScan = `${promptData.system || ''} ${promptData.user || ''}`;
+    }
+
     const regex = /{{\s*([\w\d_]+)\s*}}/g;
     const matches = textToScan.match(regex) || [];
     const uniqueVars = new Set(matches.map(v => v.replace(/[{}]/g, '').trim()));
@@ -445,7 +473,11 @@ export default function PromptsDetail() {
               >
                 Dataset run
               </button>
-              <button className={styles.iconButton}><MessageCircle size={16} /></button>
+              {/* --- ▼▼▼ [수정] Comments ▼▼▼ --- */}
+              <button className={styles.iconButton} onClick={() => setIsCommentsOpen(true)}>
+                <MessageCircle size={16} />
+              </button>
+              {/* --- ▲▲▲ [수정] Comments ▲▲▲ --- */}
               {/* --- ▼▼▼ [수정] 버전 삭제 ▼▼▼ --- */}
               <div className={styles.versionMenuContainer} ref={versionMenuRef}>
                 <button
@@ -468,24 +500,28 @@ export default function PromptsDetail() {
           <div className={styles.promptArea}>
             {activeDetailTab === 'Prompt' && (
               <>
-                {selectedVersion.prompt.system && (
-                  <div className={styles.promptCard}>
-                    <div className={styles.promptHeader}>System Prompt</div>
-                    {/* --- ▼▼▼ [수정] Reference 멘션 기능 구현 ▼▼▼ --- */}
-                    <div className={styles.promptBody}>
-                      <PromptContentViewer content={selectedVersion.prompt.system} />
+                {Array.isArray(selectedVersion.prompt) ? (
+                  // Chat 타입 렌더링
+                  selectedVersion.prompt.map((message, index) => (
+                    <div className={styles.promptCard} key={index}>
+                      <div className={styles.promptHeader}>
+                        {/* 'placeholder' 역할의 첫 글자를 대문자로 변경하여 표시 */}
+                        {message.role.charAt(0).toUpperCase() + message.role.slice(1)}
+                      </div>
+                      <div className={styles.promptBody}>
+                        <PromptContentViewer content={message.content} />
+                      </div>
                     </div>
-                    {/* --- ▲▲▲ [수정] Reference 멘션 기능 구현 ▲▲▲ --- */}
+                  ))
+                ) : (
+                  // Text 타입 렌더링
+                  <div className={styles.promptCard}>
+                    <div className={styles.promptHeader}>Text Prompt</div>
+                    <div className={styles.promptBody}>
+                      <PromptContentViewer content={selectedVersion.prompt} />
+                    </div>
                   </div>
                 )}
-                <div className={styles.promptCard}>
-                  <div className={styles.promptHeader}>Text Prompt</div>
-                  {/* --- ▼▼▼ [수정] Reference 멘션 기능 구현 ▼▼▼ --- */}
-                  <div className={styles.promptBody}>
-                    <PromptContentViewer content={selectedVersion.prompt.user} />
-                  </div>
-                  {/* --- ▲▲▲ [수정] Reference 멘션 기능 구현 ▲▲▲ --- */}
-                </div>
                 {variables.length > 0 && (
                   <div className={styles.variablesInfo}>
                     The following variables are available:
@@ -494,24 +530,6 @@ export default function PromptsDetail() {
                     </div>
                   </div>
                 )}
-              </>
-            )}
-            {activeDetailTab === 'Config' && (
-              <div className={styles.promptCard}>
-                <div className={styles.promptHeader}>Config</div>
-                <div className={styles.promptBody}><pre>{JSON.stringify(selectedVersion.config ?? {}, null, 2)}</pre></div>
-              </div>
-            )}
-            {activeDetailTab === 'Use' && (
-              <>
-                <div className={styles.promptCard}>
-                  <div className={styles.promptHeader}>Python</div>
-                  <div className={styles.promptBody}><pre>{selectedVersion.useprompts.python}</pre></div>
-                </div>
-                <div className={styles.promptCard}>
-                  <div className={styles.promptHeader}>JS/TS</div>
-                  <div className={styles.promptBody}><pre>{selectedVersion.useprompts.jsTs}</pre></div>
-                </div>
               </>
             )}
             {activeDetailTab === 'Generations' && <div className={styles.placeholder}>No generations linked yet.</div>}
@@ -537,6 +555,22 @@ export default function PromptsDetail() {
           promptVersion={selectedVersion?.id}
         />
       )}
+
+      {/* --- ▼▼▼ [추가] Comments ▼▼▼ --- */}
+      <SidePanel
+        title="Comments"
+        isOpen={isCommentsOpen}
+        onClose={() => setIsCommentsOpen(false)}
+      >
+        <Comments
+          comments={comments}
+          isLoading={isCommentsLoading}
+          error={commentsError}
+          onAddComment={addComment}
+          onDeleteComment={removeComment}
+        />
+      </SidePanel>
+      {/* --- ▲▲▲ [추가] Comments ▲▲▲ --- */}
     </div>
   );
 }

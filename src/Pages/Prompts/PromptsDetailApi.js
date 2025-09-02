@@ -65,10 +65,7 @@ export const fetchPromptVersions = async (promptName) => {
       labels: v.labels,
       details: v.updatedAt ? new Date(v.updatedAt).toLocaleString() : 'N/A',
       author: v.createdBy,
-      prompt: {
-        user: isChatPrompt(v.prompt) ? v.prompt.find(p => p.role === 'user')?.content ?? '' : v.prompt,
-        system: isChatPrompt(v.prompt) ? v.prompt.find(p => p.role === 'system')?.content : undefined,
-      },
+      prompt: v.prompt,
       config: v.config,
       useprompts: { python: pythonCode, jsTs: jsTsCode },
       tags: v.tags,

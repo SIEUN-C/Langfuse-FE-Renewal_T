@@ -7,7 +7,10 @@ import { DataTable } from '../../components/DataTable/DataTable.jsx';
 import { sessionTableColumns } from './sessionColumns.jsx';
 import FilterButton from '../../components/FilterButton/FilterButton.jsx';
 import FilterControls from '../../components/FilterControls/FilterControls.jsx';
-import DateRangePicker from 'components/DateRange/DateRangePicker.jsx';
+// import DateRangePicker from 'components/DateRange/DateRangePicker.jsx';
+import { useEnvironmentFilter } from '../../hooks/useEnvironmentFilter.js'; // 추가
+import { useTimeRangeFilter } from '../../hooks/useTimeRangeFilter.js'; // 추가
+import dayjs from 'dayjs'; // 추가
 import { fetchSessions } from './SessionApi.js';
 import { sessionsFilterConfig } from '../../components/FilterControls/filterConfig.js'; // [수정] sessionsFilterConfig를 import 합니다.
 
@@ -50,6 +53,42 @@ const Sessions = () => {
     };
 
     useEffect(() => { loadSessions(); }, []);
+
+    // ▼▼▼ filter + UI  ▼▼▼
+    const timeRangeFilter = useTimeRangeFilter();
+
+    const allEnvironments = useMemo(() => {
+        if (!sessions || sessions.length === 0) return [];
+        const uniqueEnvNames = [...new Set(sessions.map(s => s.environment || 'default'))];
+        return uniqueEnvNames.map((name, index) => ({ id: `env-${index}`, name }));
+    }, [sessions]);
+
+    const { selectedEnvs, ...envFilterProps } = useEnvironmentFilter(allEnvironments);
+
+    const filteredSessions = useMemo(() => {
+        let tempSessions = sessions;
+
+        // Environment 필터 적용
+        const selectedEnvNames = new Set(selectedEnvs.map(e => e.name));
+        if (selectedEnvNames.size > 0) {
+            tempSessions = tempSessions.filter(session => selectedEnvNames.has(session.environment));
+        }
+
+        // Time Range 필터 적용
+        const { startDate, endDate } = timeRangeFilter;
+        if (startDate && endDate) {
+            tempSessions = tempSessions.filter(session => {
+                const sessionTimestamp = dayjs(session.createdAt);
+                return sessionTimestamp.isAfter(startDate) && sessionTimestamp.isBefore(endDate);
+            });
+        }
+
+        // 여기에 다른 필터 로직(Search, FilterBuilder)을 추가할 수 있습니다.
+
+        return tempSessions;
+    }, [sessions, selectedEnvs, timeRangeFilter]);
+    // ▲▲▲ filter + UI ▲▲▲
+
 
     // [수정] builderFilterProps 객체에 sessionsFilterConfig를 전달합니다.
     const builderFilterProps = {
@@ -99,16 +138,15 @@ const Sessions = () => {
         <div className={styles.container}>
             <div className={styles.filterBar}>
                 <div className={styles.filterLeft}>
-                    <DateRangePicker
-                        startDate={startDate}
-                        endDate={endDate}
-                        setStartDate={setStartDate}
-                        setEndDate={setEndDate}
+                    {/* DateRangePicker 대신 FilterControls를 사용합니다. */}
+                    <FilterControls 
+                        onRefresh={loadSessions} 
+                        envFilterProps={envFilterProps}
+                        timeRangeFilterProps={timeRangeFilter}
+                        builderFilterProps={builderFilterProps} 
                     />
                 </div>
                 <div className={styles.filterRight}>
-                    {/* [수정] FilterControls에 올바른 builderFilterProps를 전달합니다. */}
-                    <FilterControls onRefresh={loadSessions} builderFilterProps={builderFilterProps} />
                     <FilterButton onClick={() => setIsColumnVisibleModalOpen(true)}>
                         <Columns size={16} /> Columns ({visibleColumns.length}/{columns.length})
                     </FilterButton>

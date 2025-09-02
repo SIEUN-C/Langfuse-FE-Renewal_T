@@ -1,13 +1,7 @@
 // src/hooks/useComments.js
 import { useState, useEffect, useCallback } from 'react';
-import { fetchComments, createComment, deleteComment } from 'api/components/commentsApi';
+import { fetchComments, createComment, deleteComment } from '../components/Comments/commentsApi';
 
-/**
- * 댓글 관련 로직을 관리하는 커스텀 훅
- * @param {string} projectId - 댓글이 속한 프로젝트의 ID
- * @param {'TRACE' | 'OBSERVATION'} objectType
- * @param {string} objectId
- */
 export const useComments = (projectId, objectType, objectId) => {
   const [comments, setComments] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -31,11 +25,9 @@ export const useComments = (projectId, objectType, objectId) => {
     loadComments();
   }, [loadComments]);
 
-  // 댓글 추가 함수
   const addComment = async (content) => {
     if (!objectId || !projectId) return { success: false, error: 'ID is missing.' };
     try {
-      // [수정] projectId를 createComment 함수로 전달
       await createComment({ projectId, objectType, objectId, content });
       await loadComments();
       return { success: true };
@@ -44,11 +36,12 @@ export const useComments = (projectId, objectType, objectId) => {
     }
   };
 
-  // 댓글 삭제 함수
+  // 세션 조회 로직을 제거하고, deleteComment 호출 시 userId를 전달하지 않습니다.
   const removeComment = async (commentId) => {
     if (!objectId) return { success: false, error: 'Object ID is missing.' };
+    
     try {
-      await deleteComment({ commentId });
+      await deleteComment({ commentId, projectId, objectId, objectType });
       await loadComments();
       return { success: true };
     } catch (err) {

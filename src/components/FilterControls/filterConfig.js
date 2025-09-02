@@ -44,8 +44,19 @@ export const tracingFilterConfig = [
 ];
 
 export const sessionsFilterConfig = [
-  { key: "id", label: "ID", type: "string", operators: commonStringOperators },
-  { key: "createdAt", label: "Created At", type: "date", operators: commonNumericOperators },
-  { key: "projectId", label: "Project ID", type: "string", operators: commonStringOperators },
-  { key: "environment", label: "Environment", type: "categorical", operators: commonCategoricalOperators, options: [] }, // 옵션은 동적으로 채울 수 있도록 비워둡니다.
+  { key: "id", label: "ID", type: "string", operators: commonNumericOperators },
+  { key: "userids", label: "User IDs", type: "string", operators: allCategoricalOperators, options: [] },
+  { key: "sessionduration", label: "Session Duration (s)", type: "numeric", operators: commonNumericOperators },
+  { key: "createdat", label: "Created At", type: "date", operators: commonNumericOperators },
+  { key: "tracescount", label: "Traces Count", type: "numeric", operators: commonNumericOperators },
+  { key: "inputcost", label: "Input Cost ($)", type: "numeric", operators: commonNumericOperators },
+  { key: "outputcost", label: "Output Cost ($)", type: "numeric", operators: commonNumericOperators },
+  { key: "totalcost", label: "Total Cost ($)", type: "numeric", operators: commonNumericOperators },
+  { key: "inputtokens", label: "Input Tokens", type: "numeric", operators: commonNumericOperators },
+  { key: "outputtokens", label: "Output Tokens", type: "numeric", operators: commonNumericOperators },
+  { key: "totaltokens", label: "Total Tokens", type: "numeric", operators: commonNumericOperators },
+  { key: "usage", label: "Usage", type: "numeric", operators: commonNumericOperators },
+  { key: "tracetags", label: "Trace Tags", type: "string", operators: allCategoricalOperators, options: [] },
+  { key: "scores(numeric)", label: "Scores (numeric)", type: "numeric", operators: commonNumericOperators, hasMetaKey: true },
+  { key: "scores(categorical)", label: "Scores (categorical)", type: "categorical", operators: commonCategoricalOperators, hasMetaKey: true, options: [] },
 ];

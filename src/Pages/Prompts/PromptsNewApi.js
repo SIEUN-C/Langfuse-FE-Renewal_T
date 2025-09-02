@@ -6,8 +6,7 @@ import axios from 'axios';
  * @param {object} params - 프롬프트 생성에 필요한 파라미터 객체
  * @param {string} projectId - API를 호출할 프로젝트의 ID
  */
-export const createPromptOrVersion = async (params, projectId) => { // [수정] projectId를 두 번째 인자로 받도록 변경
-  // [수정] projectId가 없으면 에러를 발생시켜 API 호출을 막습니다.
+export const createPromptOrVersion = async (params, projectId) => { 
   if (!projectId) {
     throw new Error("Project ID is missing. Cannot create prompt.");
   }
@@ -28,13 +27,13 @@ export const createPromptOrVersion = async (params, projectId) => { // [수정] 
 
   const payload = {
     json: {
-      projectId: projectId, // [수정] 인자로 전달받은 projectId를 사용
+      projectId: projectId, 
       name: promptName,
       type: promptType.toLowerCase(),
       prompt: promptType === 'Text'
         ? textContent
+        // [수정] 아래 .filter(...) 부분을 제거하여 placeholder가 포함되도록 합니다.
         : chatContent
-            .filter(msg => msg.role !== 'Placeholder')
             .map(({ role, content }) => ({ role: role.toLowerCase(), content: content || '' })),
       config: JSON.parse(config),
       labels: activeLabels,
@@ -51,7 +50,6 @@ export const createPromptOrVersion = async (params, projectId) => { // [수정] 
     await axios.post('/api/trpc/prompts.create', payload);
   } catch (error) {
     console.error("Failed to create prompt via tRPC:", error);
-    // [수정] 에러 메시지를 좀 더 구체적으로 전달합니다.
     const errorMessage = error.response?.data?.error?.json?.message || "An unknown error occurred while creating the prompt.";
     throw new Error(errorMessage);
   }
