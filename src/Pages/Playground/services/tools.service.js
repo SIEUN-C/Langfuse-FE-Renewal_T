@@ -1,5 +1,5 @@
 // tools.service.js
-import { trpcQuery, trpcMutation } from "./PlaygroundTrpcApi";
+import { trpcQuery, trpcMutation } from "./trpc.client";
 export const ToolsAPI = {
   async list(projectId) {
     const payload = await trpcQuery("llmTools.getAll", { projectId });

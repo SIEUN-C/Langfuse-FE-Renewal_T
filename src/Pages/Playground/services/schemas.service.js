@@ -1,5 +1,5 @@
 // schemas.service.js
-import { trpcQuery, trpcMutation } from "./PlaygroundTrpcApi";
+import { trpcQuery, trpcMutation } from "./trpc.client";
 export const SchemasAPI = {
   async list(projectId) {
     const payload = await trpcQuery("llmSchemas.getAll", { projectId });

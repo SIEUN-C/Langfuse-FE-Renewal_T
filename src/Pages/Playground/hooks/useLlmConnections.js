@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { llmApiKeyAll } from "../services/PlaygroundTrpcApi";
+import { llmApiKeyAll } from "../services/trpc.client";
 
 export default function useLlmConnections(projectId) {
     const [connections, setConnections] = useState([]);
