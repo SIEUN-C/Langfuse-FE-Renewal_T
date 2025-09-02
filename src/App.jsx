@@ -1,40 +1,44 @@
 // src/App.jsx
-import React, { useState, useEffect } from 'react'; // useState와 useEffect를 import 해야 합니다.
-import { Routes, Route, Navigate } from 'react-router-dom';
-import Layout from './layouts/Layout';
+import React, { useState, useEffect } from "react"; // useState와 useEffect를 import 해야 합니다.
+import { Routes, Route, Navigate } from "react-router-dom";
+import Layout from "./layouts/Layout";
 
-import Login from './Pages/Login/LoginPage'
+import Login from "./Pages/Login/LoginPage";
 
-import Home from './Pages/Home/Home';
+import Home from "./Pages/Home/Home";
 
-import Tracing from './Pages/Tracing/Tracing';
-import Sessions from './Pages/Sessions/Sessions';
-import SessionDetail from './Pages/Sessions/SessionDetail';
+import Tracing from "./Pages/Tracing/Tracing";
+import Sessions from "./Pages/Sessions/Sessions";
+import SessionDetail from "./Pages/Sessions/SessionDetail";
 
-import Prompts from './Pages/Prompts/Prompts';
-import PromptsDetail from './Pages/Prompts/PromptsDetail';
-import PromptsNew from './Pages/Prompts/PromptsNew';
+import Prompts from "./Pages/Prompts/Prompts";
+import PromptsDetail from "./Pages/Prompts/PromptsDetail";
+import PromptsNew from "./Pages/Prompts/PromptsNew";
 
-import Playground from './Pages/Playground/Playground';
+import Playground from "./Pages/Playground/Playground";
 
 // ⭐ 추가: 게이트 컴포넌트 임포트
-import ProjectGate from './components/ProjectId/ProjectGate';
+import ProjectGate from "./components/ProjectId/ProjectGate";
 
-import Dataset from './Pages/Evaluation/DataSets/DatasetsPage'
-import JudgePage from './Pages/Evaluation/Judge/JudgePage';
+import Dataset from "./Pages/Evaluation/DataSets/DatasetsPage";
+import JudgePage from "./Pages/Evaluation/Judge/JudgePage";
 
-// import Dashboards from './pages/Dashboards/Dashboards';
-// import DashboardNew from './pages/Dashboards/DashboardNew';
-// import DashboardDetail from './pages/Dashboards/DashboardDetail';
-// import WidgetNew from './pages/Dashboards/WidgetNew';
+// 대시보드
+import Dashboards from "./Pages/Dashboards/Dashboards";
+import DashboardNew from "./Pages/Dashboards/DashboardNew";
+import DashboardDetail from "./Pages/Dashboards/DashboardDetail";
 
-import SettingsPage from './Pages/Settings/SettingsPage';
-import General from './Pages/Settings/General';
-import ApiKeys from './Pages/Settings/ApiKeys';
+// 위젯 관련 컴포넌트 임포트 추가
+import { WidgetsView } from "./Pages/Widget/pages/WidgetsView";
+import NewWidget from "./Pages/Widget/pages/NewWidget";
+
+import SettingsPage from "./Pages/Settings/SettingsPage";
+import General from "./Pages/Settings/General";
+import ApiKeys from "./Pages/Settings/ApiKeys";
 import LLMConnections from "./Pages/Settings/LLMConnections";
-import Models from './Pages/Settings/Models';
-import Members from './Pages/Settings/Members';
-import Scores from './Pages/Settings/Scores';
+import Models from "./Pages/Settings/Models";
+import Members from "./Pages/Settings/Members";
+import Scores from "./Pages/Settings/Scores";
 
 export default function App() {
   const [session, setSession] = useState(null);
@@ -44,7 +48,7 @@ export default function App() {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const res = await fetch('/api/auth/session');
+        const res = await fetch("/api/auth/session");
         const data = await res.json();
 
         // 응답 데이터에 내용이 있으면(로그인 상태이면) session 상태에 저장
@@ -70,13 +74,21 @@ export default function App() {
   return (
     <Routes>
       {/* 로그인 */}
-      <Route path="/login" element={!session ? <Login /> : <Navigate to="/" />} />
+      <Route
+        path="/login"
+        element={!session ? <Login /> : <Navigate to="/" />}
+      />
 
       {/* // <<< START: setting 깨짐 값을 위해 수정된 부분 >>></START: 수정된> */}
       {/* <Route path="/" element={session ? <Layout /> : <Navigate to="/login" />} > */}
 
       {/* 셋팅 부분 깨짐 현상 수정을 위한 추가 _ 20250901 */}
-      <Route path="/" element={session ? <Layout session={session} /> : <Navigate to="/login" />}>
+      <Route
+        path="/"
+        element={
+          session ? <Layout session={session} /> : <Navigate to="/login" />
+        }
+      >
         {/* // <<< END: setting 깨짐 값을 위해 수정된 부분 >>>   */}
 
         {/* 홈 -> /trace 경로로 리디렉션 */}
@@ -108,21 +120,49 @@ export default function App() {
         <Route path="evaluation/:id" element={<Navigate to="/scores/:id" replace />} />
         <Route path="evaluation/:id/edit" element={<Navigate to="/scores/:id/edit" replace />} /> */}
 
-        {/* <Route path="dashboards" element={<Dashboards />} />
-        <Route path="dashboards/new" element={<DashboardNew />} />
-        <Route path="dashboards/widgets/new" element={<WidgetNew />} />
-        <Route path="dashboards/:dashboardId" element={<DashboardDetail />} /> */}
+        {/* Dashboard & Widget Routes */}
+        <Route path="project/:projectId/dashboards" element={<Dashboards />} />
+        <Route
+          path="project/:projectId/dashboards/new"
+          element={<DashboardNew />}
+        />
+        <Route
+          path="project/:projectId/dashboards/:dashboardId"
+          element={<DashboardDetail />}
+        />
+
+        {/* 위젯 전용 라우트들 */}
+        <Route path="project/:projectId/widgets" element={<WidgetsView />} />
+        <Route path="project/:projectId/widgets/new" element={<NewWidget />} />
+        <Route
+          path="project/:projectId/widgets/:widgetId"
+          element={<div>Widget Detail Page (구현 필요)</div>}
+        />
+        <Route
+          path="project/:projectId/widgets/:widgetId/edit"
+          element={<div>Widget Edit Page (구현 필요)</div>}
+        />
+
+        {/* 대시보드 내에서 위젯 생성 (기존 경로 유지) */}
+        <Route
+          path="project/:projectId/dashboards/widgets/new"
+          element={<NewWidget />}
+        />
+
+        {/* 짧은 경로는 ProjectGate 사용*/}
+        <Route path="dashboards" element={<ProjectGate />} />
+        <Route path="widgets" element={<ProjectGate />} />
 
         <Route path="settings" element={<SettingsPage />}>
           <Route index element={<General />} />
-          <Route path="api-keys" element={<ApiKeys />} /> {/* setting설정값을 위한 추가 20250901 */}
+          <Route path="api-keys" element={<ApiKeys />} />{" "}
+          {/* setting설정값을 위한 추가 20250901 */}
           <Route path="llm-connections" element={<LLMConnections />} />
           <Route path="models" element={<Models />} />
           <Route path="scores" element={<Scores />} />
           <Route path="members" element={<Members />} />
         </Route>
-
       </Route>
-    </Routes >
+    </Routes>
   );
 }

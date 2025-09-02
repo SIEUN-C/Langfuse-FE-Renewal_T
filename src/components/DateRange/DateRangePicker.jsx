@@ -8,14 +8,22 @@ import styles from './DateRangePicker.module.css';
 import DateRangePopup from './DateRangePopup';
 import { dateRangeOptions } from './dateRangeOptions';
 
-const DateRangePicker = ({ startDate, endDate, setStartDate, setEndDate }) => {
+const DateRangePicker = ({ 
+  startDate, 
+  endDate, 
+  setStartDate, 
+  setEndDate, 
+  setBothDates,
+  onPresetChange 
+}) => {
   const [isPickerOpen, setIsPickerOpen] = useState(false);
   const calendarButtonRef = useRef(null);
   
   const [dateRangePreset, setDateRangePreset] = useState('7d');
 
+  // 프리셋 선택 시 날짜 계산 및 상위 컴포넌트에 전달
   useEffect(() => {
-    if (!dateRangePreset) return;
+    if (!dateRangePreset || dateRangePreset === 'custom') return;
 
     const newEndDate = new Date();
     let newStartDate;
@@ -24,16 +32,34 @@ const DateRangePicker = ({ startDate, endDate, setStartDate, setEndDate }) => {
     const value = parseInt(valueStr) || 1;
 
     switch (unit) {
-      case 'm': newStartDate = dayjs(newEndDate).subtract(value, 'minute').toDate(); break;
-      case 'h': newStartDate = dayjs(newEndDate).subtract(value, 'hour').toDate(); break;
-      case 'd': newStartDate = dayjs(newEndDate).subtract(value, 'day').toDate(); break;
-      case 'M': newStartDate = dayjs(newEndDate).subtract(value, 'month').toDate(); break;
-      case 'y': newStartDate = dayjs(newEndDate).subtract(value, 'year').toDate(); break;
-      default: newStartDate = new Date();
+      case 'm': 
+        newStartDate = dayjs(newEndDate).subtract(value, 'minute').toDate(); 
+        break;
+      case 'h': 
+        newStartDate = dayjs(newEndDate).subtract(value, 'hour').toDate(); 
+        break;
+      case 'd': 
+        newStartDate = dayjs(newEndDate).subtract(value, 'day').toDate(); 
+        break;
+      case 'M': 
+        newStartDate = dayjs(newEndDate).subtract(value, 'month').toDate(); 
+        break;
+      case 'y': 
+        newStartDate = dayjs(newEndDate).subtract(value, 'year').toDate(); 
+        break;
+      default: 
+        newStartDate = new Date();
     }
-    setStartDate(newStartDate);
-    setEndDate(newEndDate);
-  }, [dateRangePreset, setStartDate, setEndDate]);
+
+    // 상위 컴포넌트에 변경사항 전달
+    if (onPresetChange) {
+      onPresetChange(newStartDate, newEndDate);
+    } else {
+      // fallback: 직접 setter 호출
+      setStartDate(newStartDate);
+      setEndDate(newEndDate);
+    }
+  }, [dateRangePreset]);
 
   const formattedDateRange = useMemo(() => {
     const start = dayjs(startDate).format('MMM D, YY HH:mm');
@@ -62,7 +88,7 @@ const DateRangePicker = ({ startDate, endDate, setStartDate, setEndDate }) => {
           <ChevronDown size={16} className={styles.presetArrow} />
           <select
             className={styles.presetSelect}
-            value={dateRangePreset || ''}
+            value={dateRangePreset || 'custom'}
             onChange={(e) => setDateRangePreset(e.target.value)}
           >
             {dateRangeOptions.map((option) => (
@@ -81,11 +107,15 @@ const DateRangePicker = ({ startDate, endDate, setStartDate, setEndDate }) => {
             endDate={endDate}
             setStartDate={(date) => {
               setStartDate(date);
-              setDateRangePreset(null);
+              setDateRangePreset('custom');
             }}
             setEndDate={(date) => {
               setEndDate(date);
-              setDateRangePreset(null);
+              setDateRangePreset('custom');
+            }}
+            setBothDates={(startDate, endDate) => {
+              setBothDates(startDate, endDate);
+              setDateRangePreset('custom');
             }}
             onClose={() => setIsPickerOpen(false)}
             triggerRef={calendarButtonRef}

@@ -1,0 +1,297 @@
+/* src/pages/Dashboards/DashboardDetail.module.css */
+
+/* =========================
+   메인 컨테이너
+   ========================= */
+   .container {
+    padding: 24px;
+    color: #f8fafc;
+    background-color: #020817;
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  /* =========================
+     헤더 섹션
+     ========================= */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .titleGroup {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .title {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0;
+  }
+  
+  .actions {
+    display: flex;
+    gap: 8px;
+  }
+  
+  .addButton,
+  .cloneButton {
+    background-color: #f8fafc;
+    color: #020817;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background-color 0.2s;
+  }
+  
+  .addButton:hover,
+  .cloneButton:hover {
+    background-color: #e2e8f0;
+  }
+  
+  .cloneButton {
+    background-color: #0f172a;
+    color: #cbd5e1;
+    border: 1px solid #334155;
+  }
+  
+  .cloneButton:hover {
+    background-color: #1e293b;
+  }
+  
+  /* =========================
+     필터 바
+     ========================= */
+  .filterBar {
+    display: flex;
+    gap: 8px;
+  }
+  
+  .filterButton {
+    background-color: #0f172a;
+    color: #cbd5e1;
+    border: 1px solid #334155;
+    padding: 7px 12px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .filterButton:hover {
+    background-color: #1e293b;
+  }
+  
+  /* =========================
+     메인 콘텐츠 영역
+     ========================= */
+  .mainContent {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* =========================
+     대시보드 그리드 (react-grid-layout용)
+     ========================= */
+  .dashboardGrid {
+    width: 100%;
+    min-height: 400px;
+  }
+  
+  /* 위젯 컨테이너 기본 스타일 */
+  .widgetContainer {
+    background-color: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  
+  /* 위젯 타입별 최소 높이 */
+  .metricWidget {
+    min-height: 200px;
+  }
+  
+  .timeSeriesWidget {
+    min-height: 350px;
+  }
+  
+  .barChartWidget {
+    min-height: 350px;
+  }
+  
+  .tableWidget {
+    min-height: 300px;
+  }
+  
+  /* =========================
+     빈 상태 (Empty State)
+     ========================= */
+     .emptyContent {
+      width: 100%;
+      min-height: 300px;
+    }
+    
+  /* =========================
+     위젯 내부 컨텐츠 스타일
+     ========================= */
+  
+  /* KPI/메트릭 위젯 */
+  .kpiValue {
+    font-size: 36px;
+    font-weight: 600;
+    color: #f1f5f9;
+    text-align: center;
+    margin: 20px 0;
+  }
+  
+  /* 도넛/파이 차트 */
+  .pieContainer {
+    position: relative;
+    width: 150px;
+    height: 150px;
+    margin: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .pieCenter {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    pointer-events: none;
+  }
+  
+  .pieTotal {
+    font-size: 20px;
+    font-weight: bold;
+    color: #f1f5f9;
+  }
+  
+  .pieSubtitle {
+    font-size: 12px;
+    color: #94a3b8;
+    margin-top: 2px;
+  }
+  
+  /* =========================
+     위젯 헤더/제목
+     ========================= */
+  .widgetHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #334155;
+  }
+  
+  .widgetTitle {
+    font-size: 16px;
+    font-weight: 600;
+    color: #f1f5f9;
+    margin: 0;
+  }
+  
+  .widgetActions {
+    display: flex;
+    gap: 4px;
+  }
+  
+  .widgetActionButton {
+    background: none;
+    border: none;
+    color: #64748b;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: color 0.2s, background-color 0.2s;
+  }
+  
+  .widgetActionButton:hover {
+    color: #f1f5f9;
+    background-color: #1e293b;
+  }
+  
+  /* =========================
+     차트 컨테이너
+     ========================= */
+  .chartContainer {
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+  }
+  
+  /* =========================
+     로딩 및 에러 상태
+     ========================= */
+  .loadingState {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    color: #64748b;
+  }
+  
+  .errorState {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    color: #ef4444;
+    text-align: center;
+    padding: 20px;
+  }
+  
+  /* =========================
+     반응형 디자인
+     ========================= */
+  @media (max-width: 768px) {
+    .container {
+      padding: 16px;
+      gap: 16px;
+    }
+    
+    .header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    
+    .actions {
+      width: 100%;
+      justify-content: flex-end;
+    }
+    
+    .filterBar {
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .kpiValue {
+      font-size: 28px;
+    }
+  }
