@@ -131,7 +131,6 @@ export const dashboardAPI = {
   /**
    * 대시보드 메타데이터 수정
    */
-  // dashboardAPI.js에 추가할 함수
   async updateDashboardMetadata(projectId, dashboardId, metadata) {
     try {
       console.log("대시보드 메타데이터 수정:", {
@@ -244,7 +243,7 @@ export const dashboardAPI = {
   },
 
   /**
-   * 대시보드 정의 업데이트 (위젯 배치 등) - DashboardDetail에서 필요
+   * 대시보드 정의 업데이트 (위젯 배치 등)
    */
   async updateDashboardDefinition(projectId, dashboardId, definition) {
     try {
@@ -276,11 +275,199 @@ export const dashboardAPI = {
 };
 
 // ============================================
-// Widget API 서비스 (차트 데이터 조회용만 유지)
+// Widget API 서비스
 // ============================================
 export const widgetAPI = {
   /**
-   * 대시보드 차트 데이터 조회
+   * 개별 위젯 조회 (DashboardWidget에서 사용)
+   */
+  async getWidget(projectId, widgetId) {
+    try {
+      console.log("개별 위젯 조회:", { projectId, widgetId });
+
+      const data = await trpcGet("dashboardWidgets.get", {
+        widgetId,
+        projectId,
+      });
+
+      return {
+        success: true,
+        data,
+      };
+    } catch (error) {
+      console.error("개별 위젯 조회 실패:", error);
+
+      return {
+        success: false,
+        error: error.message,
+        data: null,
+      };
+    }
+  },
+
+  /**
+   * 쿼리 실행 (차트 데이터 조회)
+   */
+  async executeQuery(projectId, query) {
+    try {
+      console.log("쿼리 실행:", { projectId, query });
+
+      const data = await trpcGet("dashboard.executeQuery", {
+        projectId,
+        query,
+      });
+
+      return {
+        success: true,
+        data,
+      };
+    } catch (error) {
+      console.error("쿼리 실행 실패:", error);
+
+      return {
+        success: false,
+        error: error.message,
+        data: null,
+      };
+    }
+  },
+
+  /**
+   * 위젯 목록 조회 (전체)
+   */
+  async getAllWidgets(projectId, orderBy = { column: "updatedAt", order: "DESC" }) {
+    try {
+      console.log("위젯 목록 조회:", { projectId, orderBy });
+
+      const data = await trpcGet("dashboardWidgets.all", {
+        projectId,
+        orderBy,
+      });
+
+      return {
+        success: true,
+        data: data || [],
+      };
+    } catch (error) {
+      console.error("위젯 목록 조회 실패:", error);
+
+      return {
+        success: false,
+        error: error.message,
+        data: [],
+      };
+    }
+  },
+
+  /**
+   * 위젯 생성
+   */
+  async createWidget(projectId, widgetData) {
+    try {
+      console.log("위젯 생성:", { projectId, widgetData });
+
+      const data = await trpcPost("dashboardWidgets.create", {
+        projectId,
+        ...widgetData,
+      });
+
+      return {
+        success: true,
+        data,
+      };
+    } catch (error) {
+      console.error("위젯 생성 실패:", error);
+
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+  },
+
+  /**
+   * 위젯을 다른 프로젝트로 복사
+   */
+  async copyWidgetToProject(projectId, widgetId, dashboardId, placementId) {
+    try {
+      console.log("위젯 복사:", { projectId, widgetId, dashboardId, placementId });
+
+      const data = await trpcPost("dashboardWidgets.copyToProject", {
+        projectId,
+        widgetId,
+        dashboardId,
+        placementId,
+      });
+
+      return {
+        success: true,
+        data,
+      };
+    } catch (error) {
+      console.error("위젯 복사 실패:", error);
+
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+  },
+
+  /**
+   * 위젯 수정
+   */
+  async updateWidget(projectId, widgetId, widgetData) {
+    try {
+      console.log("위젯 수정:", { projectId, widgetId, widgetData });
+
+      const data = await trpcPost("dashboardWidgets.update", {
+        projectId,
+        widgetId,
+        ...widgetData,
+      });
+
+      return {
+        success: true,
+        data,
+      };
+    } catch (error) {
+      console.error("위젯 수정 실패:", error);
+
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+  },
+
+  /**
+   * 위젯 삭제
+   */
+  async deleteWidget(projectId, widgetId) {
+    try {
+      console.log("위젯 삭제:", { projectId, widgetId });
+
+      await trpcPost("dashboardWidgets.delete", {
+        projectId,
+        widgetId,
+      });
+
+      return {
+        success: true,
+        message: "위젯이 삭제되었습니다.",
+      };
+    } catch (error) {
+      console.error("위젯 삭제 실패:", error);
+
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+  },
+
+  /**
+   * 대시보드 차트 데이터 조회 (레거시 API)
    */
   async getChartData(projectId, queryName, filter = {}) {
     try {
@@ -308,15 +495,15 @@ export const widgetAPI = {
   },
 
   /**
-   * 대시보드 쿼리 실행
+   * 스코어 히스토그램 데이터 조회
    */
-  async executeQuery(projectId, query) {
+  async getScoreHistogram(projectId, filter = {}) {
     try {
-      console.log("쿼리 실행:", { projectId, query });
+      console.log("스코어 히스토그램 조회:", { projectId, filter });
 
-      const data = await trpcGet("dashboard.executeQuery", {
+      const data = await trpcGet("dashboard.scoreHistogram", {
         projectId,
-        query,
+        filter,
       });
 
       return {
@@ -324,12 +511,12 @@ export const widgetAPI = {
         data,
       };
     } catch (error) {
-      console.error("쿼리 실행 실패:", error);
+      console.error("스코어 히스토그램 조회 실패:", error);
 
       return {
         success: false,
         error: error.message,
-        data: null,
+        data: [],
       };
     }
   },

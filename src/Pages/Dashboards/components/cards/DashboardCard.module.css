@@ -1,0 +1,146 @@
+/* DashboardCard.module.css */
+
+.dashboard-card {
+    background-color: #1e1e1e;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    transition: border-color 0.2s ease;
+  }
+  
+  .dashboard-card:hover {
+    border-color: #444;
+  }
+  
+  /* Header 영역 */
+  .dashboard-card-header {
+    position: relative;
+    padding: 16px 20px;
+    border-bottom: 1px solid #333;
+    background-color: #1a1a1a;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+  }
+  
+  .dashboard-card-header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  
+  .dashboard-card-header-left {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .dashboard-card-title {
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0;
+    line-height: 1.2;
+  }
+  
+  .dashboard-card-description {
+    color: #888888;
+    font-size: 12px;
+    margin: 0;
+    line-height: 1.3;
+  }
+  
+  .dashboard-card-header-right {
+    flex-shrink: 0;
+  }
+  
+  .dashboard-card-header-children {
+    margin-top: 12px;
+  }
+  
+  /* 로딩 인디케이터 */
+  .dashboard-card-loader {
+    position: absolute;
+    top: 16px;
+    right: 20px;
+  }
+  
+  .loader-icon {
+    width: 16px;
+    height: 16px;
+    color: #888888;
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  
+  /* Content 영역 */
+  .dashboard-card-content {
+    padding: 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    background-color: #1e1e1e;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+  }
+  
+  /* 반응형 처리 */
+  @media (max-width: 768px) {
+    .dashboard-card {
+      margin: 8px;
+    }
+    
+    .dashboard-card-header {
+      padding: 12px 16px;
+    }
+    
+    .dashboard-card-content {
+      padding: 16px;
+    }
+    
+    .dashboard-card-title {
+      font-size: 13px;
+    }
+    
+    .dashboard-card-description {
+      font-size: 11px;
+    }
+  }
+  
+  /* 특별한 카드 타입들 */
+  .dashboard-card.large {
+    min-height: 200px;
+  }
+  
+  .dashboard-card.compact {
+    padding: 0;
+  }
+  
+  .dashboard-card.compact .dashboard-card-header {
+    padding: 12px 16px;
+  }
+  
+  .dashboard-card.compact .dashboard-card-content {
+    padding: 16px;
+  }
+  
+  /* 로딩 상태일 때 */
+  .dashboard-card.loading {
+    opacity: 0.7;
+  }
+  
+  .dashboard-card.loading .dashboard-card-content {
+    pointer-events: none;
+  }
