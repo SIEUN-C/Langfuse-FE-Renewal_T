@@ -18,9 +18,38 @@ const PromptsNew = () => {
 
     const initialState = location.state || {};
     const [promptName, setPromptName] = useState(initialState.promptName || '');
-    const [promptType, setPromptType] = useState(initialState.promptType || 'Chat');
-    const [chatContent, setChatContent] = useState(initialState.chatContent || []);
-    const [textContent, setTextContent] = useState(initialState.textContent || '');
+    const [promptType, setPromptType] = useState(
+    (initialState.promptType && initialState.promptType.toLowerCase() === 'text') 
+    ? 'Text' 
+    : 'Chat'
+    );
+
+
+    // --- [수정 시작] ---
+    // 'New Version' 모드로 진입 시, location.state로부터 받은 chatContent의 role 값을
+    // ChatBox 컴포넌트가 사용하는 형식(첫 글자만 대문자)으로 변환합니다.
+    // 예를 들어 "SYSTEM"은 "System"으로, "USER"는 "User"로 변경하여
+    // select box에 올바른 role이 선택되도록 합니다.
+    const [chatContent, setChatContent] = useState(
+        (initialState.chatContent || []).map(message => {
+            if (!message.role) {
+                return { ...message, role: 'System' }; // role이 없는 경우 기본값 설정
+            }
+            // 첫 글자는 대문자로, 나머지는 소문자로 변환
+            const formattedRole = message.role.charAt(0).toUpperCase() + message.role.slice(1).toLowerCase();
+            return { ...message, role: formattedRole };
+        })
+    );
+    // --- [수정 종료] ---
+
+
+
+
+    //const [chatContent, setChatContent] = useState(initialState.chatContent || []);
+    // ▼▼▼ [최종 수정] textContent가 항상 문자열이 되도록 수정 ▼▼▼
+    const [textContent, setTextContent] = useState(
+        typeof initialState.textContent === 'string' ? initialState.textContent : ''
+    );
     const [config, setConfig] = useState(initialState.config || '{\n  "temperature": 1\n}');
     const [labels, setLabels] = useState(initialState.labels || { production: true });
     const [commitMessage, setCommitMessage] = useState('');
@@ -146,7 +175,7 @@ const PromptsNew = () => {
                 {promptType === 'Text' ? (
                     <LineNumberedTextarea
                         id="prompt-content"
-                        value={textContent}
+                            value={textContent || ''}
                         onChange={(e) => setTextContent(e.target.value)}
                         placeholder='Enter your text prompt here, e.g. "Summarize this: {{text}}"'
                         minHeight={200}

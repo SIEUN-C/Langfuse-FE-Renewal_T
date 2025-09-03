@@ -247,23 +247,38 @@ export default function PromptsDetail() {
   };
   // --- ▲▲▲ [추가] 프롬프트 이동 화살표 구현 ▲▲▲ ---
 
-  const handleNewVersion = () => {
-    if (!id || !selectedVersion) return;
-    navigate(`/prompts/new`, {
-      state: {
-        projectId: projectId,
-        promptName: id,
-        promptType: selectedVersion.prompt.system ? 'Chat' : 'Text',
-        chatContent: selectedVersion.prompt.system
-          ? [{ id: 1, role: 'System', content: selectedVersion.prompt.system }, { id: 2, role: 'User', content: selectedVersion.prompt.user }]
-          : [{ id: 1, role: 'System', content: 'You are a helpful assistant.' }],
-        textContent: selectedVersion.prompt.system ? '' : selectedVersion.prompt.user,
-        config: JSON.stringify(selectedVersion.config, null, 2),
-        isNewVersion: true,
-        version: selectedVersion.id
-      },
-    });
-  };
+  // src/Pages/Prompts/PromptsDetail.jsx
+
+// (다른 코드는 그대로)
+
+// 🔎 파일에서 handleNewVersion 함수를 찾아서, 함수 전체를 아래 코드로 교체해주세요.
+
+  const handleNewVersion = () => {
+    if (!id || !selectedVersion) return;
+
+    // [핵심 수정] 타입을 UI 렌더링 로직과 동일하게 'prompt'가 배열인지 여부로 판단합니다.
+    const isChatType = Array.isArray(selectedVersion.prompt);
+
+    // [안정성 강화] 타입에 따라 content를 명확히 구분하고, 값이 없을 경우 기본값을 설정합니다.
+    const chatContentValue = isChatType ? (selectedVersion.prompt || []) : [];
+    const textContentValue = !isChatType ? (selectedVersion.prompt || '') : '';
+    
+    const configValue = selectedVersion.config ? JSON.stringify(selectedVersion.config, null, 2) : '{}';
+
+    navigate(`/prompts/new`, {
+        state: {
+            projectId: projectId,
+            promptName: id,
+            promptType: isChatType ? 'Chat' : 'Text', // 이제 이 값이 정확해집니다.
+            chatContent: chatContentValue,
+            textContent: textContentValue,
+            config: configValue,
+            isNewVersion: true,
+            version: selectedVersion.id
+        },
+    });
+  };
+// (이하 코드는 그대로)
 
   const handleGoToPlayground = () => {
     if (!selectedVersion) return;
@@ -532,6 +547,27 @@ export default function PromptsDetail() {
                 )}
               </>
             )}
+            {/* --- ▼▼▼ [수정] Config 및 Use Prompts 탭 컨텐츠 렌더링 로직 추가 ▼▼▼ --- */}
+            {/* 원인: 기존 코드에서 Config와 Use Prompts 탭을 눌렀을 때 표시될 컨텐츠가 누락되어 있었습니다. */}
+            {/* 해결: 아래에 각 탭에 맞는 컨텐츠(config json, API 사용법 코드 블록)를 표시하는 JSX 코드를 추가하여 문제를 해결합니다. */}
+            {activeDetailTab === 'Config' && (
+              <div className={styles.promptCard}>
+                <div className={styles.promptHeader}>Config</div>
+                <div className={styles.promptBody}><pre>{JSON.stringify(selectedVersion.config ?? {}, null, 2)}</pre></div>
+              </div>
+            )}
+            {activeDetailTab === 'Use' && (
+              <>
+                <div className={styles.promptCard}>
+                  <div className={styles.promptHeader}>Python</div>
+                  <div className={styles.promptBody}><pre>{selectedVersion.useprompts.python}</pre></div>
+                </div>
+                <div className={styles.promptCard}>
+                  <div className={styles.promptHeader}>JS/TS</div>
+                  <div className={styles.promptBody}><pre>{selectedVersion.useprompts.jsTs}</pre></div>
+                </div>
+              </>
+            )}
             {activeDetailTab === 'Generations' && <div className={styles.placeholder}>No generations linked yet.</div>}
           </div>
         </div>

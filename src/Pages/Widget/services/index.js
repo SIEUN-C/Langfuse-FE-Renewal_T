@@ -4,11 +4,17 @@ import { WidgetsAPI } from "./widgets";
 import { FiltersAPI } from "./filters";
 
 class WidgetAPI extends PreviewAPI {
-  constructor() {
-    super();
+  constructor(projectId = null) {
+    super(projectId); // ✅ 부모 클래스에 projectId 전달
     this._widgets = new WidgetsAPI();
     this._filters = new FiltersAPI();
-    console.log("WidgetAPI initialized");
+    console.log("WidgetAPI initialized with projectId:", projectId);
+  }
+
+  // ✅ projectId를 동적으로 설정하는 메서드
+  setProjectId(projectId) {
+    super.setProjectId(projectId); // 부모 클래스 메서드 호출
+    // 필요시 _widgets, _filters에도 projectId 설정
   }
 
   // 목록/CRUD

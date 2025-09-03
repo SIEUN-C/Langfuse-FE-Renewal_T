@@ -132,11 +132,11 @@ export default function NewWidgetPage() {
   // ✅ projectId 검증
   useEffect(() => {
     if (!projectId) {
-      console.error("❌ Project ID is missing!");
+      console.error("Project ID is missing!");
       setPreviewError("Project ID is required. Please check the URL.");
       return;
     }
-    console.log("✅ Using Project ID:", projectId);
+    console.log("Using Project ID:", projectId);
   }, [projectId]);
 
   // Auto-correct aggregation
@@ -226,7 +226,7 @@ export default function NewWidgetPage() {
   // Preview fetch
   const refreshPreview = useCallback(async () => {
     if (!projectId) {
-      console.warn("🚨 No project ID available");
+      console.warn("No project ID available");
       setPreviewError("Project ID is required");
       return;
     }
@@ -251,7 +251,7 @@ export default function NewWidgetPage() {
 
       setPreviewData(Array.isArray(chartData) ? chartData : []);
     } catch (e) {
-      console.error("❌ Preview error:", e);
+      console.error("Preview error:", e);
       setPreviewError(e?.message || String(e));
       setPreviewData([]);
       setDebugInfo({
@@ -266,11 +266,11 @@ export default function NewWidgetPage() {
     }
   }, [projectId, query, view]);
 
-  // API projectId 세팅
+  // API projectId 설정
   useEffect(() => {
     if (projectId) {
-      api.projectId = projectId;
-      console.log("🔧 API project ID set to:", projectId);
+      api.setProjectId(projectId); // ✅ 새로운 메서드 사용
+      console.log("API project ID set to:", projectId);
     }
   }, [projectId]);
 
@@ -337,7 +337,7 @@ export default function NewWidgetPage() {
 
       if (dashboardId) payload.dashboardId = dashboardId;
 
-      console.log("💾 Saving widget with payload:", payload);
+      console.log("Saving widget with payload:", payload);
 
       let result;
       if (api._widgets && typeof api._widgets.createWidget === "function") {
@@ -346,7 +346,7 @@ export default function NewWidgetPage() {
         result = await api.trpcPost("dashboardWidgets.create", payload);
       }
 
-      console.log("✅ Widget saved successfully:", result);
+      console.log("Widget saved successfully:", result);
 
       if (dashboardId) {
         alert("위젯이 대시보드에 추가되었습니다!");
@@ -358,7 +358,7 @@ export default function NewWidgetPage() {
         });
       }
     } catch (error) {
-      console.error("❌ Save error:", error);
+      console.error("Save error:", error);
       alert(`저장 실패: ${error.message}`);
     } finally {
       setSaving(false);
@@ -390,13 +390,7 @@ export default function NewWidgetPage() {
     <div className={styles.pageWrap}>
       {/* 상단 브레드크럼 및 페이지 제목 */}
       <div className={styles.pageHeader}>
-        <div className={styles.breadcrumb}>
-          <button onClick={() => navigate(`/project/${projectId}/dashboards`)}>
-            ← Back to Dashboards
-          </button>
-        </div>
         <h1 className={styles.pageTitle}>Create New Widget</h1>
-        <p className={styles.pageSubtitle}>Project: {projectId}</p>
       </div>
 
       {/* 왼쪽 패널 - 설정 */}
@@ -506,7 +500,7 @@ export default function NewWidgetPage() {
                         onClick={() => setMetrics([metrics[0]])}
                         style={{ padding: "8px 12px" }}
                       >
-                        ✕
+                        ×
                       </button>
                     </div>
                   </div>
@@ -753,18 +747,6 @@ export default function NewWidgetPage() {
           >
             {saving ? "저장 중..." : "Save Widget"}
           </button>
-
-          {/* 디버그 토글 버튼 (개발 모드에서만) */}
-          {process.env.NODE_ENV === "development" && (
-            <button
-              type="button"
-              className={styles.secondaryBtn}
-              onClick={() => setShowDebug(!showDebug)}
-              style={{ marginTop: "12px" }}
-            >
-              {showDebug ? "Hide Debug" : "Show Debug"}
-            </button>
-          )}
         </div>
 
         {/* 디버그 정보 (개발 모드에서만) */}
@@ -823,17 +805,6 @@ export default function NewWidgetPage() {
               loading={loading}
               error={previewError}
             />
-          </div>
-
-          {/* 프리뷰 새로고침 버튼 */}
-          <div className={styles.previewActions}>
-            <button
-              onClick={refreshPreview}
-              disabled={loading}
-              className={styles.secondaryBtn}
-            >
-              {loading ? "Loading..." : "Refresh Preview"}
-            </button>
           </div>
         </div>
       </div>

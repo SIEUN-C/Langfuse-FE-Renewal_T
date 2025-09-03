@@ -41,6 +41,11 @@ const normalizeField = (col) => DIMENSION_ALIAS[col] ?? col;
 
 /** (3) 서버 제공 옵션 우선 */
 async function fetchServerProvidedOptions(api, view, field) {
+  // ✅ 임시로 서버 API 호출 비활성화 - 디버깅용
+  console.warn("Server API calls temporarily disabled for debugging");
+  return null;
+
+  /*
   const f = normalizeField(field);
 
   if (f === "environment") {
@@ -62,6 +67,7 @@ async function fetchServerProvidedOptions(api, view, field) {
     } catch {}
   }
   return null;
+  */
 }
 
 /** (4) Distinct 값 */
@@ -193,6 +199,10 @@ const OP_MAP = {
 };
 
 export class FiltersAPI extends ApiClient {
+  constructor(projectId = null) {
+    super(projectId); // ✅ 부모 클래스에 projectId 전달
+  }
+
   async getFilterColumns(view = "traces") {
     const columns = PRESETS[view] || PRESETS.traces;
     return { success: true, data: columns };
