@@ -19,7 +19,7 @@ function useMediaQuery(query) {
     const listener = () => setMatches(media.matches);
     media.addEventListener("change", listener);
     return () => media.removeEventListener("change", listener);
-  }, [query]); // matches 의존성 제거 (원본과 동일하게)
+  }, [query]);
 
   return matches;
 }
@@ -35,7 +35,8 @@ const DashboardGrid = ({
   onDeleteWidget,
   dashboardOwner,
 }) => {
-  const [rowHeight, setRowHeight] = useState(150);
+  // 위젯 높이를 더 컴팩트하게 설정
+  const [rowHeight, setRowHeight] = useState(100); // 150 → 100으로 변경
 
   // Detect if screen is medium or smaller (1024px and below)
   const isSmallScreen = useMediaQuery("(max-width: 1024px)");
@@ -43,8 +44,10 @@ const DashboardGrid = ({
   const handleWidthChange = useCallback(
     (containerWidth) => {
       const calculatedRowHeight = ((containerWidth / 12) * 9) / 16;
-      if (calculatedRowHeight !== rowHeight) {
-        setRowHeight(calculatedRowHeight);
+      // 최대 높이 제한을 추가하여 너무 큰 위젯 방지
+      const finalRowHeight = Math.min(calculatedRowHeight, 200); // 최대 120px로 제한
+      if (finalRowHeight !== rowHeight) {
+        setRowHeight(finalRowHeight);
       }
     },
     [rowHeight],
@@ -53,21 +56,19 @@ const DashboardGrid = ({
   // Convert widget format to react-grid-layout format
   const layout = widgets.map((w) => ({
     i: w.id,
-    x: w.x, // 원본처럼 직접 사용 (|| 0 제거)
-    y: w.y, // 원본처럼 직접 사용 (|| 0 제거)
-    w: w.x_size, // 원본처럼 직접 사용 (fallback 제거)
-    h: w.y_size, // 원본처럼 직접 사용 (fallback 제거)
+    x: w.x,
+    y: w.y,
+    w: w.x_size,
+    h: w.y_size,
     isDraggable: canEdit && !isSmallScreen,
     minW: 2,
-    minH: 2,
+    minH: 2, // 최소 높이 유지
   }));
 
   const handleLayoutChange = (newLayout) => {
     // Safety checks: prevent layout changes on small screens and when editing is disabled
-    // This prevents unintended saves during responsive transitions or on mobile devices
     if (!canEdit || isSmallScreen) return;
-
-    // Additional safety: ensure the layout change is meaningful
+    
     if (!newLayout || newLayout.length === 0) return;
 
     // Update widget positions based on the new layout
@@ -92,12 +93,12 @@ const DashboardGrid = ({
     return (
       <div className={styles.mobileLayout}>
         {widgets
-          .sort((a, b) => a.y - b.y || a.x - b.x) // 원본처럼 fallback 없이
+          .sort((a, b) => a.y - b.y || a.x - b.x)
           .map((widget) => (
             <div
               key={widget.id}
               className={styles.mobileWidget}
-              style={{ height: "300px" }} // 원본처럼 fixed height 추가
+              style={{ height: "400px" }} // 300px → 250px로 줄임
             >
               <DashboardWidget
                 dashboardId={dashboardId}
@@ -118,21 +119,21 @@ const DashboardGrid = ({
   return (
     <div className={styles.gridContainer}>
       <ResponsiveGridLayout
-        className="layout" // 원본처럼 간단한 className 사용
+        className="layout"
         layouts={{ lg: layout }}
         cols={{ lg: 12, md: 12, sm: 12, xs: 12, xxs: 12 }}
         margin={[16, 16]}
-        rowHeight={rowHeight}
+        rowHeight={rowHeight} // 동적으로 계산된 더 작은 높이 사용
         isDraggable={canEdit}
         isResizable={canEdit}
-        onDragStop={handleLayoutChange} // Save immediately when drag stops
-        onResizeStop={handleLayoutChange} // Save immediately when resize stops
+        onDragStop={handleLayoutChange}
+        onResizeStop={handleLayoutChange}
         onWidthChange={handleWidthChange}
         draggableHandle=".drag-handle"
         useCSSTransforms
       >
         {widgets.map((widget) => (
-          <div key={widget.id} className="max-h-full max-w-full"> {/* 원본처럼 Tailwind 클래스 */}
+          <div key={widget.id} className="max-h-full max-w-full">
             <DashboardWidget
               dashboardId={dashboardId}
               projectId={projectId}

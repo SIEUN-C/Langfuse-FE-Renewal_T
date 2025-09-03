@@ -35,6 +35,7 @@ import DashboardDetail from "./Pages/Dashboards/DashboardDetail";
 import { WidgetsView } from "./Pages/Widget/pages/WidgetsView";
 import NewWidget from "./Pages/Widget/pages/NewWidget";
 
+// Settings
 import SettingsPage from "./Pages/Settings/SettingsPage";
 import General from "./Pages/Settings/General";
 import ApiKeys from "./Pages/Settings/ApiKeys";
@@ -164,15 +165,19 @@ export default function App() {
         <Route path="dashboards" element={<ProjectGate />} />
         <Route path="widgets" element={<ProjectGate />} />
 
-        <Route path="settings" element={<SettingsPage />}>
+        {/* ✅ Settings: 표준 & 짧은 경로 모두 지원 */}
+        <Route path="project/:projectId/settings" element={<SettingsPage />}>
           <Route index element={<General />} />
-          <Route path="api-keys" element={<ApiKeys />} />{" "}
-          {/* setting설정값을 위한 추가 20250901 */}
+          <Route path="general" element={<General />} />
+          <Route path="api-keys" element={<ApiKeys />} />
           <Route path="llm-connections" element={<LLMConnections />} />
           <Route path="models" element={<Models />} />
           <Route path="scores" element={<Scores />} />
           <Route path="members" element={<Members />} />
         </Route>
+
+        {/* 짧은 경로는 Gate가 projectId 찾아 리다이렉트 */}
+        <Route path="settings" element={<ProjectGate to="settings" />} />
       </Route>
     </Routes>
   );

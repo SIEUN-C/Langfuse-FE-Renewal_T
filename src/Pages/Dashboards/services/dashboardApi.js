@@ -39,7 +39,69 @@ async function trpcPost(path, bodyObj) {
 // ============================================
 // Dashboard API 서비스
 // ============================================
+
 export const dashboardAPI = {
+  /**
+   * 🔥 필터 옵션 API - Trace 관련
+   */
+  async getTraceFilterOptions(projectId) {
+    try {
+      console.log("Trace 필터 옵션 조회:", { projectId });
+      
+      const data = await trpcGet('traces.filterOptions', { projectId });
+      
+      console.log("Trace 필터 옵션 응답:", data);
+      
+      // API 응답 구조에 맞춰 데이터 변환
+      const processedData = {
+        name: data?.name?.map(item => item.value) || [],
+        tags: data?.tags?.map(item => item.value) || []
+      };
+      
+      return {
+        success: true,
+        data: processedData
+      };
+    } catch (error) {
+      console.error("Trace 필터 옵션 조회 실패:", error);
+      
+      return {
+        success: false,
+        error: error.message,
+        data: { name: [], tags: [] }
+      };
+    }
+  },
+
+  /**
+   * 🔥 필터 옵션 API - Environment 관련  
+   */
+  async getEnvironmentFilterOptions(projectId) {
+    try {
+      console.log("Environment 필터 옵션 조회:", { projectId });
+      
+      const data = await trpcGet('projects.environmentFilterOptions', { projectId });
+      
+      console.log("Environment 필터 옵션 응답:", data);
+      
+      // API 응답 구조에 맞춰 데이터 변환
+      const environments = data?.map(item => item.environment) || [];
+      
+      return {
+        success: true,
+        data: environments
+      };
+    } catch (error) {
+      console.error("Environment 필터 옵션 조회 실패:", error);
+      
+      return {
+        success: false,
+        error: error.message,
+        data: []
+      };
+    }
+  },
+
   /**
    * 대시보드 목록 조회
    */

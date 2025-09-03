@@ -2,260 +2,277 @@
 
 /* 컨테이너 - 다크 테마 기준 */
 .widgetContainer {
-    display: flex;
-    height: 100%;
-    width: 100%;
-    flex-direction: column;
-    overflow: hidden;
-    border-radius: 12px;
-    border: 1px solid #374151;
-    background-color: #1f2937;
-    padding: 20px;
-    color: #f9fafb;
+  display: flex;
+  height: 100%;
+  width: 100%;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid #374151;
+  background-color: #1f2937;
+  padding: 20px;
+  color: #f9fafb;
+}
+
+/* 호버 시 액션 버튼 표시 */
+.group:hover .actionButton,
+.group:hover .dragHandle,
+.group:hover .downloadButton {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* 헤더 */
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.title {
+  font-weight: 600;
+  font-size: 16px;
+  color: #f9fafb;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* 액션 버튼들 */
+.actionButton {
+  opacity: 0;
+  visibility: hidden;
+  background: none;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.actionButton:hover {
+  color: #d1d5db;
+  background-color: #374151;
+}
+
+.deleteButton:hover {
+  color: #f87171;
+  background-color: #dc26261a;
+}
+
+.dragHandle {
+  opacity: 0;
+  visibility: hidden;
+  color: #9ca3af;
+  cursor: grab;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+}
+
+.dragHandle:hover {
+  color: #d1d5db;
+}
+
+.dragHandle:active {
+  cursor: grabbing;
+}
+
+/* 다운로드 버튼 */
+.downloadButton {
+  opacity: 0;
+  visibility: hidden;
+  background: none;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.downloadButton:hover {
+  color: #d1d5db;
+  background-color: #374151;
+}
+
+/* 로딩 인디케이터 */
+.loadingIndicator {
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
   }
-  
-  /* 호버 시 액션 버튼 표시 */
-  .group:hover .actionButton,
-  .group:hover .dragHandle,
-  .group:hover .downloadButton {
-    opacity: 1;
-    visibility: visible;
+  to {
+    transform: rotate(360deg);
   }
-  
-  /* 헤더 */
-  .header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    margin-bottom: 12px;
-  }
-  
-  .title {
-    font-weight: 600;
-    font-size: 16px;
-    color: #f9fafb;
-    line-height: 1.4;
-    margin: 0;
-  }
-  
-  .actions {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    flex-shrink: 0;
-  }
-  
-  /* 액션 버튼들 */
-  .actionButton {
-    opacity: 0;
-    visibility: hidden;
-    background: none;
-    border: none;
-    color: #9ca3af;
-    cursor: pointer;
-    padding: 6px;
-    border-radius: 6px;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .actionButton:hover {
-    color: #d1d5db;
-    background-color: #374151;
-  }
-  
-  .deleteButton:hover {
-    color: #f87171;
-    background-color: #dc26261a;
-  }
-  
+}
+
+/* 설명 */
+.description {
+  margin-bottom: 16px;
+  font-size: 14px;
+  color: #9ca3af;
+  line-height: 1.5;
+  opacity: 0.8;
+}
+
+/* 차트 컨테이너 */
+.chartContainer {
+  min-height: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* 전체 배경색 추가 */
+.gridContainer {
+  width: 100%;
+  flex-grow: 1;
+  background-color: #0f172a; /* 다크 배경 추가 */
+  padding: 20px; /* 여백 추가 */
+}
+
+.mobileLayout {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  gap: 16px;
+  background-color: #0f172a; /* 다크 배경 추가 */
+  padding: 20px;
+}
+
+/* 로딩 상태 */
+.loadingContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  border: 1px solid #374151;
+  background-color: #1f2937;
+  padding: 20px;
+  min-height: 200px;
+}
+
+.loadingText {
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+/* 에러 상태 */
+.errorContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  border: 1px solid #374151;
+  background-color: #1f2937;
+  padding: 20px;
+  min-height: 200px;
+}
+
+.errorText {
+  color: #f87171;
+  text-align: center;
+  font-size: 14px;
+}
+
+/* 반응형 - 대형 화면에서만 드래그 핸들 표시 */
+@media (max-width: 1024px) {
   .dragHandle {
-    opacity: 0;
-    visibility: hidden;
-    color: #9ca3af;
-    cursor: grab;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 4px;
+    display: none !important;
   }
-  
-  .dragHandle:hover {
-    color: #d1d5db;
-  }
-  
-  .dragHandle:active {
-    cursor: grabbing;
-  }
-  
-  /* 다운로드 버튼 */
-  .downloadButton {
-    opacity: 0;
-    visibility: hidden;
-    background: none;
-    border: none;
-    color: #9ca3af;
-    cursor: pointer;
-    padding: 6px;
-    border-radius: 6px;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .downloadButton:hover {
-    color: #d1d5db;
-    background-color: #374151;
-  }
-  
-  /* 로딩 인디케이터 */
-  .loadingIndicator {
-    color: #9ca3af;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 4px;
-  }
-  
-  .spinner {
-    animation: spin 1s linear infinite;
-  }
-  
-  @keyframes spin {
-    from {
-      transform: rotate(0deg);
-    }
-    to {
-      transform: rotate(360deg);
-    }
-  }
-  
-  /* 설명 */
-  .description {
+
+  .widgetContainer {
     margin-bottom: 16px;
-    font-size: 14px;
-    color: #9ca3af;
-    line-height: 1.5;
-    opacity: 0.8;
   }
-  
-  /* 차트 컨테이너 */
-  .chartContainer {
-    min-height: 0;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    position: relative;
+}
+
+/* 라이트 모드 지원
+@media (prefers-color-scheme: light) {
+  .widgetContainer {
+    background-color: #ffffff;
+    border-color: #e5e7eb;
+    color: #111827;
   }
-  
-  /* 로딩 상태 */
-  .loadingContainer {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 12px;
-    border: 1px solid #374151;
-    background-color: #1f2937;
-    padding: 20px;
-    min-height: 200px;
+
+  .title {
+    color: #111827;
   }
-  
-  .loadingText {
-    color: #9ca3af;
-    font-size: 14px;
+
+  .description {
+    color: #6b7280;
   }
-  
-  /* 에러 상태 */
+
+  .actionButton {
+    color: #6b7280;
+  }
+
+  .actionButton:hover {
+    color: #374151;
+    background-color: #f3f4f6;
+  }
+
+  .deleteButton:hover {
+    color: #dc2626;
+    background-color: #fee2e2;
+  }
+
+  .dragHandle {
+    color: #6b7280;
+  }
+
+  .dragHandle:hover {
+    color: #374151;
+  }
+
+  .downloadButton {
+    color: #6b7280;
+  }
+
+  .downloadButton:hover {
+    color: #374151;
+    background-color: #f3f4f6;
+  }
+
+  .loadingContainer,
   .errorContainer {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 12px;
-    border: 1px solid #374151;
-    background-color: #1f2937;
-    padding: 20px;
-    min-height: 200px;
+    background-color: #ffffff;
+    border-color: #e5e7eb;
   }
-  
+
+  .loadingText {
+    color: #6b7280;
+  }
+
   .errorText {
-    color: #f87171;
-    text-align: center;
-    font-size: 14px;
+    color: #dc2626;
   }
-  
-  /* 반응형 - 대형 화면에서만 드래그 핸들 표시 */
-  @media (max-width: 1024px) {
-    .dragHandle {
-      display: none !important;
-    }
-    
-    .widgetContainer {
-      margin-bottom: 16px;
-    }
-  }
-  
-  /* 라이트 모드 지원 */
-  @media (prefers-color-scheme: light) {
-    .widgetContainer {
-      background-color: #ffffff;
-      border-color: #e5e7eb;
-      color: #111827;
-    }
-    
-    .title {
-      color: #111827;
-    }
-    
-    .description {
-      color: #6b7280;
-    }
-    
-    .actionButton {
-      color: #6b7280;
-    }
-    
-    .actionButton:hover {
-      color: #374151;
-      background-color: #f3f4f6;
-    }
-    
-    .deleteButton:hover {
-      color: #dc2626;
-      background-color: #fee2e2;
-    }
-    
-    .dragHandle {
-      color: #6b7280;
-    }
-    
-    .dragHandle:hover {
-      color: #374151;
-    }
-    
-    .downloadButton {
-      color: #6b7280;
-    }
-    
-    .downloadButton:hover {
-      color: #374151;
-      background-color: #f3f4f6;
-    }
-    
-    .loadingContainer,
-    .errorContainer {
-      background-color: #ffffff;
-      border-color: #e5e7eb;
-    }
-    
-    .loadingText {
-      color: #6b7280;
-    }
-    
-    .errorText {
-      color: #dc2626;
-    }
-  }
+} */

@@ -4,6 +4,7 @@ const commonStringOperators = ["=", "contains", "does not contain", "starts with
 const commonNumericOperators = ["=", ">", "<", ">=", "<="];
 const commonCategoricalOperators = ["any of", "none of"];
 const allCategoricalOperators = ["any of", "none of", "all of"];
+const dateTimeOperators = [">", "<", ">=", "<="];
 
 export const promptsFilterConfig = [
   { key: "Name", label: "Name", type: "string", operators: commonStringOperators },
@@ -59,4 +60,18 @@ export const sessionsFilterConfig = [
   { key: "tracetags", label: "Trace Tags", type: "string", operators: allCategoricalOperators, options: [] },
   { key: "scores(numeric)", label: "Scores (numeric)", type: "numeric", operators: commonNumericOperators, hasMetaKey: true },
   { key: "scores(categorical)", label: "Scores (categorical)", type: "categorical", operators: commonCategoricalOperators, hasMetaKey: true, options: [] },
+];
+
+// 새로 추가: 대시보드 필터 설정 (FilterBuilder와 호환되도록 수정)
+export const dashboardFilterConfig = [
+  { key: "environment", label: "Environment", type: "categorical", operators: commonCategoricalOperators, options: [] },
+  { key: "traceName", label: "Trace Name", type: "categorical", operators: commonCategoricalOperators, options: [] },
+  { key: "observationName", label: "Observation Name", type: "string", operators: commonStringOperators },
+  { key: "scoreName", label: "Score Name", type: "string", operators: commonStringOperators },
+  { key: "tags", label: "Tags", type: "categorical", operators: allCategoricalOperators, options: [] },
+  { key: "user", label: "User", type: "string", operators: commonStringOperators },
+  { key: "session", label: "Session", type: "string", operators: commonStringOperators },
+  { key: "metadata", label: "Metadata", type: "string", operators: commonStringOperators, hasMetaKey: true },
+  { key: "release", label: "Release", type: "string", operators: commonStringOperators },
+  { key: "version", label: "Version", type: "string", operators: commonStringOperators },
 ];
