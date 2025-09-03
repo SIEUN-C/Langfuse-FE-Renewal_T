@@ -2,10 +2,11 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Plus, Copy } from "lucide-react";
 import { dashboardAPI } from "./services/dashboardApi.js";
+import { dashboardFilterConfig } from "../../components/FilterControls/filterConfig.js";
 import DashboardGrid from "../Widget/component/DashboardGrid.jsx";
 import DashboardFilterControls from "./components/DashboardFilterControls";
 import { SelectWidgetDialog } from "../Widget/component/SelectWidgetDialog.jsx";
-import { useDebounce } from './hooks/useDebounce';
+import { useDebounce } from "./hooks/useDebounce";
 import styles from "./DashboardDetail.module.css";
 import { v4 as uuidv4 } from "uuid";
 
@@ -13,7 +14,7 @@ const DashboardDetail = () => {
   const { projectId, dashboardId } = useParams();
   const navigate = useNavigate();
 
-  // 기본 상태 (원본 방식)
+  // 기본 상태
   const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -23,17 +24,120 @@ const DashboardDetail = () => {
     endDate: new Date(),
   });
 
-  // 위젯 관리 (원본과 동일)
-  const [localDashboardDefinition, setLocalDashboardDefinition] =
-    useState(null);
+  // 위젯 관리
+  const [localDashboardDefinition, setLocalDashboardDefinition] = useState(null);
   const [isWidgetDialogOpen, setIsWidgetDialogOpen] = useState(false);
   const [userFilterState, setUserFilterState] = useState([]);
 
-  // 권한 체크 (원본과 동일)
+  // 필터 처리 관리
+  const [filterState, setFilterState] = useState([]);
+
+  // 필터 옵션 상태 관리 - API에서 가져옴
+  const [environmentOptions, setEnvironmentOptions] = useState([]);
+  const [nameOptions, setNameOptions] = useState([]);
+  const [tagsOptions, setTagsOptions] = useState([]);
+  const [filterOptionsLoading, setFilterOptionsLoading] = useState(false);
+
+  // 권한 체크
   const hasCUDAccess = dashboard?.owner !== "LANGFUSE";
   const hasCloneAccess = dashboard?.owner === "LANGFUSE";
 
-  // 대시보드 로딩 (원본 방식을 API로 변환)
+  // 필터 변경 핸들러 - API 형식으로 변환
+  const handleFilterChange = useCallback((newFilters) => {
+    console.log('Received newFilters:', typeof newFilters, newFilters);
+    
+    let actualFilters;
+    
+    // newFilters가 함수인 경우 (React setter 패턴)
+    if (typeof newFilters === 'function') {
+      actualFilters = newFilters(filterState);
+    } else if (Array.isArray(newFilters)) {
+      actualFilters = newFilters;
+    } else {
+      console.error('newFilters is neither array nor function:', newFilters);
+      return;
+    }
+    
+    // 원본 필터 상태 저장
+    setFilterState(actualFilters);
+    
+    // API용 필터 변환 (type 필드 추가)
+    const apiFilters = actualFilters.map(filter => {
+      // filterConfig에서 해당 컬럼의 type 찾기
+      const config = dashboardFilterConfig.find(c => c.key === filter.column);
+      const filterType = config?.type || 'string';
+      
+      // API 형식에 맞게 변환
+      let apiFilter = {
+        column: filter.column,
+        type: filterType === 'categorical' ? 'stringOptions' : filterType,
+        operator: filter.operator,
+        value: filter.value,
+        key: filter.metaKey || null
+      };
+      
+      // categorical 타입은 value를 배열로 변환
+      if (filterType === 'categorical' && typeof filter.value === 'string') {
+        apiFilter.value = filter.value ? filter.value.split(',') : [];
+      }
+      
+      return apiFilter;
+    });
+    
+    console.log('Converted filters for API:', apiFilters);
+  }, [filterState]);
+
+  // 필터 옵션 로딩 함수
+  const loadFilterOptions = useCallback(async () => {
+    if (!projectId) return;
+
+    setFilterOptionsLoading(true);
+    
+    // 기본값 설정 (에러 발생 시 사용)
+    const defaultEnvironmentOptions = ['default'];
+    const defaultNameOptions = [];
+    const defaultTagsOptions = [];
+
+    try {
+      console.log('Loading filter options...');
+      
+      const [traceOptions, envOptions] = await Promise.all([
+        dashboardAPI.getTraceFilterOptions(projectId),
+        dashboardAPI.getEnvironmentFilterOptions(projectId)
+      ]);
+      
+      // Trace 필터 옵션 처리
+      if (traceOptions.success && traceOptions.data) {
+        setNameOptions(traceOptions.data.name || defaultNameOptions);
+        setTagsOptions(traceOptions.data.tags || defaultTagsOptions);
+        console.log('Trace filter options loaded:', traceOptions.data);
+      } else {
+        console.warn('Failed to load trace options, using defaults');
+        setNameOptions(defaultNameOptions);
+        setTagsOptions(defaultTagsOptions);
+      }
+      
+      // Environment 필터 옵션 처리
+      if (envOptions.success && envOptions.data) {
+        setEnvironmentOptions(envOptions.data.length > 0 ? envOptions.data : defaultEnvironmentOptions);
+        console.log('Environment filter options loaded:', envOptions.data);
+      } else {
+        console.warn('Failed to load environment options, using defaults');
+        setEnvironmentOptions(defaultEnvironmentOptions);
+      }
+      
+    } catch (error) {
+      console.error('Failed to fetch filter options:', error);
+      // 에러 발생 시 기본값 사용
+      setEnvironmentOptions(defaultEnvironmentOptions);
+      setNameOptions(defaultNameOptions);
+      setTagsOptions(defaultTagsOptions);
+    } finally {
+      setFilterOptionsLoading(false);
+    }
+  }, [projectId]);
+
+  // 대시보드 로딩
   const loadDashboard = useCallback(async () => {
     if (!projectId || !dashboardId) return;
 
@@ -56,29 +160,33 @@ const DashboardDetail = () => {
     }
   }, [projectId, dashboardId]);
 
-  // 🔥 디바운스된 대시보드 저장 함수 (500ms 지연)
-  const debouncedSaveDashboard = useDebounce(async (definition) => {
-    if (!hasCUDAccess || !projectId || !dashboardId) return;
-    
-    try {
-      console.log('💾 Saving dashboard definition...', definition);
-      const result = await dashboardAPI.updateDashboardDefinition(
-        projectId,
-        dashboardId,
-        definition
-      );
-      
-      if (result.success) {
-        console.log("✅ Dashboard updated successfully");
-      } else {
-        console.error("❌ Failed to update dashboard:", result.error);
-      }
-    } catch (error) {
-      console.error("❌ Failed to update dashboard:", error);
-    }
-  }, 500, false); // 500ms 디바운스, 첫 번째 호출은 지연
+  // 디바운스된 대시보드 저장 함수
+  const debouncedSaveDashboard = useDebounce(
+    async (definition) => {
+      if (!hasCUDAccess || !projectId || !dashboardId) return;
 
-  // 대시보드 복제 (원본과 동일한 로직)
+      try {
+        console.log("Saving dashboard definition...", definition);
+        const result = await dashboardAPI.updateDashboardDefinition(
+          projectId,
+          dashboardId,
+          definition
+        );
+
+        if (result.success) {
+          console.log("Dashboard updated successfully");
+        } else {
+          console.error("Failed to update dashboard:", result.error);
+        }
+      } catch (error) {
+        console.error("Failed to update dashboard:", error);
+      }
+    },
+    500,
+    false
+  );
+
+  // 대시보드 복제
   const handleCloneDashboard = async () => {
     if (!projectId || !dashboardId) return;
 
@@ -100,12 +208,12 @@ const DashboardDetail = () => {
     setDateRange(newDateRange);
   }, []);
 
-  // 위젯 추가 (디바운스 적용)
+  // 위젯 추가
   const addWidgetToDashboard = useCallback(
     (widget) => {
       if (!localDashboardDefinition) return;
 
-      console.log('[DashboardDetail] 위젯 추가:', widget);
+      console.log("[DashboardDetail] 위젯 추가:", widget);
 
       // 최대 Y 위치 찾기
       const maxY =
@@ -131,16 +239,13 @@ const DashboardDetail = () => {
         widgets: [...localDashboardDefinition.widgets, newWidgetPlacement],
       };
 
-      // 즉시 상태 업데이트 (UI 반응성)
       setLocalDashboardDefinition(updatedDefinition);
-      
-      // 디바운스된 저장 (성능 최적화)
       debouncedSaveDashboard(updatedDefinition);
     },
     [localDashboardDefinition, debouncedSaveDashboard]
   );
 
-  // 위젯 삭제 (디바운스 적용)
+  // 위젯 삭제
   const handleDeleteWidget = useCallback(
     (tileId) => {
       if (!localDashboardDefinition) return;
@@ -154,27 +259,21 @@ const DashboardDetail = () => {
         widgets: updatedWidgets,
       };
 
-      // 즉시 상태 업데이트 (UI 반응성)
       setLocalDashboardDefinition(updatedDefinition);
-      
-      // 디바운스된 저장 (성능 최적화)
       debouncedSaveDashboard(updatedDefinition);
     },
     [localDashboardDefinition, debouncedSaveDashboard]
   );
 
-  // 🔥 그리드 레이아웃 변경 처리 (드래그&드롭 - 디바운스 핵심!)
+  // 그리드 레이아웃 변경 처리
   const handleGridChange = useCallback(
     (updatedWidgets) => {
       const updatedDefinition = {
         ...localDashboardDefinition,
         widgets: updatedWidgets,
       };
-      
-      // 즉시 상태 업데이트 (드래그 중 끊김 방지)
+
       setLocalDashboardDefinition(updatedDefinition);
-      
-      // 디바운스된 저장 (드래그 중 과도한 API 호출 방지)
       debouncedSaveDashboard(updatedDefinition);
     },
     [localDashboardDefinition, debouncedSaveDashboard]
@@ -190,11 +289,19 @@ const DashboardDetail = () => {
     loadDashboard();
   }, [loadDashboard]);
 
+  // 필터 옵션 로딩
+  useEffect(() => {
+    loadFilterOptions();
+  }, [loadFilterOptions]);
+
   // 로딩 상태
   if (loading) {
     return (
       <div className={styles.container}>
-        <div className={styles.loadingState}>Loading dashboard...</div>
+        <div className={styles.loadingState}>
+          Loading dashboard...
+          {filterOptionsLoading && <div>Loading filter options...</div>}
+        </div>
       </div>
     );
   }
@@ -212,7 +319,7 @@ const DashboardDetail = () => {
 
   return (
     <div className={styles.container}>
-      {/* 헤더 (원본과 동일한 구조) */}
+      {/* 헤더 */}
       <div className={styles.header}>
         <div className={styles.titleGroup}>
           <h1 className={styles.title}>
@@ -242,11 +349,15 @@ const DashboardDetail = () => {
         </div>
       </div>
 
-      {/* 필터 컨트롤 영역 (간소화) */}
+      {/* 필터 컨트롤 */}
       <div className={styles.filters}>
         <DashboardFilterControls
           dateRange={dateRange}
           onDateChange={handleDateRangeChange}
+          onFilterChange={handleFilterChange}
+          environmentOptions={environmentOptions}
+          nameOptions={nameOptions}
+          tagsOptions={tagsOptions}
         />
       </div>
 
@@ -260,17 +371,16 @@ const DashboardDetail = () => {
             dashboardId={dashboardId}
             projectId={projectId}
             dateRange={dateRange}
-            filterState={userFilterState}
+            filterState={filterState}
             onDeleteWidget={handleDeleteWidget}
             dashboardOwner={dashboard.owner}
           />
         ) : (
-          // 빈 상태 - 아무것도 표시하지 않음
           <div className={styles.emptyContent}></div>
         )}
       </div>
 
-      {/* SelectWidgetDialog 사용 */}
+      {/* 위젯 선택 다이얼로그 */}
       <SelectWidgetDialog
         open={isWidgetDialogOpen}
         onOpenChange={setIsWidgetDialogOpen}

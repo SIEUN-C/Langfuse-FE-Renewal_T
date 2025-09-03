@@ -1,79 +1,95 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useMemo } from 'react';
 import DateRangePicker from '../../../components/DateRange/DateRangePicker';
 import FilterBuilder from '../../../components/FilterControls/FilterBuilder';
+import { dashboardFilterConfig } from '../../../components/FilterControls/filterConfig.js';
 import styles from './DashboardFilterControls.module.css';
 
 const DashboardFilterControls = ({ 
-  dateRange,     // dateRange 객체로 받기
-  onDateChange,  // 함수 받기
+ dateRange,
+ onDateChange,
+ onFilterChange,
+ environmentOptions = [], 
+ nameOptions = [],        
+ tagsOptions = []         
 }) => {
-  // FilterBuilder를 위한 상태 추가
-  const [filters, setFilters] = useState([
-    { 
-      id: Date.now(), 
-      column: 'Name', 
-      operator: '=', 
-      value: '', 
-      metaKey: '' 
-    }
-  ]);
+ const [filters, setFilters] = useState([
+   { 
+     id: Date.now(), 
+     column: 'traceName',
+     operator: '=', 
+     value: '', 
+     metaKey: '' 
+   }
+ ]);
 
-  // dateRange가 없으면 기본값 설정
-  const startDate = dateRange?.startDate;
-  const endDate = dateRange?.endDate;
+ // 동적으로 필터 설정 생성
+ const dynamicFilterConfig = useMemo(() => {
+   return dashboardFilterConfig.map(config => {
+     if (config.key === 'environment') {
+       return { ...config, options: environmentOptions };
+     }
+     if (config.key === 'traceName') {
+       return { ...config, options: nameOptions };
+     }
+     if (config.key === 'tags') {
+       return { ...config, options: tagsOptions };
+     }
+     return config;
+   });
+ }, [environmentOptions, nameOptions, tagsOptions]);
 
-  const handlePresetChange = useCallback((newStartDate, newEndDate) => {
-    if (onDateChange) {
-      onDateChange({ startDate: newStartDate, endDate: newEndDate });
-    }
-  }, [onDateChange]);
+ const startDate = dateRange?.startDate;
+ const endDate = dateRange?.endDate;
 
-  // 개별 날짜 변경 핸들러 수정 - 의존성 제거
-  const handleStartDateChange = useCallback((newStartDate) => {
-    if (onDateChange) {
-      onDateChange(prev => ({ ...prev, startDate: newStartDate }));
-    }
-  }, [onDateChange]);
+ const handlePresetChange = useCallback((newStartDate, newEndDate) => {
+   if (onDateChange) {
+     onDateChange({ startDate: newStartDate, endDate: newEndDate });
+   }
+ }, [onDateChange]);
 
-  const handleEndDateChange = useCallback((newEndDate) => {
-    if (onDateChange) {
-      onDateChange(prev => ({ ...prev, endDate: newEndDate }));
-    }
-  }, [onDateChange]);
+ const handleStartDateChange = useCallback((newStartDate) => {
+   if (onDateChange) {
+     onDateChange(prev => ({ ...prev, startDate: newStartDate }));
+   }
+ }, [onDateChange]);
 
-  // 동시 날짜 변경 핸들러
-  const handleBothDatesChange = useCallback((newStartDate, newEndDate) => {
-    if (onDateChange) {
-      onDateChange({ startDate: newStartDate, endDate: newEndDate });
-    }
-  }, [onDateChange]);
+ const handleEndDateChange = useCallback((newEndDate) => {
+   if (onDateChange) {
+     onDateChange(prev => ({ ...prev, endDate: newEndDate }));
+   }
+ }, [onDateChange]);
 
-  // FilterBuilder 변경 핸들러
-  const handleFilterChange = useCallback((newFilters) => {
-    setFilters(newFilters);
-    // TODO: 필터 변경을 상위 컴포넌트에 전달할 경우
-    // if (onFilterChange) {
-    //   onFilterChange(newFilters);
-    // }
-  }, []);
+ const handleBothDatesChange = useCallback((newStartDate, newEndDate) => {
+   if (onDateChange) {
+     onDateChange({ startDate: newStartDate, endDate: newEndDate });
+   }
+ }, [onDateChange]);
 
-  return (
-    <div className={styles.filterControls}>
-      <DateRangePicker
-        startDate={startDate}
-        endDate={endDate}
-        setStartDate={handleStartDateChange}
-        setEndDate={handleEndDateChange}
-        setBothDates={handleBothDatesChange}
-        onPresetChange={handlePresetChange}
-      />
-      
-      <FilterBuilder 
-        filters={filters}
-        onFilterChange={handleFilterChange}
-      />
-    </div>
-  );
+ const handleFilterChange = useCallback((newFilters) => {
+   setFilters(newFilters);
+   if (onFilterChange) {
+     onFilterChange(newFilters);
+   }
+ }, [onFilterChange]);
+
+ return (
+   <div className={styles.filterControls}>
+     <DateRangePicker
+       startDate={startDate}
+       endDate={endDate}
+       setStartDate={handleStartDateChange}
+       setEndDate={handleEndDateChange}
+       setBothDates={handleBothDatesChange}
+       onPresetChange={handlePresetChange}
+     />
+     
+     <FilterBuilder 
+       filters={filters}
+       onFilterChange={handleFilterChange}
+       filterConfig={dynamicFilterConfig}
+     />
+   </div>
+ );
 };
 
 export default DashboardFilterControls;
