@@ -2,6 +2,10 @@
 import { FiltersAPI } from "./filters.js";
 
 export class PreviewAPI extends FiltersAPI {
+  constructor(projectId = null) {
+    super(projectId); // ✅ 부모 클래스(FiltersAPI)에 projectId 전달
+  }
+
   toAPIChartType(type) {
     const map = {
       line: "LINE_TIME_SERIES",
@@ -134,7 +138,7 @@ export class PreviewAPI extends FiltersAPI {
     }));
 
     const payload = {
-      projectId: this.projectId,
+      projectId: this.projectId, // ✅ 동적으로 설정된 projectId 사용
       query: {
         view,
         dimensions: dims,
