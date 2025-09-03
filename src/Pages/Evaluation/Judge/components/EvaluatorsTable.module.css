@@ -1,0 +1,74 @@
+/* src/Pages/Evaluation/Judge/components/EvaluatorsTable.module.css */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.table th, .table td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid #334155;
+}
+
+.table th {
+  color: #6b7280;
+  font-weight: 500;
+  background-color: #f9fafb;
+}
+
+/* prompts.module.css의 링크 색상 적용 */
+.nameLink {
+  color: #f1f5f9;
+  text-decoration: none;
+  font-weight: 500;
+}
+.nameLink:hover {
+  text-decoration: underline;
+}
+
+.statusBadge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+/* 상태 색상은 정보 전달을 위해 유지 */
+.statusRunning {
+  color: #059669;
+  background-color: #d1fae5;
+}
+
+.statusCompleted {
+  color: #374151;
+  background-color: #f3f4f6;
+}
+
+.rowActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.viewButton, .moreButton {
+  background: none;
+  border: 1px solid #d1d5db;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #f1f5f9;
+}
+
+.moreButton {
+  font-weight: bold;
+}
+
+/* No evaluations found*/
+.emptyState {
+  text-align: center;
+  padding: 40px;
+  color: #6b7280;
+}

@@ -23,6 +23,8 @@ import ProjectGate from "./components/ProjectId/ProjectGate";
 
 import Dataset from "./Pages/Evaluation/DataSets/DatasetsPage";
 import JudgePage from "./Pages/Evaluation/Judge/JudgePage";
+import EvaluationDetail from './Pages/Evaluation/Judge/EvaluationDetail';
+import SetupEvaluator from './Pages/Evaluation/Judge/SetupEvaluator';
 
 // 대시보드
 import Dashboards from "./Pages/Dashboards/Dashboards";
@@ -116,11 +118,19 @@ export default function App() {
         <Route path="llm-as-a-judge" element={<JudgePage />} />
         <Route path="datasets" element={<Dataset />} />
 
-        {/* <Route path="evaluation" element={<Navigate to="/scores" replace />} />
-        <Route path="evaluation/new" element={<Navigate to="/scores/new" replace />} />
-        <Route path="evaluation/:id" element={<Navigate to="/scores/:id" replace />} />
-        <Route path="evaluation/:id/edit" element={<Navigate to="/scores/:id/edit" replace />} /> */}
-
+        {/* <Route path="/evaluations" element={<JudgePage />}> */}
+        {/* 기본적으로 /running으로 리다이렉트합니다. */}
+        {/* <Route index element={<Navigate to="running" replace />} />
+          <Route path="running" element={<RunningEvaluators />} />
+          <Route path="archived" element={<ArchivedEvaluators />} />
+        </Route> */}
+        {/* <Route path="evaluation/new" element={<Navigate to="/scores/new" replace />} /> */}
+        {/* <Route path="evaluation/:id" element={<Navigate to="/scores/:id" replace />} /> */}
+        {/* <Route path="evaluation/:id/edit" element={<Navigate to="/scores/:id/edit" replace />} /> */}
+        <Route path="/project/:projectId/evaluations" element={<JudgePage />} />
+        <Route path="/project/:projectId/evaluations/setup" element={<SetupEvaluator />} />
+        <Route path="/project/:projectId/evaluations/:evaluationId" element={<EvaluationDetail />} />
+        
         {/* Dashboard & Widget Routes */}
         <Route path="project/:projectId/dashboards" element={<Dashboards />} />
         <Route

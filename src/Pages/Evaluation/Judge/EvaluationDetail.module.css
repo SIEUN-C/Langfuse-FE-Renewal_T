@@ -1,0 +1,66 @@
+.pageContainer {
+  padding: 2rem;
+  font-family: sans-serif;
+  color: #333;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: bold;
+  margin: 0;
+  margin-right: 1rem;
+}
+
+.status {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.status.completed { background-color: #d4edda; color: #155724; }
+.status.running { background-color: #cce5ff; color: #004085; }
+
+.metaInfo {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 2rem;
+  color: #666;
+}
+
+.scoresSection { margin-bottom: 2rem; }
+.scoresGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+.scoreCard {
+  background-color: #f8f9fa;
+  padding: 1rem;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.scoreName { margin: 0 0 0.5rem 0; font-size: 1rem; color: #495057; }
+.scoreValue { margin: 0; font-size: 1.5rem; font-weight: bold; }
+
+.resultsSection h2 { margin-bottom: 1rem; }
+.resultsTable { width: 100%; border-collapse: collapse; }
+.resultsTable th,
+.resultsTable td {
+  border: 1px solid #dee2e6;
+  padding: 0.75rem;
+  text-align: left;
+}
+.resultsTable th { background-color: #f2f2f2; }
+
+.loading,
+.error { padding: 2rem; text-align: center; font-size: 1.2rem; }

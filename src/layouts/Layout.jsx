@@ -192,7 +192,7 @@ export default function Layout({ session }) {
     const pageTitle = useMemo(() => {
         const p = stripProjectPrefix(location.pathname);
         if (p === "/") return "Home";
-        if (p.startsWith("/llm-as-a-judge")) return "LLM-as-a-Judge Evaluators";
+        if (p.startsWith("/llm-as-a-judge")) return "LLM-as-a-Judge";
         if (p.startsWith("/datasets")) return "Datasets";
         if (p.startsWith("/scores")) return "Evaluators";
         if (p.startsWith("/dashboards/llm")) return "LLM Dashboard";

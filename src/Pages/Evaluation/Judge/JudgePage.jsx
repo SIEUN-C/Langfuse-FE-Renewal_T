@@ -1,70 +1,109 @@
-// JudgeLanding.jsx
+import React, { useState, useEffect } from "react";
+import styles from "./JudgePage.module.css";
+import EvaluatorsTable from "./components/EvaluatorsTable";
+import EvaluatorLibrary from "./components/EvaluatorLibrary";
 import { useNavigate } from "react-router-dom";
-import styles from "./JudgePage.module.css"; // ← 이 파일이 같은 폴더에 실제로 있어야 합니다.
+import useProjectId from "hooks/useProjectId";
 
-export default function JudgeLanding() {
+// 임시 목업 데이터 (샘플 데이터 추가)
+const mockRunningEvaluators = [
+  {
+    id: "eval-1",
+    name: "Sentiment Analysis Eval",
+    createdAt: "2024-05-20T11:30:00Z",
+    status: "COMPLETED",
+    model: "gpt-3.5-turbo",
+    dataset: "Customer Feedback Q3",
+  },
+  {
+    id: "eval-2",
+    name: "Toxicity Detection",
+    createdAt: "2024-05-21T15:00:00Z",
+    status: "RUNNING",
+    model: "gpt-4",
+    dataset: "Social Media Comments",
+  },
+  {
+    id: "eval-3",
+    name: "Fact-Checking Test",
+    createdAt: "2024-05-19T09:00:00Z",
+    status: "COMPLETED",
+    model: "claude-2",
+    dataset: "News Articles Corpus",
+  },
+];
+const mockArchivedEvaluators = [];
+
+const JudgePage = () => {
+  const [activeTab, setActiveTab] = useState("running");
+  const [evaluators, setEvaluators] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+  const { projectId } = useProjectId();
+
+  useEffect(() => {
+    setIsLoading(true);
+    if (!projectId) {
+      setIsLoading(false);
+      return;
+    }
+
+    const dataToLoad = activeTab === "running" ? mockRunningEvaluators : mockArchivedEvaluators;
+
+    setTimeout(() => {
+      setEvaluators(dataToLoad);
+      setIsLoading(false);
+    }, 500);
+  }, [activeTab, projectId]);
+
+  const handleRowClick = (row) => {
+    navigate(`/project/${projectId}/evaluations/${row.id}`);
+  };
+
+  const handleSetupEvaluator = () => {
+    navigate(`/project/${projectId}/evaluations/setup`);
+  };
+
+  const handleOpenDefaultModel = () => console.log("Default Model 설정 클릭");
 
   return (
-    <div className={styles.page}>
-      <header className={styles.hero}>
-        <h1 className={styles.title}>
-          Get Started with LLM-as-a-Judge Evaluations
-        </h1>
-        <p className={styles.subtitle}>
-          Create evaluation templates and evaluators to automatically score your
-          traces with LLM-as-a-judge. Set up custom evaluation criteria and let
-          AI help you measure the quality of your outputs.
-        </p>
-
-        <div className={styles.ctaRow}>
-          <button
-            className={styles.primaryWhite}
-            onClick={() => navigate("/llm-as-a-judge/new")}
-          >
-            Create Evaluator
+    <div className={styles.pageContainer}>
+      <header className={styles.header}>
+        <h1 className={styles.title}>LLM-as-a-judge</h1>
+        <div className={styles.actions}>
+          <button onClick={handleSetupEvaluator} className={styles.setupButton}>
+            + Set up evaluator
           </button>
-          <a
-            className={styles.secondary}
-            href="https://langfuse.com/docs"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Learn More
-          </a>
+          <button onClick={handleOpenDefaultModel} className={styles.iconButton}>
+            ✏️
+          </button>
         </div>
       </header>
 
-      <section className={styles.features}>
-        <article className={styles.card}>
-          <div className={styles.cardTitle}>Automate evaluations</div>
-          <div className={styles.cardDesc}>
-            Use LLM-as-a-judge to automatically evaluate your traces without
-            manual review
-          </div>
-        </article>
-        <article className={styles.card}>
-          <div className={styles.cardTitle}>Measure quality</div>
-          <div className={styles.cardDesc}>
-            Create custom evaluation criteria to measure the quality of your LLM
-            outputs
-          </div>
-        </article>
-        <article className={styles.card}>
-          <div className={styles.cardTitle}>Scale efficiently</div>
-          <div className={styles.cardDesc}>
-            Evaluate thousands of traces automatically with customizable
-            sampling rates
-          </div>
-        </article>
-        <article className={styles.card}>
-          <div className={styles.cardTitle}>Track performance</div>
-          <div className={styles.cardDesc}>
-            Monitor evaluation metrics over time to identify trends and
-            improvements
-          </div>
-        </article>
-      </section>
+      <nav className={styles.tabs}>
+        <button
+          className={`${styles.tab} ${activeTab === "running" ? styles.active : ""}`}
+          onClick={() => setActiveTab("running")}
+        >
+          Running Evaluators
+        </button>
+        <button
+          className={`${styles.tab} ${activeTab === "archived" ? styles.active : ""}`}
+          onClick={() => setActiveTab("archived")}
+        >
+          Evaluator Library
+        </button>
+      </nav>
+
+      <main className={styles.content}>
+        {activeTab === "running" ? (
+          <EvaluatorsTable data={evaluators} onRowClick={handleRowClick} isLoading={isLoading} />
+        ) : (
+          <EvaluatorLibrary />
+        )}
+      </main>
     </div>
   );
-}
+};
+
+export default JudgePage;
