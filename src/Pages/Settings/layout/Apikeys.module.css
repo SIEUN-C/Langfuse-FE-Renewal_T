@@ -1,227 +1,291 @@
 /* API Keys 페이지만 해당 */
 
+/* 텍스트/버튼 잡다한 스타일 */
 .note {
-    color: #888;
-    cursor: pointer;
+  color: #888;
+  cursor: pointer;
 }
-
 .note:hover {
-    color: #fff;
+  color: #fff;
 }
 
 .publicKeyCell {
-    position: relative;
-    border: 1px solid #3f3f46;
-    background: none;
-    border-radius: 6px;
-    padding: 8px 32px 8px 12px;
-    font-family: monospace;
-    word-break: break-all;
+  position: relative;
+  border: 1px solid #3f3f46;
+  background: none;
+  border-radius: 6px;
+  padding: 8px 32px 8px 12px;
+  font-family: monospace;
+  word-break: break-all;
 }
-
 .copyButton {
-    position: absolute;
-    top: 50%;
-    right: 8px;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
-    color: #a1a1aa;
-    cursor: pointer;
-    display: inline-flex;
-    padding: 2px;
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #a1a1aa;
+  cursor: pointer;
+  display: inline-flex;
+  padding: 2px;
 }
-
 .copyButton:hover {
-    color: #e4e4e7;
+  color: #e4e4e7;
 }
 
-.secretKeyCell {
-    font-family: monospace;
-}
+.secretKeyCell { font-family: monospace; }
 
 .deleteButton {
-    background: none;
-    border: none;
-    color: #a1a1aa;
-    cursor: pointer;
-    display: inline-flex;
+  background: none;
+  border: none;
+  color: #a1a1aa;
+  cursor: pointer;
+  display: inline-flex;
 }
+.deleteButton:hover { color: #ef4444; }
 
-.deleteButton:hover {
-    color: #ef4444;
-}
-
-/* --- Modal --- */
+/* --- Modal (다크모드 유지, 이미지 레이아웃과 동일) --- */
 .modalOverlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    box-shadow: 0px 3px 9px rgba(0, 0, 0, 0.5);
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);             
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;                           
+  z-index: 1000;
 }
 
 .modalContent {
-    background-color: #020817;
-    color: #f0f0f0;
-    padding: 24px;
-    border-radius: 12px;
-    border: 1px solid #333;
-    width: 90%;
-    max-width: 680px;
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
+  background-color: #0b1220;               /* 다크모드 배경 유지 */
+  color: #f0f0f0;                          /* 다크모드 텍스트 유지 */
+  border: 1px solid #2a3140;               /* 다크모드 테두리 유지 */
+  border-radius: 8px;                      
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4); /* 다크모드에 맞는 그림자 */
+
+  /* 이미지와 정확히 동일한 크기 */
+  width: min(600px, 90vw);                 
+  max-height: 85vh;                        
+  
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
+/* 헤더 - 이미지와 동일한 레이아웃, 다크모드 색상 */
 .modalHeader {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px 16px 24px;           
+  border-bottom: 1px solid rgba(255,255,255,0.1); /* 다크모드 구분선 */
 }
 
 .modalTitle {
-    font-size: 1.125rem;
-    font-weight: 600;
+  font-size: 18px;                        
+  font-weight: 600;
+  color: #f0f0f0;                          /* 다크모드 제목 색상 */
+  margin: 0;
 }
 
 .closeButton {
-    background: none;
-    border: none;
-    color: #A1A1A1;
-    cursor: pointer;
+  background: none;
+  border: none;
+  color: #a1a1aa;                          /* 다크모드 버튼 색상 */
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.closeButton:hover { 
+  background: rgba(255,255,255,0.1);       /* 다크모드 호버 */
+  color: #e4e4e7;
 }
 
-.closeButton:hover {
-    color: #e4e4e7;
+/* 본문 영역 - 이미지와 동일한 스크롤 */
+.modalBody {
+  flex: 1;
+  overflow-y: auto;                        
+  padding: 20px 24px 24px 24px;           
 }
 
 .section {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+  margin-bottom: 24px;                     
 }
 
-.sectionTitle {
-    font-size: 1rem;
-    font-weight: 600;
-    color: #fafafa;
+.section:last-child {
+  margin-bottom: 0;
 }
 
-.sectionDescription {
-    font-size: 0.875rem;
-    color: #a1a1aa;
-    margin-top: -4px;
+/* 섹션 제목 - 다크모드 */
+.sectionTitle { 
+  font-size: 14px;
+  font-weight: 600; 
+  color: #f0f0f0;                          /* 다크모드 제목 */
+  margin: 0 0 8px 0;                       
 }
 
+.sectionDescription { 
+  font-size: 14px;
+  color: #a1a1aa;                          /* 다크모드 설명 텍스트 */
+  margin: 0 0 12px 0;                      
+  line-height: 1.4;
+}
+
+/* 입력 필드 래퍼 */
 .inputWrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
+  position: relative;
 }
 
+/* 입력 필드 - 다크모드 스타일 */
 .input {
-    width: 100%;
-    background: none;
-    border: 1px solid #3f3f46;
-    border-radius: 6px;
-    padding: 8px 40px 8px 12px;
-    color: #e4e4e7;
-    font-family: monospace;
-    font-size: 0.875rem;
-    margin-bottom: 0;
+  width: 100%;
+  background: #1a2332;                     /* 다크모드 배경 */
+  border: 1px solid #3f3f46;               /* 다크모드 테두리 */
+  border-radius: 6px;                      
+  padding: 8px 36px 8px 12px;             
+  color: #e4e4e7;                          /* 다크모드 텍스트 */
+  font-family: ui-monospace, SFMono-Regular, 'SF Mono', monospace;
+  font-size: 13px;                        
+  outline: none;
+  box-sizing: border-box;
+}
+
+.input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
 }
 
 .copyButtonInInput {
-    position: absolute;
-    right: 8px;
-    background-color: #1e293b;
-    border-radius: 6px;
-    color: #A1A1AA;
-    cursor: pointer;
-    padding: 4px;
+  position: absolute;
+  right: 8px; 
+  top: 50%; 
+  transform: translateY(-50%);
+  background: none; 
+  border: none; 
+  cursor: pointer; 
+  color: #a1a1aa;                          /* 다크모드 버튼 */
+  padding: 4px; 
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.copyButtonInInput:hover { 
+  background: rgba(255,255,255,0.1);       /* 다크모드 호버 */
+  color: #e4e4e7;
 }
 
-.copyButtonInInput:hover {
-    color: #E4E4E7;
-}
-
-/* --- Usage 탭 --- */
+/* 탭 컨테이너 - 다크모드 */
 .tabsContainer {
-    display: flex;
-    gap: 4px;
-    border-bottom: 1px solid #3F3F46;
-    margin-bottom: 12px;
+  display: flex;
+  margin-bottom: 12px;                     
+  border-bottom: 1px solid #3f3f46;       /* 다크모드 구분선 */
 }
 
 .tabButton {
-    background: none;
-    border: none;
-    color: #A1A1AA;
-    padding: 8px 12px;
-    cursor: pointer;
-    font-size: 0.875rem;
-    border-bottom: 2px solid transparent;
-    transform: translateY(1px); /* border-bottom과 겹치게 */
+  background: none; 
+  border: none; 
+  cursor: pointer;
+  color: #a1a1aa;                          /* 다크모드 비활성 탭 */
+  padding: 8px 12px;                       
+  font-size: 14px;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;                     
+  white-space: nowrap;
 }
 
-.tabButton:hover {
-    color: #E4E4E7;
+.tabButton:hover:not(.tabActive) { 
+  color: #e4e4e7; 
 }
 
-.tabActive {
-    color: #FAFAFA;
-    border-bottom-color: #FAFAFA;
+.tabActive { 
+  color: #fafafa;                          /* 다크모드 활성 탭 */
+  border-bottom-color: #fafafa;            /* 다크모드 하단선 */
 }
 
-/* --- 코드 블록 --- */
+/* 코드 블록 래퍼 - 다크모드 */
 .codeBlockWrapper {
-    position: relative;
+  position: relative;
+  max-height: 300px;                       
+  overflow: auto;
+  border: 1px solid #3f3f46;               /* 다크모드 테두리 */
+  border-radius: 6px;                      
+  background: #0a0a0b;                     /* 다크모드 배경 */
 }
 
 .codeBlock {
-    background-color: #09090B;
-    border: 1px solid #3F3F46;
-    border-radius: 6px;
-    padding: 16px;
-    white-space: pre-wrap;
-    font-family: monospace;
-    font-size: 0.875rem;
-    color: #E4E4E7;
+  background: transparent;
+  padding: 16px;                           
+  margin: 0;
+  white-space: pre-wrap;
+  font-family: ui-monospace, SFMono-Regular, 'SF Mono', monospace;
+  font-size: 13px;                        
+  color: #e4e4e7;                          /* 다크모드 코드 텍스트 */
+  line-height: 1.5;
 }
 
 .copyButtonInCode {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    background: none;
-    border: none;
-    color: #A1A1AA;
-    cursor: pointer;
-    padding: 4px;
+  position: absolute;
+  top: 12px;                               
+  right: 12px;                             
+  background: #1a2332;                     /* 다크모드 버튼 배경 */
+  border: 1px solid #3f3f46;               /* 다크모드 테두리 */
+  color: #a1a1aa; 
+  cursor: pointer;
+  padding: 6px;                            
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3); /* 다크모드 그림자 */
 }
 
-.copyButtonInCode:hover {
-    color: #E4E4E7;
+.copyButtonInCode:hover { 
+  background: #2a3140;                     /* 다크모드 호버 */
+  color: #e4e4e7;
 }
 
-/* --- 푸터 링크 --- */
+/* 푸터 링크 - 다크모드 */
 .footerLinks {
-    font-size: 0.875rem;
-    color: #A1A1AA;
+  font-size: 14px;
+  color: #a1a1aa;                          /* 다크모드 텍스트 */
+  line-height: 1.5;
+  margin-top: 16px;                        
 }
 
 .footerLinks a {
-    color: #A1A1AA;
-    text-decoration: underline;
+  color: #60a5fa;                          /* 다크모드 링크 색상 */
+  text-decoration: none;
 }
 
 .footerLinks a:hover {
-    color: #E4E4E7;
+  text-decoration: underline;
+}
+
+/* 작은 화면 대응 */
+@media (max-width: 480px) {
+  .modalContent { 
+    width: 95vw; 
+    max-height: 90vh;
+  }
+  
+  .modalHeader,
+  .modalBody {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  
+  .tabButton { 
+    font-size: 13px; 
+    padding: 6px 8px; 
+  }
+  
+  .codeBlock { 
+    font-size: 12px; 
+    padding: 12px; 
+  }
 }

@@ -1,89 +1,116 @@
+/* SettingsGrid - Dark Theme with Improved Design (기존 구조 유지) */
+
 /* AG-Grid 컴포넌트 관련 스타일 */
 
 .header {
     display: flex;
     align-items: center;
-    margin-bottom: 16px;
-    gap: 8px;
+    margin-bottom: 16px; /* 20px → 16px로 감소 */
+    gap: 10px; /* 12px → 10px로 감소 */
 }
 
 .headerButton {
     display: flex;
     align-items: center;
-    gap: 4px;
-    padding: 6px 12px;
-    border-radius: 6px;
+    gap: 4px; /* 6px → 4px로 감소 */
+    padding: 6px 12px; /* 8px 16px → 6px 12px로 감소 */
+    border-radius: 6px; /* 8px → 6px로 감소 */
     cursor: pointer;
     font-weight: 500;
-    font-size: 13px;
-    height: 36px;
+    font-size: 13px; /* 14px → 13px로 감소 */
+    height: 32px; /* 40px → 32px로 감소 */
     box-sizing: border-box;
+    transition: all 0.2s ease; /* 부드러운 전환 효과 추가 */
 }
 
 .columnsButton {
-    background-color: #020817;
-    color: white;
-    border: 1px solid #2f415d;
+    background-color: #0f172a; /* 더 밝은 배경 */
+    color: #e2e8f0; /* 더 밝은 텍스트 */
+    border: 1px solid #334155; /* 더 밝은 테두리 */
     position: relative;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* 미묘한 그림자 */
 }
 
 .columnsButton:hover {
-    background-color: #192333;
+    background-color: #1e293b; /* 더 밝은 호버 색상 */
+    border-color: #475569;
+    transform: translateY(-1px); /* 살짝 올라가는 효과 */
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
 .count {
-    background-color: #30405d;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 11px;
-    margin-left: 4px;
+    background-color: #374151; /* 더 밝은 배경 */
+    color: #cbd5e1; /* 더 밝은 텍스트 */
+    padding: 3px 8px; /* 2px 6px → 3px 8px */
+    border-radius: 12px; /* 4px → 12px 완전 둥글게 */
+    font-size: 12px; /* 11px → 12px */
+    font-weight: 600; /* 폰트 굵게 */
+    margin-left: 6px; /* 4px → 6px */
 }
 
 .addButton {
-    background-color: #1e293c;
-    color: #e2e8f0;
-    border: 1px solid #2f415d;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); /* 그라데이션 */
+    color: #ffffff; /* 흰색 텍스트 */
+    border: 1px solid transparent; /* 투명 테두리 */
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2); /* 파란색 그림자 */
 }
 
 .addButton:hover {
-    background-color: #2c3a4f;
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
 }
 
 .iconButton {
     justify-content: center;
-    background-color: #020817;
-    border: 1px solid #2f415d;
+    background-color: #0f172a; /* 더 밝은 배경 */
+    border: 1px solid #334155; /* 더 밝은 테두리 */
     color: #cbd5e1;
-    border-radius: 6px;
+    border-radius: 8px; /* 6px → 8px */
     cursor: pointer;
-    width: 36px;
-    height: 36px;
+    width: 40px; /* 36px → 40px */
+    height: 40px; /* 36px → 40px */
+    transition: all 0.2s ease;
 }
 
-/* AG Gird 컨테이너 및 테마 오버라이드 */
+.iconButton:hover {
+    background-color: #1e293b;
+    border-color: #475569;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* AG Grid 컨테이너 및 테마 오버라이드 */
 .gridContainer {
-    max-height: 600px;
+    height: 400px; /* 고정 높이 설정 */
     overflow-y: auto;
     position: relative;
-    height: 65vh;
+    margin-bottom: 24px; /* Membership Invites와 간격 조정 */
 
-    border: 1px solid #2f415d;
-    border-radius: 6px;
+    border: 1px solid #334155; /* 더 밝은 테두리 */
+    border-radius: 12px; /* 6px → 12px 더 둥글게 */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); /* 그림자 추가 */
 
-    --ag-background-color: #020817;
+    --ag-background-color: #0f172a; /* 더 밝은 배경 */
     --ag-header-background-color: #020817;
-    --ag-row-background-color: #020817;
-    --ag-odd-row-background-color: #020817;
-    --ag-border-color: #2f415d;
-    --ag-header-column-separator-color: #2f415d;
-    --ag-header-foreground-color: #94a3b8;
-    --ag-foreground-color: #e2e8f0;
-    --ag-font-family: 'Pretnedard', sans-serif;
-    --ag-font-size: 11px;
+    --ag-row-background-color: #0f172a;
+    --ag-odd-row-background-color: #0f172a;
+    --ag-even-row-background-color: rgba(15, 23, 42, 0.5); /* 짝수 행 구분 */
+    --ag-border-color: #334155; /* 더 밝은 테두리 */
+    --ag-header-column-separator-color: #334155;
+    --ag-header-foreground-color: #cbd5e1; /* 더 밝은 헤더 텍스트 */
+    --ag-foreground-color: #e2e8f0; /* 더 밝은 텍스트 */
+    --ag-font-family: 'Pretendard', sans-serif;
+    --ag-font-size: 14px; /* 11px → 14px 크게 */
+    --ag-row-hover-color: rgba(59, 130, 246, 0.05); /* 호버시 파란색 */
+    --ag-selected-row-background-color: rgba(59, 130, 246, 0.1);
+    --ag-header-height: 48px; /* 헤더 높이 증가 */
+    --ag-row-height: 52px; /* 행 높이 증가 */
 }
 
 .gridContainer :global(.ag-paging-panel) {
-    background-color: #18181b;
+    background-color: #020817; /* 페이징 패널 배경 */
+    border-top: 1px solid #334155;
 }
 
 /* --- 정렬(Sort) 아이콘과 메뉴(Menu) 아이콘 스타일 --- */
@@ -91,44 +118,60 @@
 /* 1. 정렬 아이콘(▲, ▼) 스타일 */
 /* AG Grid의 기본 아이콘 폰트를 숨깁니다. */
 .gridContainer :global(.ag-icon) {
-  font-family: none !important;
+    font-family: none !important;
 }
 
 /* 오름차순 아이콘(ag-icon-asc)을 우리 SVG로 교체합니다. */
 .gridContainer :global(.ag-icon-asc::before) {
-  content: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3e%3cpath d='M5 1 L9 6 L1 6 Z' fill='%23a0a0a0'/%3e%3c/svg%3e");
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  margin-left: 6px;
+    content: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3e%3cpath d='M6 1.5 L10 7.5 L2 7.5 Z' fill='%23cbd5e1'/%3e%3c/svg%3e");
+    display: inline-block;
+    width: 12px; /* 10px → 12px */
+    height: 12px;
+    margin-left: 8px; /* 6px → 8px */
 }
 
 /* 내림차순 아이콘(ag-icon-desc)을 우리 SVG로 교체합니다. */
 .gridContainer :global(.ag-icon-desc::before) {
-  content: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3e%3cpath d='M5 9 L1 4 L9 4 Z' fill='%23a0a0a0'/%3e%3c/svg%3e");
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  margin-left: 6px;
+    content: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3e%3cpath d='M6 10.5 L2 4.5 L10 4.5 Z' fill='%23cbd5e1'/%3e%3c/svg%3e");
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    margin-left: 8px;
 }
 
 /* 2. 메뉴 아이콘 (햄버거 메뉴) 스타일 */
 /* 컬럼 메뉴 아이콘을 기본적으로 숨깁니다. */
 .gridContainer :global(.ag-header-cell-menu-button) {
-  opacity: 0;
-  transition: opacity 0.2s ease-in-out;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out; /* 0.2s → 0.3s */
 }
 
 /* 그리드 헤더에 마우스를 올렸을 때만 메뉴 아이콘이 보이도록 합니다. */
 .gridContainer :global(.ag-header-cell:hover .ag-header-cell-menu-button) {
-  opacity: 1;
+    opacity: 1;
 }
 
+/* 글로벌 AG Grid 스타일 오버라이드 */
 :global(.ag-theme-alpine .ag-cell) {
     display: flex;
     align-items: center;
+    padding: 0 16px; /* 패딩 추가 */
 }
 
 :global(.ag-theme-alpine .ag-header) {
-    border-bottom: 1px solid #2f415d;
+    border-bottom: 2px solid #334155; /* 1px → 2px */
+    background: linear-gradient(180deg, #020817 0%, #0f172a 100%); /* 그라데이션 */
+}
+
+:global(.ag-theme-alpine .ag-header-cell) {
+    border-right: 1px solid #334155;
+}
+
+:global(.ag-theme-alpine .ag-row) {
+    border-bottom: 1px solid #1e293b;
+    transition: background-color 0.2s ease;
+}
+
+:global(.ag-theme-alpine .ag-row:hover) {
+    background-color: rgba(59, 130, 246, 0.03);
 }

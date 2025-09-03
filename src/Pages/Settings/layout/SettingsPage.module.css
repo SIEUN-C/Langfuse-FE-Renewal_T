@@ -20,16 +20,91 @@
     padding: 10px 0; /* 위아래 여백 */
 }
 
+/* 모바일 메뉴 래퍼 */
+.mobileMenuWrapper {
+    padding: 16px 0;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+/* 모바일 메뉴 드롭다운 */
+.mobileMenuSelect {
+    width: 100%;
+    padding: 12px 16px;
+    background-color: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    color: #e2e8f0;
+    font-size: 14px;
+    cursor: pointer;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23cbd5e1' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 16px center;
+    background-repeat: no-repeat;
+    background-size: 16px;
+    padding-right: 48px;
+    transition: all 0.2s ease;
+}
+
+.mobileMenuSelect:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.mobileMenuSelect:hover {
+    border-color: #475569;
+}
+
+/* 메인 컨텐츠 영역 */
+.mainContent {
+    flex: 1;
+    width: 100%;
+    min-height: 0; /* 플렉스 아이템이 축소될 수 있도록 */
+}
+
 /* 본문 레이아웃 (사이드바 + 내용) */
 .bodyLayout {
     display: flex;
     margin-top: 32px;
     gap: 24px; /* 사이드바와 내용 사이의 간격 */
+    min-height: 0; /* 플렉스 컨테이너가 축소될 수 있도록 */
 }
 
-/* 헤더 아래 콘텐츠 (중앙 정렬) */
-.centeredContent {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 0 24px;
+/* 사이드바 기본 폭 (데스크톱) */
+.sidebar {
+    flex: 0 0 260px; /* 고정 폭처럼 동작 */
+    min-width: 220px;
 }
+
+/* 반응형 미디어 쿼리 */
+@media (max-width: 1024px) {
+    .contentContainer {
+        padding: 0 16px;
+    }
+    
+    .centeredContent {
+        padding: 0 16px;
+    }
+    
+    .mobileMenuWrapper {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+    
+    .bodyLayout {
+        margin-top: 16px;
+        gap: 16px;
+        flex-direction: column; /* 본문을 세로로 쌓기 */
+    }
+
+    /* 모바일에서 사이드바만 숨김 */
+    .sidebar {
+        display: none;
+    }
+}
+
