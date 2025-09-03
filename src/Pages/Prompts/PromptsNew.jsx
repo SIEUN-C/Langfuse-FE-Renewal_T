@@ -18,9 +18,16 @@ const PromptsNew = () => {
 
     const initialState = location.state || {};
     const [promptName, setPromptName] = useState(initialState.promptName || '');
-    const [promptType, setPromptType] = useState(initialState.promptType || 'Chat');
+    const [promptType, setPromptType] = useState(
+    (initialState.promptType && initialState.promptType.toLowerCase() === 'text') 
+    ? 'Text' 
+    : 'Chat'
+    );
     const [chatContent, setChatContent] = useState(initialState.chatContent || []);
-    const [textContent, setTextContent] = useState(initialState.textContent || '');
+    // ▼▼▼ [최종 수정] textContent가 항상 문자열이 되도록 수정 ▼▼▼
+    const [textContent, setTextContent] = useState(
+        typeof initialState.textContent === 'string' ? initialState.textContent : ''
+    );
     const [config, setConfig] = useState(initialState.config || '{\n  "temperature": 1\n}');
     const [labels, setLabels] = useState(initialState.labels || { production: true });
     const [commitMessage, setCommitMessage] = useState('');
@@ -146,7 +153,7 @@ const PromptsNew = () => {
                 {promptType === 'Text' ? (
                     <LineNumberedTextarea
                         id="prompt-content"
-                        value={textContent}
+                            value={textContent || ''}
                         onChange={(e) => setTextContent(e.target.value)}
                         placeholder='Enter your text prompt here, e.g. "Summarize this: {{text}}"'
                         minHeight={200}
