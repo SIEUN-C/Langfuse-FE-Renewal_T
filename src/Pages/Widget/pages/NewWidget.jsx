@@ -10,7 +10,7 @@ import AdvancedFilters from "../components/AdvancedFilters";
 import ViewMetricSelector from "../components/ViewMetricSelector";
 import ChartTypeSelector from "../components/ChartTypeSelector";
 import ChartPreview from "../components/ChartPreview";
-import DashboardModal from "../components/DashboardModal";
+import DashboardModal from "../components/WidgetDashboardModal";
 
 const toISO = (d) => (d ? new Date(d).toISOString() : null);
 const isTimeSeriesChart = (t) =>
@@ -74,9 +74,9 @@ const buildDefaultTexts = ({ aggregation, measure, view, dimension }) => {
 export default function NewWidgetPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { projectId: urlProjectId } = useParams(); // URL 파라미터에서 projectId 추출
+  const { projectId: urlProjectId } = useParams();
 
-  // ✅ projectId 우선순위: URL params > search params > env
+  // projectId 우선순위: URL params > search params > env
   const projectId =
     urlProjectId ||
     searchParams.get("projectId") ||
@@ -129,7 +129,7 @@ export default function NewWidgetPage() {
   const [showDashboardModal, setShowDashboardModal] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  // ✅ projectId 검증
+  // projectId 검증
   useEffect(() => {
     if (!projectId) {
       console.error("Project ID is missing!");
@@ -269,7 +269,7 @@ export default function NewWidgetPage() {
   // API projectId 설정
   useEffect(() => {
     if (projectId) {
-      api.setProjectId(projectId); // ✅ 새로운 메서드 사용
+      api.setProjectId(projectId);
       console.log("API project ID set to:", projectId);
     }
   }, [projectId]);
@@ -289,7 +289,7 @@ export default function NewWidgetPage() {
     setSaving(true);
     try {
       const payload = {
-        projectId, // ✅ 명시적으로 projectId 추가
+        projectId,
         name: name || "Untitled Widget",
         description: description || "",
         view,
@@ -299,12 +299,14 @@ export default function NewWidgetPage() {
         ],
         metrics:
           chartType === "PIVOT_TABLE"
-            ? metrics
+            ? metrics.map(m => ({
+                measure: m.measure,
+                agg: m.aggregation, // ✅ aggregation → agg로 변경
+              }))
             : [
                 {
                   measure,
-                  aggregation:
-                    chartType === "HISTOGRAM" ? "histogram" : aggregation,
+                  agg: chartType === "HISTOGRAM" ? "histogram" : aggregation, // ✅ aggregation → agg로 변경
                 },
               ],
         filters: sanitizeFilters(filters).map((f) => ({
@@ -337,16 +339,11 @@ export default function NewWidgetPage() {
 
       if (dashboardId) payload.dashboardId = dashboardId;
 
-      console.log("Saving widget with payload:", payload);
+      console.log("위젯 저장 payload:", JSON.stringify(payload, null, 2));
 
-      let result;
-      if (api._widgets && typeof api._widgets.createWidget === "function") {
-        result = await api._widgets.createWidget(payload);
-      } else {
-        result = await api.trpcPost("dashboardWidgets.create", payload);
-      }
+      const result = await api.trpcPost("dashboardWidgets.create", payload);
 
-      console.log("Widget saved successfully:", result);
+      console.log("저장 성공:", result);
 
       if (dashboardId) {
         alert("위젯이 대시보드에 추가되었습니다!");
@@ -358,7 +355,7 @@ export default function NewWidgetPage() {
         });
       }
     } catch (error) {
-      console.error("Save error:", error);
+      console.error("저장 실패:", error);
       alert(`저장 실패: ${error.message}`);
     } finally {
       setSaving(false);
@@ -368,7 +365,7 @@ export default function NewWidgetPage() {
 
   const handleSave = () => setShowDashboardModal(true);
 
-  // ✅ projectId가 없으면 에러 페이지 표시
+  // projectId가 없으면 에러 페이지 표시
   if (!projectId) {
     return (
       <div className={styles.pageWrap}>
@@ -747,6 +744,8 @@ export default function NewWidgetPage() {
           >
             {saving ? "저장 중..." : "Save Widget"}
           </button>
+
+       
         </div>
 
         {/* 디버그 정보 (개발 모드에서만) */}

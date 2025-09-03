@@ -17,13 +17,14 @@ export default function DashboardModal({
   useEffect(() => {
     if (!isOpen) return;
 
-    // src/Pages/Widget/components/DashboardModal.jsx의 fetchDashboards 부분 수정
-
     const fetchDashboards = async () => {
       try {
         setLoading(true);
         setError(null);
 
+        console.log("대시보드 목록 조회 시작:", { projectId });
+
+        // 대시보드 목록 API 호출 - 정확한 엔드포인트와 파라미터 사용
         const response = await api.trpcGet("dashboard.allDashboards", {
           projectId,
           orderBy: { column: "updatedAt", order: "DESC" },
@@ -31,28 +32,35 @@ export default function DashboardModal({
           limit: 100,
         });
 
+        console.log("대시보드 API 응답:", response);
+
+        // 응답 데이터 추출 - 여러 가능한 구조 고려
         const items =
-          response?.json?.dashboards ||
-          response?.json?.items ||
           response?.dashboards ||
           response?.data?.dashboards ||
+          response?.json?.dashboards ||
+          response?.items ||
           response?.data ||
           [];
 
-        // Langfuse 기본 대시보드 필터링 - owner가 PROJECT인 것만 표시
-        const userDashboards = items.filter((dashboard) => {
-          // owner가 'LANGFUSE'가 아닌 것만 (PROJECT 또는 사용자 생성)
-          return (
-            dashboard.owner !== "LANGFUSE" &&
-            !dashboard.name?.toLowerCase().includes("langfuse")
-          );
-        });
+        console.log("추출된 대시보드 목록:", items);
 
-        console.log("사용자 대시보드만 필터링:", userDashboards);
+        // Langfuse 기본 대시보드 필터링 - PROJECT 소유 대시보드만 표시
+        const userDashboards = Array.isArray(items) 
+          ? items.filter((dashboard) => {
+              // owner가 'LANGFUSE'가 아닌 것만 (PROJECT 또는 사용자 생성)
+              return (
+                dashboard.owner !== "LANGFUSE" &&
+                !dashboard.name?.toLowerCase().includes("langfuse")
+              );
+            })
+          : [];
+
+        console.log("필터링된 사용자 대시보드:", userDashboards);
         setDashboards(userDashboards);
       } catch (error) {
         console.error("대시보드 로드 실패:", error);
-        setError("대시보드 목록을 불러올 수 없습니다");
+        setError(`대시보드 목록을 불러올 수 없습니다: ${error.message}`);
         setDashboards([]);
       } finally {
         setLoading(false);
@@ -66,15 +74,15 @@ export default function DashboardModal({
 
   // Skip 버튼 - 위젯만 저장 (대시보드 없이)
   const handleSkip = () => {
+    console.log("Skip 선택 - 대시보드 없이 위젯만 저장");
     onSave(null); // dashboardId 없이 저장
-    onClose();
   };
 
   // Add to Dashboard 버튼 - 선택한 대시보드에 추가
   const handleAddToDashboard = () => {
     if (selectedId) {
+      console.log("대시보드에 추가 선택:", selectedId);
       onSave(selectedId); // 선택한 dashboardId와 함께 저장
-      onClose();
     }
   };
 
