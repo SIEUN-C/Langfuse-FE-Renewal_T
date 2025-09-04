@@ -1,0 +1,89 @@
+/* src/Pages/Widget/components/DateRangePicker.module.css */
+.container {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+}
+
+.filterButton {
+  background-color: #0f172a;
+  color: #cbd5e1;
+  border: 1px solid #334155;
+  padding: 10px 12px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 240px;
+  box-sizing: border-box;
+}
+
+.filterButton:hover {
+  background-color: #1e293b;
+}
+
+/* 프리셋 버튼을 위한 컨테이너 */
+.presetContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* 실제 select 태그는 보이지 않게 처리 */
+.presetSelect {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-color: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+  line-height: inherit;
+  outline: none;
+  
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  z-index: 1;
+}
+
+/* 화면에 보이는 버튼 모양의 텍스트 */
+.presetDisplay {
+  background-color: #0f172a;
+  color: #cbd5e1;
+  border: 1px solid #334155;
+  padding: 10px 32px 10px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  pointer-events: none;
+  white-space: nowrap;
+  min-width: 120px;
+  box-sizing: border-box;
+}
+
+.presetContainer:hover .presetDisplay {
+  background-color: #1e293b;
+}
+
+/* 드롭다운 화살표 아이콘 */
+.presetArrow {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  pointer-events: none;
+  z-index: 0;
+}

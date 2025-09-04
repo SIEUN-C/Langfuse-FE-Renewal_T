@@ -2,7 +2,7 @@
 .chartWrapper {
   width: 100%;
   height: 100%;
-  min-height: 320px; /* ✅ 부모 높이 보장 */
+  min-height: 320px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -11,9 +11,10 @@
 /* ---- 페이지 레이아웃 ---- */
 .pageWrap {
   display: grid;
-  grid-template-columns: 380px minmax(0, 1fr); /* ✅ 우측 칼럼 수축 허용 */
+  grid-template-columns: 380px minmax(0, 1fr);
   gap: 16px;
   width: 100%;
+  min-height: 100vh;
   padding: 16px;
   background: #0b1220;
   color: #e5e7eb;
@@ -25,37 +26,90 @@
   border: 1px solid #1e293b;
   border-radius: 12px;
   padding: 16px;
-  overflow: hidden;
-  min-width: 0; /* (안전) */
+  overflow-y: auto;
+  max-height: calc(100vh - 32px);
+  min-width: 0;
 }
 
-/* ✅ 우측 그리드 자식: 반드시 min-width:0 */
 .rightPane {
-  min-width: 0; /* ⭐️ grid/flex 아이템이 width=0 되지 않게 */
+  min-width: 0;
   width: 100%;
+  height: calc(100vh - 32px);
   display: flex;
   flex-direction: column;
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 12px;
+  padding: 16px;
+  box-sizing: border-box;
 }
 
-/* ✅ 차트 컨테이너: 폭/높이 전달용 래퍼 */
 .chartContainer {
-  min-width: 0; /* ⭐️ ResponsiveContainer 폭 계산 가능 */
-  min-height: 320px;
+  min-width: 0;
   width: 100%;
   flex: 1;
   display: flex;
   flex-direction: column;
+  min-height: 0; /* Allow shrinking */
 }
 
-/* ---- 폼/기타 ---- */
+/* ---- 프리뷰 영역 ---- */
+.preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 320px;
+  background: #1e293b;
+  border-radius: 8px;
+  border: 1px dashed #334155;
+  color: #94a3b8;
+  font-size: 14px;
+  text-align: center;
+}
+
+.previewHeader {
+  margin-bottom: 16px;
+  flex-shrink: 0;
+}
+
+.previewTitle {
+  font-size: 22px;
+  font-weight: 800;
+  color: #f8fafc;
+  margin: 0;
+}
+
+.previewDesc {
+  margin: 4px 0 0 0;
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+/* ---- 폼 스타일 ---- */
 .section {
   padding-bottom: 16px;
   border-bottom: 1px dashed #1e293b;
   margin-bottom: 16px;
 }
+
 .section:last-child {
   border-bottom: none;
   margin-bottom: 0;
+}
+
+.section h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #f8fafc;
+  margin: 0 0 12px 0;
+}
+
+.section h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #e2e8f0;
+  margin: 0 0 8px 0;
 }
 
 .block {
@@ -66,6 +120,7 @@
   display: block;
   margin-bottom: 8px;
   font-size: 13px;
+  font-weight: 500;
   color: #94a3b8;
 }
 
@@ -79,6 +134,33 @@
   color: #e5e7eb;
   font-size: 14px;
   box-sizing: border-box;
+  transition: border-color 0.2s ease;
+}
+
+.input:focus,
+.select:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+.input:disabled,
+.select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: #1e293b;
+}
+
+/* ---- 레이아웃 유틸리티 ---- */
+.flexRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.flexCol {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .grid2 {
@@ -87,95 +169,393 @@
   gap: 8px;
 }
 
+/* ---- 버튼 스타일 ---- */
+.button {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.primary {
+  background: #3b82f6;
+  color: white;
+}
+
+.primary:hover:not(:disabled) {
+  background: #2563eb;
+}
+
+.secondary {
+  background: transparent;
+  color: #94a3b8;
+  border: 1px solid #334155;
+}
+
+.secondary:hover:not(:disabled) {
+  background: #1e293b;
+  color: #e5e7eb;
+  border-color: #475569;
+}
+
 .primaryBtn {
   width: 100%;
   padding: 12px 16px;
-  border-radius: 10px;
-  border: 1px solid #111827;
-  background: #111827;
-  color: #fff;
-  font-size: 14px;
-  font-weight: 800;
-  cursor: pointer;
-}
-.primaryBtn:hover {
-  background: #0b0f19;
-}
-
-.previewHeader {
-  margin-bottom: 16px;
-}
-.previewTitle {
-  font-size: 22px;
-  font-weight: 800;
-  color: #f8fafc;
-}
-.previewDesc {
-  margin-top: 4px;
-  font-size: 13px;
-  color: #94a3b8;
-}
-
-/* src/Pages/Widget/NewWidget.module.css 추가 스타일 */
-.row {
-  display: flex;
-  gap: 8px;
-}
-
-.card {
-  background: #0b1220;
-  border: 1px solid #1e293b;
   border-radius: 8px;
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.secondaryBtn {
-  padding: 6px 12px;
-  border: 1px solid #334155;
-  background: transparent;
-  color: #94a3b8;
-  border-radius: 6px;
+  border: none;
+  background: #3b82f6;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
-  font-size: 13px;
+  transition: background-color 0.2s ease;
 }
 
-.secondaryBtn:hover {
+.primaryBtn:hover:not(:disabled) {
+  background: #2563eb;
+}
+
+.primaryBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ---- 카드 컴포넌트 ---- */
+.card {
   background: #1e293b;
-  color: #e5e7eb;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  overflow: hidden;
 }
 
-.checkboxLabel {
+.cardHeader {
+  padding: 16px;
+  border-bottom: 1px solid #334155;
+}
+
+.cardContent {
+  padding: 16px;
+}
+
+.cardFooter {
+  padding: 16px;
+  border-top: 1px solid #334155;
+  background: #0f172a;
+}
+
+.cardTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: #f8fafc;
+  margin: 0;
+}
+
+.cardDescription {
+  font-size: 14px;
+  color: #94a3b8;
+  margin: 4px 0 0 0;
+}
+
+/* ---- 모달 스타일 ---- */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
   display: flex;
   align-items: center;
-  font-size: 13px;
-  color: #94a3b8;
-  cursor: pointer;
+  justify-content: center;
+  z-index: 50;
 }
 
-.checkboxLabel input[type="checkbox"] {
-  margin-right: 8px;
+.modalContent {
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  padding: 24px;
+  min-width: 400px;
+  max-width: 500px;
 }
 
-/* 피벗 테이블용 수직 분할선 */
-.divider {
-  height: 1px;
-  background: #1e293b;
-  margin: 16px 0;
+.modalContent h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #f8fafc;
+  margin: 0 0 16px 0;
 }
 
-/* 설명 텍스트 */
+/* ---- 유틸리티 클래스 ---- */
 .helperText {
   font-size: 12px;
   color: #64748b;
   margin-top: 4px;
+  line-height: 1.4;
 }
 
-/* 반응형 */
-@media (max-width: 980px) {
+.divider {
+  height: 1px;
+  background: #334155;
+  margin: 16px 0;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+/* ---- FiltersEditor 스타일 (균형잡힌 레이아웃) ---- */
+.filter-container {
+  margin-top: 8px;
+}
+
+.filter-header {
+  margin-bottom: 16px;
+}
+
+.filter-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #f8fafc;
+}
+
+.simple-filter-row {
+  display: grid;
+  grid-template-columns: 60px 140px 100px 1fr 40px;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #1e293b;
+}
+
+.simple-filter-row:last-of-type {
+  border-bottom: none;
+  margin-bottom: 8px;
+  padding-bottom: 0;
+}
+
+.filter-where {
+  font-size: 14px;
+  color: #64748b;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.simple-select {
+  padding: 8px 12px;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  background: #f8fafc;
+  color: #1e293b;
+  font-size: 14px;
+  width: 100%;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+  min-width: 0; /* 그리드에서 축소 허용 */
+}
+
+.simple-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+.simple-select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: #e2e8f0;
+}
+
+.simple-input {
+  padding: 8px 12px;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  background: #f8fafc;
+  color: #1e293b;
+  font-size: 14px;
+  width: 100%;
+  transition: border-color 0.2s ease;
+  min-width: 0; /* 그리드에서 축소 허용 */
+}
+
+.simple-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+.simple-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: #e2e8f0;
+}
+
+.simple-input::placeholder {
+  color: #94a3b8;
+}
+
+.simple-remove-btn {
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 4px;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.simple-remove-btn:hover {
+  color: #ef4444;
+  background: #fee2e2;
+}
+
+.simple-add-btn {
+  background: transparent;
+  border: 1px dashed #94a3b8;
+  border-radius: 6px;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 12px 16px;
+  width: 100%;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.simple-add-btn:hover {
+  border-color: #64748b;
+  color: #374151;
+  background: #f9fafb;
+}
+
+.add-icon {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* 작은 화면에서 레이아웃 조정 */
+@media (max-width: 900px) {
+  .simple-filter-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    text-align: left;
+  }
+
+  .filter-where {
+    font-size: 12px;
+    margin-bottom: 4px;
+  }
+  
+  .simple-remove-btn {
+    justify-self: end;
+    margin-top: 8px;
+  }
+}
+
+@media (max-width: 768px) {
+  .simple-filter-row {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .filter-where {
+    font-size: 12px;
+    margin-bottom: 4px;
+  }
+}
+
+/* ---- 반응형 디자인 ---- */
+@media (max-width: 1024px) {
   .pageWrap {
     grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+    min-height: 100vh;
+  }
+  
+  .leftPane {
+    max-height: none;
+    height: auto;
+  }
+  
+  .rightPane {
+    height: 60vh;
+    min-height: 400px;
+  }
+}
+
+@media (max-width: 768px) {
+  .pageWrap {
+    padding: 8px;
+    gap: 8px;
+  }
+  
+  .leftPane,
+  .rightPane {
+    padding: 12px;
+  }
+  
+  .grid2 {
+    grid-template-columns: 1fr;
+  }
+  
+  .flexRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .modalContent {
+    min-width: 300px;
+    margin: 16px;
+  }
+
+  /* 모바일에서 필터 행 스타일 조정 */
+  .filter-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+
+  .filter-label {
+    min-width: auto;
+    margin-bottom: 2px;
+  }
+
+  .form-select,
+  .filter-value-input {
+    max-width: none;
+    width: 100%;
+  }
+
+  .filter-value-hint {
+    margin-left: 0;
+  }
+
+  .remove-filter-btn {
+    align-self: flex-end;
+    margin-top: 4px;
   }
 }

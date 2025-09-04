@@ -24,12 +24,34 @@ const PRESETS = {
     { id: "model", name: "Model", type: "stringOptions" },
     { id: "environment", name: "Environment", type: "stringOptions" },
   ],
-  scores: [
+  "scores-numeric": [
     { id: "name", name: "Score Name", type: "string" },
     { id: "value", name: "Value", type: "number" },
     { id: "source", name: "Source", type: "stringOptions" },
   ],
+  "scores-categorical": [
+    { id: "name", name: "Score Name", type: "string" },
+    { id: "value", name: "Category", type: "stringOptions" },
+    { id: "source", name: "Source", type: "stringOptions" },
+  ],
 };
+
+/** 뷰 키 정규화 (라벨 → 서버키) */
+function normalizeView(view) {
+  if (!view) return "traces";
+  const v = view.toString().trim().toLowerCase();
+  const map = {
+    traces: "traces",
+    observations: "observations",
+    "scores numeric": "scores-numeric",
+    "scores_numeric": "scores-numeric",
+    "scores-numeric": "scores-numeric",
+    "scores categorical": "scores-categorical",
+    "scores_categorical": "scores-categorical",
+    "scores-categorical": "scores-categorical",
+  };
+  return map[v] || "traces";
+}
 
 /** (2) 별칭 */
 const DIMENSION_ALIAS = {
@@ -39,29 +61,26 @@ const DIMENSION_ALIAS = {
 };
 const normalizeField = (col) => DIMENSION_ALIAS[col] ?? col;
 
-/** (3) 서버 제공 옵션 우선 */
+/** (3) 서버 제공 옵션 우선 (현재 디버깅 위해 비활성화) */
 async function fetchServerProvidedOptions(api, view, field) {
-  // ✅ 임시로 서버 API 호출 비활성화 - 디버깅용
   console.warn("Server API calls temporarily disabled for debugging");
   return null;
 
+  // 필요 시 주석 해제
   /*
   const f = normalizeField(field);
-
   if (f === "environment") {
     try {
       const res = await api.trpcGet("projects.environmentFilterOptions", {});
       return Array.isArray(res) ? res : null;
     } catch {}
   }
-
   if (view === "traces") {
     try {
       const res = await api.trpcGet("traces.filterOptions", {});
       if (f === "tags" && Array.isArray(res?.tags)) return res.tags;
       if (f === "userId" && Array.isArray(res?.users)) return res.users;
-      if (f === "sessionId" && Array.isArray(res?.sessions))
-        return res.sessions;
+      if (f === "sessionId" && Array.isArray(res?.sessions)) return res.sessions;
       if (f === "release" && Array.isArray(res?.releases)) return res.releases;
       if (f === "version" && Array.isArray(res?.versions)) return res.versions;
     } catch {}
@@ -75,9 +94,10 @@ async function fetchDistinctValues(
   api,
   { view, column, search = "", limit = 50, from, to }
 ) {
+  const normalizedView = normalizeView(view);
   const dimField = normalizeField(column);
 
-  const serverVals = await fetchServerProvidedOptions(api, view, dimField);
+  const serverVals = await fetchServerProvidedOptions(api, normalizedView, dimField);
   if (serverVals) {
     const arr = serverVals.map((v) => String(v)).filter(Boolean);
     return (
@@ -94,7 +114,7 @@ async function fetchDistinctValues(
     const gran = autoGranularity(fromISO, toISO_);
 
     const params = {
-      view,
+      view: normalizedView,
       metrics: [{ measure: "count", aggregation: "count" }],
       dimensions: [{ field: dimField }],
       filters: [],
@@ -138,7 +158,7 @@ async function fetchDistinctValues(
 
     const data = await api.trpcGet("dashboard.executeQuery", {
       query: {
-        view,
+        view: normalizedView,
         dimensions: [{ field: dimField }],
         metrics: [{ measure: "count", aggregation: "count" }],
         filters: [],
@@ -200,16 +220,19 @@ const OP_MAP = {
 
 export class FiltersAPI extends ApiClient {
   constructor(projectId = null) {
-    super(projectId); // ✅ 부모 클래스에 projectId 전달
+    super(projectId);
   }
 
   async getFilterColumns(view = "traces") {
-    const columns = PRESETS[view] || PRESETS.traces;
+    const key = normalizeView(view);
+    const columns = PRESETS[key] || PRESETS.traces;
     return { success: true, data: columns };
   }
 
   async getOptions(view = "traces", { searchByColumn = {}, limit = 50 } = {}) {
-    const preset = PRESETS[view] || PRESETS.traces;
+    const key = normalizeView(view);
+    const preset = PRESETS[key] || PRESETS.traces;
+
     const optionColumns = preset.filter((c) =>
       ["stringOptions", "arrayOptions", "categoryOptions"].includes(c.type)
     );
@@ -218,7 +241,7 @@ export class FiltersAPI extends ApiClient {
       optionColumns.map(async (col) => {
         const search = searchByColumn[col.id] ?? "";
         const list = await fetchDistinctValues(this, {
-          view,
+          view: key,
           column: col.id,
           search,
           limit,
@@ -233,7 +256,12 @@ export class FiltersAPI extends ApiClient {
 
   async getFilterValues({ view = "traces", column, search = "", limit = 50 }) {
     if (!column) return [];
-    return fetchDistinctValues(this, { view, column, search, limit });
+    return fetchDistinctValues(this, {
+      view: normalizeView(view),
+      column,
+      search,
+      limit,
+    });
   }
 
   serializeFilters(filters = [], columns = []) {

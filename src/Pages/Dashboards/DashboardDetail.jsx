@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom"; // ✅ useLocation 추가
 import { Plus, Copy } from "lucide-react";
 import { dashboardAPI } from "./services/dashboardApi.js";
 import { dashboardFilterConfig } from "../../components/FilterControls/filterConfig.js";
@@ -13,6 +13,7 @@ import { v4 as uuidv4 } from "uuid";
 const DashboardDetail = () => {
   const { projectId, dashboardId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation(); // ✅ useLocation 추가
 
   // 기본 상태
   const [dashboard, setDashboard] = useState(null);
@@ -293,6 +294,23 @@ const DashboardDetail = () => {
   useEffect(() => {
     loadFilterOptions();
   }, [loadFilterOptions]);
+
+  // ✅ 새 위젯 추가 후 대시보드 새로고침을 위한 useEffect 추가
+  useEffect(() => {
+    // 위젯 추가 후 리다이렉트된 경우 대시보드 새로고침
+    if (location.state?.refreshDashboard) {
+      console.log("새 위젯 추가로 인한 대시보드 새로고침");
+      
+      // 대시보드 데이터 새로고침
+      loadDashboard();
+      
+      // state 정리 (무한 새로고침 방지)
+      window.history.replaceState(
+        { ...location.state, refreshDashboard: false },
+        document.title
+      );
+    }
+  }, [location.state, loadDashboard]);
 
   // 로딩 상태
   if (loading) {

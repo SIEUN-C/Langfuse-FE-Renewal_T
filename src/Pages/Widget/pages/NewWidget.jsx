@@ -1,362 +1,1049 @@
-// src/Pages/Widget/pages/NewWidget.jsx
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate, useSearchParams, useParams } from "react-router-dom";
-import api from "../services";
-import styles from "./NewWidget.module.css";
+import { startCase } from "lodash";
+import styles from './NewWidget.module.css';
 
-// Components
+// 차트 라이브러리 import
+import Chart from '../chart-library/Chart.jsx';
+
+// API 서비스 import
+import api from '../services/index.js';
+
+// 수정: 올바른 DateRangePicker import
 import DateRangePicker from "../components/DateRangePicker";
-import AdvancedFilters from "../components/AdvancedFilters";
-import ViewMetricSelector from "../components/ViewMetricSelector";
-import ChartTypeSelector from "../components/ChartTypeSelector";
-import ChartPreview from "../components/ChartPreview";
-import DashboardModal from "../components/WidgetDashboardModal";
 
-const toISO = (d) => (d ? new Date(d).toISOString() : null);
-const isTimeSeriesChart = (t) =>
-  ["LINE_TIME_SERIES", "BAR_TIME_SERIES"].includes(String(t));
+// 공통 컴포넌트 imports
+import FiltersEditor from '../components/FiltersEditor';
+import IntegratedMetricsSelector from '../components/IntegratedMetricsSelector';
 
-const DIMENSION_ALIAS = {
-  traceName: "name",
-  user: "userId",
-  session: "sessionId",
+// 아이콘 import
+import { 
+  BarChart,
+  PieChart,
+  LineChart,
+  BarChartHorizontal,
+  Hash,
+  BarChart3,
+  Table,
+  Plus,
+  X
+} from "lucide-react";
+
+// 기본 UI 컴포넌트들
+const Card = ({ children, className = "" }) => (
+  <div className={`${styles.card} ${className}`}>{children}</div>
+);
+
+const CardHeader = ({ children }) => (
+  <div className={styles.cardHeader}>{children}</div>
+);
+
+const CardContent = ({ children, className = "" }) => (
+  <div className={`${styles.cardContent} ${className}`}>{children}</div>
+);
+
+const CardTitle = ({ children }) => (
+  <h3 className={styles.cardTitle}>{children}</h3>
+);
+
+const CardDescription = ({ children }) => (
+  <p className={styles.cardDescription}>{children}</p>
+);
+
+const CardFooter = ({ children }) => (
+  <div className={styles.cardFooter}>{children}</div>
+);
+
+const Select = ({ value, onValueChange, children, disabled = false }) => (
+  <select 
+    className={styles.select} 
+    value={value} 
+    onChange={(e) => onValueChange(e.target.value)}
+    disabled={disabled}
+  >
+    {children}
+  </select>
+);
+
+const SelectItem = ({ value, children }) => (
+  <option value={value}>{children}</option>
+);
+
+const SelectGroup = ({ children }) => (
+  <optgroup>{children}</optgroup>
+);
+
+const SelectLabel = ({ children }) => (
+  <option disabled>{children}</option>
+);
+
+const Label = ({ htmlFor, children }) => (
+  <label htmlFor={htmlFor} className={styles.label}>{children}</label>
+);
+
+const Input = ({ type = "text", value, onChange, placeholder, className = "", ...props }) => (
+  <input
+    type={type}
+    value={value}
+    onChange={onChange}
+    placeholder={placeholder}
+    className={`${styles.input} ${className}`}
+    {...props}
+  />
+);
+
+const Button = ({ children, onClick, className = "", disabled = false, variant = "primary", size = "default" }) => (
+  <button
+    onClick={onClick}
+    disabled={disabled}
+    className={`${styles.button} ${styles[variant]} ${className}`}
+  >
+    {children}
+  </button>
+);
+
+// 차트 타입 설정
+const chartTypes = [
+  {
+    group: "total-value",
+    name: "Big Number",
+    value: "NUMBER",
+    icon: Hash,
+    supportsBreakdown: false,
+  },
+  {
+    group: "time-series",
+    name: "Line Chart",
+    value: "LINE_TIME_SERIES",
+    icon: LineChart,
+    supportsBreakdown: true,
+  },
+  {
+    group: "time-series",
+    name: "Vertical Bar Chart",
+    value: "BAR_TIME_SERIES",
+    icon: BarChart,
+    supportsBreakdown: true,
+  },
+  {
+    group: "total-value",
+    name: "Horizontal Bar Chart",
+    value: "HORIZONTAL_BAR",
+    icon: BarChartHorizontal,
+    supportsBreakdown: true,
+  },
+  {
+    group: "total-value",
+    name: "Vertical Bar Chart",
+    value: "VERTICAL_BAR",
+    icon: BarChart,
+    supportsBreakdown: true,
+  },
+  {
+    group: "total-value",
+    name: "Histogram",
+    value: "HISTOGRAM",
+    icon: BarChart3,
+    supportsBreakdown: false,
+  },
+  {
+    group: "total-value",
+    name: "Pie Chart",
+    value: "PIE",
+    icon: PieChart,
+    supportsBreakdown: true,
+  },
+  {
+    group: "total-value",
+    name: "Pivot Table",
+    value: "PIVOT_TABLE",
+    icon: Table,
+    supportsBreakdown: true,
+  },
+];
+
+// View 선언
+const viewDeclarations = {
+  traces: {
+    description: "Trace-level data",
+    measures: {
+      count: { description: "Number of traces", unit: "traces", type: "number" },
+      latency: { description: "Average latency", unit: "ms", type: "number" },
+      totalCost: { description: "Total cost", unit: "USD", type: "number" },
+      totalTokens: { description: "Total tokens", unit: "tokens", type: "number" },
+      duration: { description: "Duration", unit: "ms", type: "number" }
+    },
+    dimensions: {
+      environment: { description: "Environment", type: "string" },
+      traceName: { description: "Trace name", type: "string" },
+      release: { description: "Release", type: "string" },
+      version: { description: "Version", type: "string" },
+      user: { description: "User ID", type: "string" },
+      session: { description: "Session ID", type: "string" }
+    }
+  },
+  observations: {
+    description: "Observation-level data",
+    measures: {
+      count: { description: "Number of observations", unit: "observations", type: "number" },
+      latency: { description: "Average latency", unit: "ms", type: "number" },
+      cost: { description: "Cost", unit: "USD", type: "number" },
+      input_tokens: { description: "Input tokens", unit: "tokens", type: "number" },
+      output_tokens: { description: "Output tokens", unit: "tokens", type: "number" }
+    },
+    dimensions: {
+      environment: { description: "Environment", type: "string" },
+      observationName: { description: "Observation name", type: "string" },
+      release: { description: "Release", type: "string" },
+      version: { description: "Version", type: "string" },
+      user: { description: "User ID", type: "string" },
+      session: { description: "Session ID", type: "string" }
+    }
+  },
+  "scores-numeric": {
+    description: "Numeric score data",
+    measures: {
+      count: { description: "Number of scores", unit: "scores", type: "number" },
+      value: { description: "Score value", unit: "score", type: "number" }
+    },
+    dimensions: {
+      environment: { description: "Environment", type: "string" },
+      scoreName: { description: "Score name", type: "string" },
+      release: { description: "Release", type: "string" },
+      version: { description: "Version", type: "string" },
+      user: { description: "User ID", type: "string" },
+      session: { description: "Session ID", type: "string" }
+    }
+  },
+  "scores-categorical": {
+    description: "Categorical score data",
+    measures: {
+      count: { description: "Number of scores", unit: "scores", type: "number" },
+      scores_count: { description: "Scores count", unit: "scores", type: "number" }
+    },
+    dimensions: {
+      environment: { description: "Environment", type: "string" },
+      scoreName: { description: "Score name", type: "string" },
+      stringValue: { description: "String value", type: "string" },
+      release: { description: "Release", type: "string" },
+      version: { description: "Version", type: "string" },
+      user: { description: "User ID", type: "string" },
+      session: { description: "Session ID", type: "string" }
+    }
+  }
 };
-const normalizeDim = (dim) => DIMENSION_ALIAS[dim] ?? dim;
 
-const sanitizeFilters = (filters = []) => {
-  if (!Array.isArray(filters)) return [];
-  return filters
-    .map((f) => {
-      const field = f.field ?? f.column ?? f.id ?? f.name;
-      const operator = (f.operator ?? f.op ?? "").toString().toLowerCase();
-      let value =
-        f.value ??
-        f.values ??
-        (Array.isArray(f.list) ? [...f.list] : undefined);
+// 집계 옵션
+const metricAggregations = ["count", "sum", "avg", "min", "max", "p95", "histogram"];
 
-      if (typeof value === "string") value = value.trim();
+// 상수
+const MAX_PIVOT_TABLE_DIMENSIONS = 2;
+const MAX_PIVOT_TABLE_METRICS = 10;
 
-      if (
-        (operator === "in" || operator === "not in") &&
-        typeof value === "string"
-      ) {
-        value = value
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean);
+// 유틸리티 함수들
+const isTimeSeriesChart = (t) => ["LINE_TIME_SERIES", "BAR_TIME_SERIES"].includes(String(t));
+
+const formatMetricName = (metricName) => {
+  const cleanedName = metricName === "count_count" ? "Count" : metricName;
+  return startCase(cleanedName);
+};
+
+const buildWidgetName = ({ aggregation, measure, dimension, view, metrics, isMultiMetric = false }) => {
+  let base;
+
+  if (isMultiMetric && metrics && metrics.length > 0) {
+    const metricDisplay = metrics.map(formatMetricName).join(", ");
+    base = metricDisplay;
+  } else {
+    const meas = formatMetricName(measure);
+    if (measure.toLowerCase() === "count") {
+      base = meas;
+    } else {
+      const agg = startCase(aggregation.toLowerCase());
+      base = `${agg} ${meas}`;
+    }
+  }
+
+  if (dimension && dimension !== "none") {
+    base += ` by ${startCase(dimension)}`;
+  }
+  base += ` (${startCase(view)})`;
+  return base;
+};
+
+const buildWidgetDescription = ({ aggregation, measure, dimension, view, filters, metrics, isMultiMetric = false }) => {
+  const viewLabel = startCase(view);
+  let sentence;
+
+  if (isMultiMetric && metrics && metrics.length > 0) {
+    const metricDisplay = metrics.map(formatMetricName).join(", ");
+    sentence = `Shows ${metricDisplay.toLowerCase()} of ${viewLabel}`;
+  } else {
+    const measLabel = formatMetricName(measure);
+
+    if (measure.toLowerCase() === "count") {
+      sentence = `Shows the count of ${viewLabel}`;
+    } else {
+      const aggLabel = startCase(aggregation.toLowerCase());
+      sentence = `Shows the ${aggLabel.toLowerCase()} ${measLabel.toLowerCase()} of ${viewLabel}`;
+    }
+  }
+
+  if (dimension && dimension !== "none") {
+    sentence += ` by ${startCase(dimension).toLowerCase()}`;
+  }
+
+  if (filters && filters.length > 0) {
+    if (filters.length <= 2) {
+      const cols = filters.map((f) => startCase(f.column || f.field)).join(" and ");
+      sentence += `, filtered by ${cols}`;
+    } else {
+      sentence += `, filtered by ${filters.length} conditions`;
+    }
+  }
+
+  return sentence;
+};
+
+// 필터 변환 함수들
+const transformFiltersToWidgetFormat = (builderFilters) => {
+  return builderFilters.map(filter => ({
+    column: filter.column,
+    operator: filter.operator === 'anyOf' ? 'in' : 
+             filter.operator === 'noneOf' ? 'not_in' :
+             filter.operator === 'contains' ? 'contains' :
+             filter.operator === 'does not contain' ? 'not_contains' :
+             filter.operator,
+    value: Array.isArray(filter.values) ? filter.values.join(',') : 
+           filter.values || '',
+    metaKey: filter.metaKey || ''
+  }));
+};
+
+// DashboardModal 컴포넌트
+function DashboardModal({
+  isOpen,
+  onClose,
+  onSave,
+  projectId,
+  api,
+}) {
+  const [dashboards, setDashboards] = useState([]);
+  const [selectedId, setSelectedId] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const fetchDashboards = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        console.log("대시보드 목록 조회 시작:", { projectId });
+
+        const response = await api.getAllDashboards({
+          projectId,
+          orderBy: { column: "updatedAt", order: "DESC" },
+          page: 0,
+          limit: 100,
+        });
+
+        console.log("대시보드 API 응답:", response);
+
+        const items =
+          response?.dashboards ||
+          response?.data?.dashboards ||
+          response?.json?.dashboards ||
+          response?.items ||
+          response?.data ||
+          [];
+
+        console.log("추출된 대시보드 목록:", items);
+
+        const userDashboards = Array.isArray(items) 
+          ? items.filter((dashboard) => {
+              return (
+                dashboard.owner !== "LANGFUSE" &&
+                !dashboard.name?.toLowerCase().includes("langfuse")
+              );
+            })
+          : [];
+
+        console.log("필터링된 사용자 대시보드:", userDashboards);
+        setDashboards(userDashboards);
+      } catch (error) {
+        console.error("대시보드 로드 실패:", error);
+        setError(`대시보드 목록을 불러올 수 없습니다: ${error.message}`);
+        setDashboards([]);
+      } finally {
+        setLoading(false);
       }
+    };
 
-      const isEmptyString = value === "" || value == null;
-      const isEmptyArray = Array.isArray(value) && value.length === 0;
+    fetchDashboards();
+  }, [isOpen, projectId, api]);
 
-      if (operator === "contains" && isEmptyString) return null;
-      if ((operator === "in" || operator === "not in") && isEmptyArray)
-        return null;
+  if (!isOpen) return null;
 
-      return { field, operator, value, type: f.type || "string" };
-    })
-    .filter(Boolean);
-};
+  const handleSkip = () => {
+    console.log("Skip 선택 - 대시보드 없이 위젯만 저장");
+    onSave(null);
+  };
 
-const buildDefaultTexts = ({ aggregation, measure, view, dimension }) => {
-  const agg = (aggregation || "count").toString().toUpperCase();
-  const mea = (measure || "count").toString().toUpperCase();
-  const vw = (view || "traces").toString();
-  const dim =
-    !dimension || dimension === "none" ? "" : ` by ${String(dimension)}`;
-  const name = `${agg} ${mea} (${vw})${dim}`;
-  const desc = `Shows the ${
-    agg === "COUNT" ? "count" : agg.toLowerCase()
-  } of ${mea.toLowerCase()} from ${vw}${dim}`;
-  return { name, desc };
-};
+  const handleAddToDashboard = () => {
+    if (selectedId) {
+      console.log("대시보드에 추가 선택:", selectedId);
+      onSave(selectedId);
+    }
+  };
 
-export default function NewWidgetPage() {
+  const handleOverlayClick = (e) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        backgroundColor: "rgba(0, 0, 0, 0.7)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 1000,
+        backdropFilter: "blur(4px)",
+      }}
+      onClick={handleOverlayClick}
+    >
+      <div
+        style={{
+          backgroundColor: "#020817",
+          border: "1px solid #1e293b",
+          borderRadius: "8px",
+          width: "90%",
+          maxWidth: "600px",
+          maxHeight: "80vh",
+          display: "flex",
+          flexDirection: "column",
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* 헤더 */}
+        <div
+          style={{
+            padding: "20px",
+            borderBottom: "1px solid #1e293b",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <div>
+            <h1 style={{ fontSize: "20px", margin: 0, color: "#f8fafc" }}>
+              Select dashboard to add widget to
+            </h1>
+          </div>
+          <button
+            onClick={onClose}
+            style={{
+              fontSize: "24px",
+              background: "none",
+              border: "none",
+              color: "#94a3b8",
+              cursor: "pointer",
+            }}
+          >
+            ×
+          </button>
+        </div>
+
+        {/* 바디 - 테이블 형식 */}
+        <div
+          style={{
+            flex: 1,
+            overflowY: "auto",
+            padding: "0",
+            minHeight: "200px",
+          }}
+        >
+          {loading ? (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                height: "200px",
+                color: "#94a3b8",
+              }}
+            >
+              대시보드 목록을 불러오는 중...
+            </div>
+          ) : error ? (
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                height: "200px",
+                color: "#ef4444",
+                textAlign: "center",
+                padding: "20px",
+              }}
+            >
+              <p>{error}</p>
+              <button
+                onClick={() => window.location.reload()}
+                style={{
+                  marginTop: "10px",
+                  padding: "8px 16px",
+                  background: "#1e293b",
+                  border: "none",
+                  borderRadius: "4px",
+                  color: "#94a3b8",
+                  cursor: "pointer",
+                }}
+              >
+                새로고침
+              </button>
+            </div>
+          ) : dashboards.length === 0 ? (
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                height: "200px",
+                color: "#94a3b8",
+                textAlign: "center",
+              }}
+            >
+              <p>대시보드가 없습니다.</p>
+              <p style={{ fontSize: "14px", marginTop: "8px" }}>
+                먼저 대시보드를 생성해주세요.
+              </p>
+            </div>
+          ) : (
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr style={{ borderBottom: "1px solid #1e293b" }}>
+                  <th
+                    style={{
+                      padding: "12px 20px",
+                      textAlign: "left",
+                      color: "#94a3b8",
+                      fontSize: "13px",
+                      fontWeight: "500",
+                    }}
+                  >
+                    Name
+                  </th>
+                  <th
+                    style={{
+                      padding: "12px 20px",
+                      textAlign: "left",
+                      color: "#94a3b8",
+                      fontSize: "13px",
+                      fontWeight: "500",
+                    }}
+                  >
+                    Description
+                  </th>
+                  <th
+                    style={{
+                      padding: "12px 20px",
+                      textAlign: "left",
+                      color: "#94a3b8",
+                      fontSize: "13px",
+                      fontWeight: "500",
+                    }}
+                  >
+                    Updated
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {dashboards.map((dashboard) => (
+                  <tr
+                    key={dashboard.id}
+                    style={{
+                      borderBottom: "1px solid #1e293b",
+                      cursor: "pointer",
+                      backgroundColor:
+                        selectedId === dashboard.id ? "#1e3a8a" : "transparent",
+                      transition: "background-color 0.2s",
+                    }}
+                    onClick={() => setSelectedId(dashboard.id)}
+                    onMouseEnter={(e) => {
+                      if (selectedId !== dashboard.id) {
+                        e.currentTarget.style.backgroundColor = "#1e293b";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (selectedId !== dashboard.id) {
+                        e.currentTarget.style.backgroundColor = "transparent";
+                      }
+                    }}
+                  >
+                    <td
+                      style={{
+                        padding: "12px 20px",
+                        color: "#f8fafc",
+                        fontSize: "14px",
+                      }}
+                    >
+                      {dashboard.name}
+                    </td>
+                    <td
+                      style={{
+                        padding: "12px 20px",
+                        color: "#94a3b8",
+                        fontSize: "13px",
+                      }}
+                    >
+                      {dashboard.description || "-"}
+                    </td>
+                    <td
+                      style={{
+                        padding: "12px 20px",
+                        color: "#64748b",
+                        fontSize: "12px",
+                      }}
+                    >
+                      {new Date(dashboard.updatedAt).toLocaleDateString(
+                        "ko-KR"
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+
+        {/* 푸터 - Skip과 Add to Dashboard */}
+        <div
+          style={{
+            padding: "20px",
+            borderTop: "1px solid #1e293b",
+            display: "flex",
+            gap: "12px",
+            justifyContent: "flex-end",
+          }}
+        >
+          <button
+            onClick={handleSkip}
+            style={{
+              padding: "10px 20px",
+              borderRadius: "6px",
+              backgroundColor: "transparent",
+              border: "1px solid #334155",
+              color: "#94a3b8",
+              fontSize: "14px",
+              fontWeight: "600",
+              cursor: "pointer",
+            }}
+          >
+            Skip
+          </button>
+
+          <button
+            onClick={handleAddToDashboard}
+            disabled={!selectedId}
+            style={{
+              padding: "10px 20px",
+              borderRadius: "6px",
+              backgroundColor: selectedId ? "#3b82f6" : "#1e293b",
+              border: "none",
+              color: selectedId ? "#ffffff" : "#64748b",
+              fontSize: "14px",
+              fontWeight: "600",
+              cursor: selectedId ? "pointer" : "not-allowed",
+              opacity: selectedId ? 1 : 0.5,
+            }}
+          >
+            Add to Dashboard
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function NewWidget() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { projectId: urlProjectId } = useParams();
 
-  // projectId 우선순위: URL params > search params > env
-  const projectId =
-    urlProjectId ||
-    searchParams.get("projectId") ||
-    import.meta.env.VITE_LANGFUSE_PROJECT_ID ||
-    "";
+  // 프로젝트 ID 해결
+  const projectId = urlProjectId || searchParams.get("projectId") || "demo-project";
 
-  // Data Selection
-  const [view, setView] = useState("traces");
-  const [measure, setMeasure] = useState("count");
-  const [aggregation, setAggregation] = useState("count");
-  const [metrics, setMetrics] = useState([
-    { measure: "count", aggregation: "count" },
-  ]);
+  // getDimensionsForView 함수 정의 (컴포넌트 내 최상단에 위치)
+  const getDimensionsForView = useCallback((view) => {
+    const viewDeclaration = viewDeclarations[view];
+    if (!viewDeclaration) return [];
+    
+    return Object.entries(viewDeclaration.dimensions)
+      .map(([key, meta]) => ({
+        value: key,
+        label: startCase(key),
+      }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }, []);
 
-  // Dimensions for Pivot
-  const [rowDim1, setRowDim1] = useState("none");
-  const [rowDim2, setRowDim2] = useState("none");
+  // 폼 상태 - 기본 정보
+  const [widgetName, setWidgetName] = useState("Count (Traces)");
+  const [widgetDescription, setWidgetDescription] = useState("Shows the count of traces");
+  const [autoLocked, setAutoLocked] = useState(false);
 
-  // Visualization
-  const [chartType, setChartType] = useState("LINE_TIME_SERIES");
+  // 폼 상태 - 데이터 선택
+  const [selectedView, setSelectedView] = useState("traces");
+  const [selectedMeasure, setSelectedMeasure] = useState("count");
+  const [selectedAggregation, setSelectedAggregation] = useState("count");
+  const [selectedDimension, setSelectedDimension] = useState("none");
+
+  // 피벗 테이블 전용
+  const [selectedMetrics, setSelectedMetrics] = useState([{
+    id: "count_count",
+    measure: "count",
+    aggregation: "count",
+    label: "Count Count"
+  }]);
+  const [pivotDimensions, setPivotDimensions] = useState([]);
+
+  // 시각화 설정
+  const [selectedChartType, setSelectedChartType] = useState("LINE_TIME_SERIES");
   const [rowLimit, setRowLimit] = useState(100);
-  const [bins, setBins] = useState(10);
+  const [histogramBins, setHistogramBins] = useState(10);
 
-  // Pivot Sort
-  const [pivotSortColumn, setPivotSortColumn] = useState("");
-  const [pivotSortOrder, setPivotSortOrder] = useState("desc");
+  // 피벗 테이블 정렬
+  const [defaultSortColumn, setDefaultSortColumn] = useState("none");
+  const [defaultSortOrder, setDefaultSortOrder] = useState("DESC");
 
-  // Filters
-  const [filters, setFilters] = useState([]);
-
-  // Date Range
-  const [startDate, setStartDate] = useState(
-    new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-  );
+  // 필터와 날짜 - FiltersEditor 형식으로 변경
+  const [userFilterState, setUserFilterState] = useState([{
+    column: 'environment',
+    operator: 'anyOf',
+    values: []
+  }]);
+  const [startDate, setStartDate] = useState(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000));
   const [endDate, setEndDate] = useState(new Date());
 
-  // Texts
-  const [{ name, description }, setTexts] = useState(() =>
-    buildDefaultTexts({ aggregation, measure, view, dimension: "none" })
-  );
-
-  // Preview
+  // 로딩과 모달
   const [loading, setLoading] = useState(false);
   const [previewError, setPreviewError] = useState("");
   const [previewData, setPreviewData] = useState([]);
-  const [debugInfo, setDebugInfo] = useState({});
-  const [showDebug, setShowDebug] = useState(false);
-
-  // Dashboard Modal
   const [showDashboardModal, setShowDashboardModal] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  // projectId 검증
+  // API 초기화
   useEffect(() => {
-    if (!projectId) {
-      console.error("Project ID is missing!");
-      setPreviewError("Project ID is required. Please check the URL.");
-      return;
+    if (projectId) {
+      api.setProjectId(projectId);
     }
-    console.log("Using Project ID:", projectId);
   }, [projectId]);
 
-  // Auto-correct aggregation
-  useEffect(() => {
-    if (chartType === "HISTOGRAM" && aggregation !== "histogram") {
-      setAggregation("histogram");
-    } else if (chartType !== "HISTOGRAM" && aggregation === "histogram") {
-      setAggregation(measure === "count" ? "count" : "sum");
-    } else if (measure === "count" && aggregation !== "count") {
-      setAggregation("count");
-    }
-  }, [chartType, measure, aggregation]);
+  // 사용 가능한 차원
+  const availableDimensions = useMemo(() => {
+    const viewDeclaration = viewDeclarations[selectedView];
+    return Object.entries(viewDeclaration.dimensions)
+      .map(([key]) => ({
+        value: key,
+        label: startCase(key),
+      }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }, [selectedView]);
 
-  // Auto texts
-  useEffect(() => {
-    setTexts(
-      buildDefaultTexts({ aggregation, measure, view, dimension: "none" })
-    );
-  }, [aggregation, measure, view]);
-
-  // Build query
-  const query = useMemo(() => {
-    const cleanedFilters = sanitizeFilters(filters);
-
-    const dims = [];
-    if (chartType === "PIVOT_TABLE") {
-      if (rowDim1 !== "none") dims.push({ field: normalizeDim(rowDim1) });
-      if (rowDim2 !== "none") dims.push({ field: normalizeDim(rowDim2) });
-    }
-
-    let usedMetrics = [];
-    if (chartType === "HISTOGRAM") {
-      usedMetrics = [{ measure: "count", aggregation: "histogram" }];
-    } else if (chartType === "PIVOT_TABLE") {
-      usedMetrics =
-        metrics.length > 0
-          ? metrics
-          : [{ measure: "count", aggregation: "count" }];
+  const updatePivotDimension = (index, value) => {
+    const newDimensions = [...pivotDimensions];
+    if (value && value !== "none") {
+      newDimensions[index] = value;
     } else {
-      usedMetrics = [{ measure, aggregation }];
+      newDimensions.splice(index);
     }
+    setPivotDimensions(newDimensions);
+  };
+
+  // 쿼리 빌드
+  const query = useMemo(() => {
+    const fromTimestamp = startDate;
+    const toTimestamp = endDate;
+
+    const queryDimensions = selectedChartType === "PIVOT_TABLE"
+      ? pivotDimensions.map((field) => ({ field }))
+      : selectedDimension !== "none"
+        ? [{ field: selectedDimension }]
+        : [];
+
+    const queryMetrics = selectedChartType === "PIVOT_TABLE"
+      ? selectedMetrics
+          .filter((metric) => metric.measure && metric.measure !== "")
+          .map((metric) => ({
+            measure: metric.measure,
+            aggregation: metric.aggregation,
+          }))
+      : [{ measure: selectedMeasure, aggregation: selectedAggregation }];
+
+    // 필터를 위젯 형식으로 변환
+    const transformedFilters = transformFiltersToWidgetFormat(userFilterState.filter(f => 
+      f.column && (f.values && f.values.length > 0)
+    ));
 
     return {
-      view,
-      dimensions: dims,
-      metrics: usedMetrics,
-      filters: cleanedFilters,
-      timeDimension: isTimeSeriesChart(chartType)
-        ? { granularity: "auto" }
-        : null,
-      fromTimestamp: toISO(startDate),
-      toTimestamp: toISO(endDate),
-      orderBy: null,
-      chartConfig:
-        chartType === "HISTOGRAM"
-          ? { type: chartType, bins }
-          : {
-              type: chartType,
+      view: selectedView,
+      dimensions: queryDimensions,
+      metrics: queryMetrics,
+      filters: transformedFilters,
+      timeDimension: isTimeSeriesChart(selectedChartType) ? { granularity: "auto" } : null,
+      fromTimestamp: fromTimestamp.toISOString(),
+      toTimestamp: toTimestamp.toISOString(),
+      chartType: selectedChartType,
+      chartConfig: selectedChartType === "HISTOGRAM"
+        ? { type: selectedChartType, bins: histogramBins }
+        : selectedChartType === "PIVOT_TABLE"
+          ? {
+              type: selectedChartType,
+              dimensions: pivotDimensions,
               row_limit: rowLimit,
-              ...(chartType === "PIVOT_TABLE"
-                ? {
-                    pivot: {
-                      sortColumn: pivotSortColumn || null,
-                      sortOrder: pivotSortOrder,
-                    },
-                  }
-                : {}),
-            },
+              defaultSort: defaultSortColumn && defaultSortColumn !== "none"
+                ? { column: defaultSortColumn, order: defaultSortOrder }
+                : undefined,
+            }
+          : { type: selectedChartType, row_limit: rowLimit },
     };
   }, [
-    view,
-    chartType,
-    measure,
-    aggregation,
-    metrics,
-    rowDim1,
-    rowDim2,
-    filters,
-    startDate,
-    endDate,
-    rowLimit,
-    bins,
-    pivotSortColumn,
-    pivotSortOrder,
+    selectedView, selectedDimension, selectedAggregation, selectedMeasure, selectedMetrics,
+    userFilterState, startDate, endDate, selectedChartType, histogramBins, pivotDimensions, rowLimit,
+    defaultSortColumn, defaultSortOrder
   ]);
 
-  // Preview fetch
+  // 미리보기 데이터 가져오기
   const refreshPreview = useCallback(async () => {
     if (!projectId) {
-      console.warn("No project ID available");
       setPreviewError("Project ID is required");
       return;
     }
+    
     setLoading(true);
     setPreviewError("");
 
     try {
-      const columnsResponse = await api.getFilterColumns(view);
-      const columns = columnsResponse?.data || [];
-
-      const res = await api.executeQuery(query, columns);
-      const chartData = res?.data?.chartData || res?.chartData || [];
-
-      setDebugInfo({
-        query,
-        columns,
-        response: res,
-        chartData,
-        projectId,
-        timestamp: new Date().toISOString(),
-      });
-
-      setPreviewData(Array.isArray(chartData) ? chartData : []);
-    } catch (e) {
-      console.error("Preview error:", e);
-      setPreviewError(e?.message || String(e));
+      const response = await api.executeQuery(query);
+      if (response.success && response.data) {
+        const chartData = response.data.chartData || [];
+        
+        // 데이터를 차트 라이브러리 형식으로 변환
+        const transformedData = chartData.map((item, index) => ({
+          time_dimension: item.time_dimension || item.timestamp || item.date,
+          dimension: item.dimension || item.name || item[selectedDimension] || `Item ${index + 1}`,
+          metric: typeof item.metric === 'number' ? item.metric : 
+                  typeof item.value === 'number' ? item.value :
+                  Object.values(item).find(v => typeof v === 'number') || 0,
+          // 원본 데이터도 포함
+          ...item
+        }));
+        
+        setPreviewData(transformedData);
+      } else {
+        throw new Error(response.error || 'Failed to fetch data');
+      }
+    } catch (error) {
+      console.error("Preview error:", error);
+      setPreviewError(error?.message || String(error));
       setPreviewData([]);
-      setDebugInfo({
-        query,
-        error: e,
-        errorMessage: e?.message,
-        projectId,
-        timestamp: new Date().toISOString(),
-      });
     } finally {
       setLoading(false);
     }
-  }, [projectId, query, view]);
+  }, [projectId, query, selectedDimension]);
 
-  // API projectId 설정
+  // 미리보기 새로고침
   useEffect(() => {
-    if (projectId) {
-      api.setProjectId(projectId);
-      console.log("API project ID set to:", projectId);
-    }
-  }, [projectId]);
+    const timer = setTimeout(() => {
+      refreshPreview();
+    }, 500);
 
-  // 의존성 변경 시 프리뷰 갱신
-  useEffect(() => {
-    refreshPreview();
+    return () => clearTimeout(timer);
   }, [refreshPreview]);
 
-  // Save with Dashboard Selection
+  // 집계 자동 수정
+  useEffect(() => {
+    if (selectedChartType === "HISTOGRAM" && selectedAggregation !== "histogram") {
+      setSelectedAggregation("histogram");
+    } else if (selectedChartType !== "HISTOGRAM" && selectedAggregation === "histogram") {
+      setSelectedAggregation(selectedMeasure === "count" ? "count" : "sum");
+    }
+  }, [selectedMeasure, selectedAggregation, selectedChartType]);
+
+  // 차원 재설정
+  useEffect(() => {
+    if (
+      chartTypes.find((c) => c.value === selectedChartType)?.supportsBreakdown === false &&
+      selectedDimension !== "none"
+    ) {
+      setSelectedDimension("none");
+    }
+  }, [selectedChartType, selectedDimension]);
+
+  // 피벗 테이블 차원 재설정
+  useEffect(() => {
+    if (selectedChartType !== "PIVOT_TABLE" && pivotDimensions.length > 0) {
+      setPivotDimensions([]);
+    }
+  }, [selectedChartType, pivotDimensions.length]);
+
+  // 다중 메트릭 재설정
+  useEffect(() => {
+    if (selectedChartType !== "PIVOT_TABLE" && selectedMetrics.length > 1) {
+      setSelectedMetrics(selectedMetrics.slice(0, 1));
+    }
+  }, [selectedChartType, selectedMetrics]);
+
+  // 위젯 이름 자동 업데이트
+  useEffect(() => {
+    if (autoLocked) return;
+
+    const dimensionForNaming = selectedChartType === "PIVOT_TABLE" && pivotDimensions.length > 0
+      ? pivotDimensions.map(startCase).join(" and ")
+      : selectedDimension;
+
+    const isPivotTable = selectedChartType === "PIVOT_TABLE";
+    const validMetricsForNaming = selectedMetrics.filter((m) => m.measure && m.measure !== "");
+    const metricNames = isPivotTable && validMetricsForNaming.length > 0
+      ? validMetricsForNaming.map((m) => m.id)
+      : undefined;
+
+    const suggested = buildWidgetName({
+      aggregation: isPivotTable ? "count" : selectedAggregation,
+      measure: isPivotTable ? "count" : selectedMeasure,
+      dimension: dimensionForNaming,
+      view: selectedView,
+      metrics: metricNames,
+      isMultiMetric: isPivotTable && validMetricsForNaming.length > 0,
+    });
+
+    setWidgetName(suggested);
+  }, [
+    autoLocked, selectedAggregation, selectedMeasure, selectedMetrics, selectedDimension,
+    selectedView, selectedChartType, pivotDimensions
+  ]);
+
+  // 위젯 설명 자동 업데이트
+  useEffect(() => {
+    if (autoLocked) return;
+
+    const dimensionForDescription = selectedChartType === "PIVOT_TABLE" && pivotDimensions.length > 0
+      ? pivotDimensions.map(startCase).join(" and ")
+      : selectedDimension;
+
+    const isPivotTable = selectedChartType === "PIVOT_TABLE";
+    const validMetricsForDescription = selectedMetrics.filter((m) => m.measure && m.measure !== "");
+    const metricNames = isPivotTable && validMetricsForDescription.length > 0
+      ? validMetricsForDescription.map((m) => m.id)
+      : undefined;
+
+    // 활성 필터 개수 계산 (값이 있는 필터만)
+    const activeFilters = userFilterState.filter(f => 
+      f.column && (f.values && f.values.length > 0)
+    );
+
+    const suggested = buildWidgetDescription({
+      aggregation: isPivotTable ? "count" : selectedAggregation,
+      measure: isPivotTable ? "count" : selectedMeasure,
+      dimension: dimensionForDescription,
+      view: selectedView,
+      filters: activeFilters,
+      metrics: metricNames,
+      isMultiMetric: isPivotTable && validMetricsForDescription.length > 0,
+    });
+
+    setWidgetDescription(suggested);
+  }, [
+    autoLocked, selectedAggregation, selectedMeasure, selectedMetrics, selectedDimension,
+    selectedView, userFilterState, selectedChartType, pivotDimensions
+  ]);
+
+  // ✅ 저장 핸들러 - 수정된 API 호출 방식
   const handleSaveWithDashboard = async (dashboardId) => {
     if (!projectId) {
       alert("Project ID is required");
       return;
     }
-
+    
     setSaving(true);
+    
     try {
-      const payload = {
-        projectId,
-        name: name || "Untitled Widget",
-        description: description || "",
-        view,
-        dimensions: [
-          ...(rowDim1 !== "none" ? [normalizeDim(rowDim1)] : []),
-          ...(rowDim2 !== "none" ? [normalizeDim(rowDim2)] : []),
-        ],
-        metrics:
-          chartType === "PIVOT_TABLE"
-            ? metrics.map(m => ({
-                measure: m.measure,
-                agg: m.aggregation, // ✅ aggregation → agg로 변경
+      // 위젯 데이터 준비
+      const activeFilters = userFilterState.filter(f => 
+        f.column && (f.values && f.values.length > 0)
+      );
+      
+      const widgetData = {
+        name: widgetName,
+        description: widgetDescription,
+        view: selectedView,
+        dimensions: selectedChartType === "PIVOT_TABLE"
+          ? pivotDimensions.map((field) => ({ field }))
+          : selectedDimension !== "none"
+            ? [{ field: selectedDimension }]
+            : [],
+        metrics: selectedChartType === "PIVOT_TABLE"
+          ? selectedMetrics
+              .filter((metric) => metric.measure && metric.measure !== "")
+              .map((metric) => ({
+                measure: metric.measure,
+                agg: metric.aggregation,
               }))
-            : [
-                {
-                  measure,
-                  agg: chartType === "HISTOGRAM" ? "histogram" : aggregation, // ✅ aggregation → agg로 변경
-                },
-              ],
-        filters: sanitizeFilters(filters).map((f) => ({
-          column: f.field || f.column,
-          operator: f.operator,
-          value: f.value,
-        })),
-        chartType,
-        chartConfig:
-          chartType === "HISTOGRAM"
-            ? { type: chartType, bins }
-            : {
-                type: chartType,
+          : [{ measure: selectedMeasure, agg: selectedAggregation }],
+        filters: transformFiltersToWidgetFormat(activeFilters),
+        chartType: selectedChartType,
+        chartConfig: selectedChartType === "HISTOGRAM"
+          ? { type: selectedChartType, bins: histogramBins }
+          : selectedChartType === "PIVOT_TABLE"
+            ? {
+                type: selectedChartType,
                 row_limit: rowLimit,
-                ...(chartType === "PIVOT_TABLE"
-                  ? {
-                      pivot: {
-                        sortColumn: pivotSortColumn || null,
-                        sortOrder: pivotSortOrder,
-                      },
-                    }
-                  : {}),
-              },
-        fromTimestamp: toISO(startDate),
-        toTimestamp: toISO(endDate),
-        timeDimension: isTimeSeriesChart(chartType)
-          ? { granularity: "auto" }
-          : null,
+                defaultSort: defaultSortColumn && defaultSortColumn !== "none"
+                  ? { column: defaultSortColumn, order: defaultSortOrder }
+                  : undefined,
+              }
+            : { type: selectedChartType, row_limit: rowLimit },
       };
 
-      if (dashboardId) payload.dashboardId = dashboardId;
+      console.log("[NewWidget] 저장할 위젯 데이터:", widgetData);
+      console.log("[NewWidget] 대시보드 ID:", dashboardId);
 
-      console.log("위젯 저장 payload:", JSON.stringify(payload, null, 2));
-
-      const result = await api.trpcPost("dashboardWidgets.create", payload);
-
-      console.log("저장 성공:", result);
-
-      if (dashboardId) {
-        alert("위젯이 대시보드에 추가되었습니다!");
-        navigate(`/project/${projectId}/dashboards/${dashboardId}`);
+      // ✅ 수정된 API 호출 방식 - dashboardId를 두 번째 인자로 전달
+      const response = await api.createWidget(widgetData, dashboardId);
+      
+      console.log("[NewWidget] API 응답:", response);
+      
+      if (response.success) {
+        if (response.warning) {
+          // 부분 성공 (위젯은 생성되었지만 대시보드 추가 실패)
+          alert(`위젯이 생성되었지만 대시보드 추가에 실패했습니다: ${response.warning}`);
+        } else if (dashboardId) {
+          alert("위젯이 대시보드에 성공적으로 추가되었습니다!");
+        } else {
+          alert("위젯이 저장되었습니다!");
+        }
+        
+        // 적절한 페이지로 이동
+        if (dashboardId) {
+          navigate(`/project/${projectId}/dashboards/${dashboardId}`);
+        } else {
+          navigate(`/project/${projectId}/dashboards`);
+        }
       } else {
-        alert("위젯이 저장되었습니다!");
-        navigate(`/project/${projectId}/dashboards`, {
-          state: { activeTab: "Widgets" },
-        });
+        throw new Error(response.error || 'Failed to create widget');
       }
     } catch (error) {
-      console.error("저장 실패:", error);
-      alert(`저장 실패: ${error.message}`);
+      console.error('[NewWidget] Save error:', error);
+      alert(`저장 실패: ${error.message || error}`);
     } finally {
       setSaving(false);
       setShowDashboardModal(false);
@@ -365,340 +1052,281 @@ export default function NewWidgetPage() {
 
   const handleSave = () => setShowDashboardModal(true);
 
-  // projectId가 없으면 에러 페이지 표시
   if (!projectId) {
     return (
-      <div className={styles.pageWrap}>
-        <div className={styles.errorContainer}>
-          <h2>Project ID Required</h2>
-          <p>
-            This page requires a project ID. Please access it through the
-            correct URL.
-          </p>
-          <button onClick={() => navigate(-1)} className={styles.primaryBtn}>
-            Go Back
-          </button>
-        </div>
+      <div className={styles.container}>
+        <Card>
+          <CardHeader>
+            <CardTitle>Project ID Required</CardTitle>
+            <CardDescription>This page requires a project ID.</CardDescription>
+          </CardHeader>
+          <CardFooter>
+            <Button onClick={() => navigate(-1)}>Go Back</Button>
+          </CardFooter>
+        </Card>
       </div>
     );
   }
 
   return (
     <div className={styles.pageWrap}>
-      {/* 상단 브레드크럼 및 페이지 제목 */}
-      <div className={styles.pageHeader}>
-        <h1 className={styles.pageTitle}>Create New Widget</h1>
-      </div>
-
-      {/* 왼쪽 패널 - 설정 */}
+      {/* 왼쪽 폼 */}
       <div className={styles.leftPane}>
+        <div className={styles.section}>
+          <h2 className={styles.previewTitle}>Widget Configuration</h2>
+          <p className={styles.previewDesc}>Configure your widget by selecting data and visualization options</p>
+        </div>
+
         <div className={styles.section}>
           <h3>Data Selection</h3>
 
-          {/* Pivot Table일 때 Langfuse 스타일 UI */}
-          {chartType === "PIVOT_TABLE" ? (
-            <>
-              <div className={styles.block}>
-                <label className={styles.label}>View</label>
-                <select
-                  className={styles.select}
-                  value={view}
-                  onChange={(e) => setView(e.target.value)}
-                >
-                  <option value="traces">Traces</option>
-                  <option value="observations">Observations</option>
-                  <option value="scores">Scores</option>
-                </select>
-              </div>
+          {/* View Selection */}
+          <div className={styles.block}>
+            <Label htmlFor="view-select">View</Label>
+            <Select value={selectedView} onValueChange={(value) => {
+              if (value !== selectedView) {
+                const newView = value;
+                const newViewDeclaration = viewDeclarations[newView];
 
-              <div className={styles.block}>
-                <label className={styles.label}>Metrics</label>
-                <div style={{ marginBottom: "8px" }}>
-                  <span className={styles.helperText}>Metric 1 (Required)</span>
-                </div>
-                <select
-                  className={styles.select}
-                  value={metrics[0]?.measure || "count"}
-                  onChange={(e) => {
-                    const newMetrics = [...metrics];
-                    if (!newMetrics[0])
-                      newMetrics[0] = { aggregation: "count" };
-                    newMetrics[0].measure = e.target.value;
-                    setMetrics(newMetrics);
-                  }}
-                >
-                  <option value="count">Count</option>
-                  <option value="latency">Latency</option>
-                  <option value="observations_count">Observations Count</option>
-                  <option value="scores_count">Scores Count</option>
-                  <option value="totalCost">Total Cost</option>
-                  <option value="totalTokens">Total Tokens</option>
-                  <option value="duration">Duration</option>
-                  <option value="cost">Cost</option>
-                  <option value="input_tokens">Input Tokens</option>
-                  <option value="output_tokens">Output Tokens</option>
-                </select>
+                setSelectedMeasure("count");
+                setSelectedAggregation("count");
+                setSelectedDimension("none");
 
-                {/* Metric 2 추가 버튼 또는 두 번째 메트릭 */}
-                {metrics.length === 1 ? (
-                  <button
-                    type="button"
-                    className={styles.secondaryBtn}
-                    style={{
-                      marginTop: "12px",
-                      width: "100%",
-                      textAlign: "center",
-                    }}
-                    onClick={() => {
-                      setMetrics([
-                        ...metrics,
-                        { measure: "count", aggregation: "count" },
-                      ]);
-                    }}
-                  >
-                    + Add Metric 2
-                  </button>
-                ) : (
-                  <div style={{ marginTop: "12px" }}>
-                    <div style={{ marginBottom: "8px" }}>
-                      <span className={styles.helperText}>
-                        Metric 2 (Optional)
-                      </span>
-                    </div>
-                    <div style={{ display: "flex", gap: "8px" }}>
-                      <select
-                        className={styles.select}
-                        value={metrics[1]?.measure || "count"}
-                        onChange={(e) => {
-                          const newMetrics = [...metrics];
-                          if (!newMetrics[1])
-                            newMetrics[1] = { aggregation: "count" };
-                          newMetrics[1].measure = e.target.value;
-                          setMetrics(newMetrics);
-                        }}
-                        style={{ flex: 1 }}
-                      >
-                        <option value="count">Count</option>
-                        <option value="latency">Latency</option>
-                        <option value="observations_count">
-                          Observations Count
-                        </option>
-                        <option value="scores_count">Scores Count</option>
-                        <option value="totalCost">Total Cost</option>
-                        <option value="totalTokens">Total Tokens</option>
-                        <option value="duration">Duration</option>
-                        <option value="cost">Cost</option>
-                        <option value="input_tokens">Input Tokens</option>
-                        <option value="output_tokens">Output Tokens</option>
-                      </select>
-                      <button
-                        type="button"
-                        className={styles.secondaryBtn}
-                        onClick={() => setMetrics([metrics[0]])}
-                        style={{ padding: "8px 12px" }}
-                      >
-                        ×
-                      </button>
-                    </div>
-                  </div>
-                )}
+                if (selectedChartType === "PIVOT_TABLE") {
+                  const validMetrics = selectedMetrics.filter(
+                    (metric) => metric.measure in newViewDeclaration.measures
+                  );
 
-                {/* 세 번째 메트릭 추가 버튼 */}
-                {metrics.length === 2 && (
-                  <button
-                    type="button"
-                    className={styles.secondaryBtn}
-                    style={{
-                      marginTop: "12px",
-                      width: "100%",
-                      textAlign: "center",
-                    }}
-                    onClick={() => {
-                      setMetrics([
-                        ...metrics,
-                        { measure: "count", aggregation: "count" },
-                      ]);
-                    }}
-                  >
-                    + Add Metric 3
-                  </button>
-                )}
-              </div>
+                  if (validMetrics.length === 0) {
+                    validMetrics.push({
+                      id: "count_count",
+                      measure: "count",
+                      aggregation: "count",
+                      label: "Count Count",
+                    });
+                  }
 
-              <div className={styles.block}>
-                <label className={styles.label}>Filters</label>
-                <AdvancedFilters
-                  value={filters}
-                  onChange={setFilters}
-                  view={view}
-                />
-              </div>
+                  setSelectedMetrics(validMetrics);
 
-              <div
-                style={{
-                  borderTop: "1px solid #1e293b",
-                  marginTop: "16px",
-                  paddingTop: "16px",
-                }}
-              >
-                <label className={styles.label}>Row Dimensions</label>
-                <p
-                  className={styles.helperText}
-                  style={{ marginBottom: "12px" }}
-                >
-                  Configure up to 2 dimensions for pivot table rows. Each
-                  dimension creates groupings with subtotals.
+                  const validDimensions = pivotDimensions.filter(
+                    (dimension) => dimension in newViewDeclaration.dimensions
+                  );
+                  setPivotDimensions(validDimensions);
+                }
+
+                // 필터 정리
+                if (newView !== "scores-categorical") {
+                  setUserFilterState((prev) => prev.filter((filter) => filter.column !== "stringValue"));
+                }
+                if (newView !== "scores-numeric") {
+                  setUserFilterState((prev) => prev.filter((filter) => filter.column !== "value"));
+                }
+              }
+              setSelectedView(value);
+            }} id="view-select">
+              {Object.keys(viewDeclarations).map((view) => (
+                <SelectItem key={view} value={view}>
+                  {startCase(view)} - {viewDeclarations[view].description}
+                </SelectItem>
+              ))}
+            </Select>
+          </div>
+
+          {/* 메트릭 선택 - IntegratedMetricsSelector 사용 */}
+          <IntegratedMetricsSelector
+            view={selectedView}
+            chartType={selectedChartType}
+            selectedMeasure={selectedMeasure}
+            selectedAggregation={selectedAggregation}
+            onMeasureChange={setSelectedMeasure}
+            onAggregationChange={setSelectedAggregation}
+            selectedMetrics={selectedMetrics}
+            onMetricsChange={setSelectedMetrics}
+            disabled={loading}
+          />
+
+          {/* 필터 섹션 - FiltersEditor 사용 */}
+          <div className={styles.block}>
+            <Label>Filters</Label>
+            <FiltersEditor
+              styles={styles}
+              filters={userFilterState}
+              setFilters={setUserFilterState}
+              getDimensionsForView={getDimensionsForView}
+              view={selectedView}
+            />
+          </div>
+
+          {/* 일반 차트 분해 차원 */}
+          {chartTypes.find((c) => c.value === selectedChartType)?.supportsBreakdown &&
+            selectedChartType !== "PIVOT_TABLE" && (
+            <div className={styles.block}>
+              <Label htmlFor="dimension-select">
+                Breakdown Dimension (Optional)
+              </Label>
+              <Select value={selectedDimension} onValueChange={setSelectedDimension} id="dimension-select">
+                <SelectItem value="none">None</SelectItem>
+                {availableDimensions.map((dimension) => {
+                  const meta = viewDeclarations[selectedView]?.dimensions?.[dimension.value];
+                  return (
+                    <SelectItem key={dimension.value} value={dimension.value}>
+                      {dimension.label} {meta?.description && `- ${meta.description}`}
+                    </SelectItem>
+                  );
+                })}
+              </Select>
+            </div>
+          )}
+
+          {/* 피벗 테이블 차원 */}
+          {selectedChartType === "PIVOT_TABLE" && (
+            <div className={styles.section}>
+              <div>
+                <h4>Row Dimensions</h4>
+                <p className={styles.helperText}>
+                  Configure up to {MAX_PIVOT_TABLE_DIMENSIONS} dimensions for pivot table rows.
                 </p>
-
-                <div style={{ marginBottom: "12px" }}>
-                  <span className={styles.helperText}>
-                    Dimension 1 (Optional)
-                  </span>
-                  <select
-                    className={styles.select}
-                    value={rowDim1}
-                    onChange={(e) => {
-                      setRowDim1(e.target.value);
-                      if (e.target.value === "none") setRowDim2("none");
-                    }}
-                    style={{ marginTop: "4px" }}
-                  >
-                    <option value="none">Select a dimension</option>
-                    <option value="environment">Environment</option>
-                    <option value="traceName">Trace Name</option>
-                    <option value="release">Release</option>
-                    <option value="version">Version</option>
-                    <option value="user">User</option>
-                    <option value="session">Session</option>
-                  </select>
-                </div>
-
-                <div style={{ marginBottom: "12px" }}>
-                  <span className={styles.helperText}>
-                    Dimension 2 (Optional)
-                  </span>
-                  <select
-                    className={styles.select}
-                    value={rowDim2}
-                    onChange={(e) => setRowDim2(e.target.value)}
-                    disabled={rowDim1 === "none"}
-                    style={{ marginTop: "4px" }}
-                  >
-                    <option value="none">
-                      {rowDim1 === "none"
-                        ? "Select previous dimension first"
-                        : "Select a dimension"}
-                    </option>
-                    <option value="environment">Environment</option>
-                    <option value="traceName">Trace Name</option>
-                    <option value="release">Release</option>
-                    <option value="version">Version</option>
-                    <option value="user">User</option>
-                    <option value="session">Session</option>
-                  </select>
-                </div>
               </div>
 
-              <div className={styles.block}>
-                <label className={styles.label}>
-                  Default Sort Configuration
-                </label>
-                <p
-                  className={styles.helperText}
-                  style={{ marginBottom: "12px" }}
-                >
-                  Configure the default sort order for the pivot table. This
-                  will be applied when the widget is first loaded.
-                </p>
+              {Array.from({ length: MAX_PIVOT_TABLE_DIMENSIONS }, (_, index) => {
+                const isEnabled = index === 0 || pivotDimensions[index - 1];
+                const selectedDimensions = pivotDimensions.slice(0, index);
+                const currentValue = pivotDimensions[index] || "";
 
-                <div style={{ marginBottom: "12px" }}>
-                  <span className={styles.helperText}>Sort Column</span>
-                  <select
-                    className={styles.select}
-                    value={pivotSortColumn}
-                    onChange={(e) => setPivotSortColumn(e.target.value)}
-                    style={{ marginTop: "4px" }}
-                  >
-                    <option value="">No default sort</option>
-                    <option value="count">Count</option>
-                  </select>
-                </div>
-
-                <div className={styles.row} style={{ gap: "8px" }}>
-                  <div style={{ flex: 1 }}>
-                    <span className={styles.helperText}>Sort Order</span>
-                    <select
-                      className={styles.select}
-                      value={pivotSortOrder}
-                      onChange={(e) => setPivotSortOrder(e.target.value)}
-                      style={{ marginTop: "4px" }}
+                return (
+                  <div key={index} className={styles.block}>
+                    <Label htmlFor={`pivot-dimension-${index}`}>
+                      Dimension {index + 1} (Optional)
+                    </Label>
+                    <Select
+                      value={currentValue}
+                      onValueChange={(value) => updatePivotDimension(index, value)}
+                      disabled={!isEnabled}
+                      id={`pivot-dimension-${index}`}
                     >
-                      <option value="desc">Descending (Z-A)</option>
-                      <option value="asc">Ascending (A-Z)</option>
-                    </select>
+                      <SelectItem value="none">
+                        {isEnabled ? "Select a dimension" : "Select previous dimension first"}
+                      </SelectItem>
+                      {availableDimensions
+                        .filter((d) => !selectedDimensions.includes(d.value))
+                        .map((dimension) => {
+                          const meta = viewDeclarations[selectedView]?.dimensions?.[dimension.value];
+                          return (
+                            <SelectItem key={dimension.value} value={dimension.value}>
+                              {dimension.label} {meta?.description && `- ${meta.description}`}
+                            </SelectItem>
+                          );
+                        })}
+                    </Select>
                   </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* 피벗 테이블 기본 정렬 */}
+          {selectedChartType === "PIVOT_TABLE" && (
+            <div className={styles.section}>
+              <div>
+                <h4>Default Sort Configuration</h4>
+                <p className={styles.helperText}>
+                  Configure the default sort order for the pivot table.
+                </p>
+              </div>
+
+              <div className={styles.grid2}>
+                <div className={styles.block}>
+                  <Label htmlFor="default-sort-column">Sort Column</Label>
+                  <Select value={defaultSortColumn} onValueChange={setDefaultSortColumn} id="default-sort-column">
+                    <SelectItem value="none">No default sort</SelectItem>
+                    {selectedMetrics
+                      .filter((metric) => metric.measure && metric.measure !== "")
+                      .map((metric) => (
+                        <SelectItem key={metric.id} value={metric.id}>
+                          {formatMetricName(metric.id)}
+                        </SelectItem>
+                      ))}
+                  </Select>
+                </div>
+
+                <div className={styles.block}>
+                  <Label htmlFor="default-sort-order">Sort Order</Label>
+                  <Select
+                    value={defaultSortOrder}
+                    onValueChange={setDefaultSortOrder}
+                    disabled={!defaultSortColumn || defaultSortColumn === "none"}
+                    id="default-sort-order"
+                  >
+                    <SelectItem value="ASC">Ascending (A-Z)</SelectItem>
+                    <SelectItem value="DESC">Descending (Z-A)</SelectItem>
+                  </Select>
                 </div>
               </div>
-            </>
-          ) : (
-            <>
-              {/* Pivot Table이 아닐 때는 ViewMetricSelector 사용 */}
-              <ViewMetricSelector
-                view={view}
-                onChangeView={setView}
-                measure={measure}
-                onChangeMeasure={setMeasure}
-                aggregation={aggregation}
-                onChangeAggregation={setAggregation}
-                disabled={chartType === "HISTOGRAM"}
-              />
-
-              <div className={styles.block}>
-                <label className={styles.label}>Filters</label>
-                <AdvancedFilters
-                  value={filters}
-                  onChange={setFilters}
-                  view={view}
-                />
-              </div>
-            </>
+            </div>
           )}
         </div>
 
         <div className={styles.section}>
           <h3>Visualization</h3>
 
+          {/* 위젯 이름 */}
           <div className={styles.block}>
-            <label className={styles.label}>Name</label>
-            <input
-              className={styles.input}
-              value={name}
-              onChange={(e) =>
-                setTexts((t) => ({ ...t, name: e.target.value }))
-              }
-              placeholder="Widget name"
+            <Label htmlFor="widget-name">Name</Label>
+            <Input
+              id="widget-name"
+              value={widgetName}
+              onChange={(e) => {
+                if (!autoLocked) setAutoLocked(true);
+                setWidgetName(e.target.value);
+              }}
+              placeholder="Enter widget name"
             />
           </div>
 
+          {/* 위젯 설명 */}
           <div className={styles.block}>
-            <label className={styles.label}>Description</label>
-            <input
-              className={styles.input}
-              value={description}
-              onChange={(e) =>
-                setTexts((t) => ({ ...t, description: e.target.value }))
-              }
-              placeholder="Widget description"
+            <Label htmlFor="widget-description">Description</Label>
+            <Input
+              id="widget-description"
+              value={widgetDescription}
+              onChange={(e) => {
+                if (!autoLocked) setAutoLocked(true);
+                setWidgetDescription(e.target.value);
+              }}
+              placeholder="Enter widget description"
             />
           </div>
 
+          {/* 차트 타입 선택 */}
           <div className={styles.block}>
-            <label className={styles.label}>Chart Type</label>
-            <ChartTypeSelector value={chartType} onChange={setChartType} />
+            <Label htmlFor="chart-type-select">Chart Type</Label>
+            <Select value={selectedChartType} onValueChange={setSelectedChartType} id="chart-type-select">
+              <SelectGroup>
+                <SelectLabel>Time Series</SelectLabel>
+                {chartTypes
+                  .filter((item) => item.group === "time-series")
+                  .map((chart) => (
+                    <SelectItem key={chart.value} value={chart.value}>
+                      {chart.name}
+                    </SelectItem>
+                  ))}
+              </SelectGroup>
+              <SelectGroup>
+                <SelectLabel>Total Value</SelectLabel>
+                {chartTypes
+                  .filter((item) => item.group === "total-value")
+                  .map((chart) => (
+                    <SelectItem key={chart.value} value={chart.value}>
+                      {chart.name}
+                    </SelectItem>
+                  ))}
+              </SelectGroup>
+            </Select>
           </div>
 
+          {/* 날짜 범위 */}
           <div className={styles.block}>
-            <label className={styles.label}>Date Range</label>
+            <Label htmlFor="date-select">Date Range</Label>
             <DateRangePicker
               startDate={startDate}
               endDate={endDate}
@@ -707,108 +1335,131 @@ export default function NewWidgetPage() {
             />
           </div>
 
-          {chartType === "HISTOGRAM" ? (
+          {/* 히스토그램 빈 */}
+          {selectedChartType === "HISTOGRAM" && (
             <div className={styles.block}>
-              <label className={styles.label}>Bins (1-100)</label>
-              <input
+              <Label htmlFor="histogram-bins">Number of Bins (1-100)</Label>
+              <Input
+                id="histogram-bins"
                 type="number"
                 min={1}
                 max={100}
-                className={styles.input}
-                value={bins}
-                onChange={(e) => setBins(parseInt(e.target.value || "10", 10))}
+                value={histogramBins}
+                onChange={(e) => {
+                  const value = parseInt(e.target.value);
+                  if (!isNaN(value) && value >= 1 && value <= 100) {
+                    setHistogramBins(value);
+                  }
+                }}
+                placeholder="Enter number of bins (1-100)"
               />
             </div>
-          ) : !isTimeSeriesChart(chartType) && chartType !== "PIVOT_TABLE" ? (
+          )}
+
+          {/* 분해 차트의 행 제한 */}
+          {chartTypes.find((c) => c.value === selectedChartType)?.supportsBreakdown &&
+            !isTimeSeriesChart(selectedChartType) && (
             <div className={styles.block}>
-              <label className={styles.label}>
-                Breakdown Row Limit (0-1000)
-              </label>
-              <input
+              <Label htmlFor="row-limit">Breakdown Row Limit (0-1000)</Label>
+              <Input
+                id="row-limit"
                 type="number"
                 min={0}
                 max={1000}
-                className={styles.input}
                 value={rowLimit}
-                onChange={(e) =>
-                  setRowLimit(parseInt(e.target.value || "100", 10))
-                }
+                onChange={(e) => {
+                  const value = parseInt(e.target.value);
+                  if (!isNaN(value) && value >= 0 && value <= 1000) {
+                    setRowLimit(value);
+                  }
+                }}
+                placeholder="Enter breakdown row limit (0-1000)"
               />
             </div>
-          ) : null}
-
-          <button
-            className={styles.primaryBtn}
-            onClick={handleSave}
-            disabled={loading || saving}
-          >
-            {saving ? "저장 중..." : "Save Widget"}
-          </button>
-
-       
+          )}
         </div>
 
-        {/* 디버그 정보 (개발 모드에서만) */}
-        {process.env.NODE_ENV === "development" && showDebug && (
-          <div className={styles.section}>
-            <h4>Debug Info</h4>
-            <div className={styles.debugInfo}>
-              <p>
-                <strong>Project ID:</strong> {projectId}
-              </p>
-              <p>
-                <strong>Chart Type:</strong> {chartType}
-              </p>
-              <p>
-                <strong>Loading:</strong> {loading.toString()}
-              </p>
-              <p>
-                <strong>Preview Error:</strong> {previewError || "None"}
-              </p>
-              <p>
-                <strong>Data Points:</strong> {previewData.length}
-              </p>
-              <details>
-                <summary>Full Debug Data</summary>
-                <pre style={{ fontSize: "10px", overflow: "auto" }}>
-                  {JSON.stringify(debugInfo, null, 2)}
-                </pre>
-              </details>
-            </div>
-          </div>
-        )}
+        <Button 
+          onClick={handleSave} 
+          disabled={loading || saving}
+          className={styles.primaryBtn}
+        >
+          {saving ? "저장 중..." : "Save Widget"}
+        </Button>
       </div>
 
-      {/* 오른쪽 패널 - 미리보기 */}
+      {/* Right Preview Pane */}
       <div className={styles.rightPane}>
         <div className={styles.previewHeader}>
-          <div className={styles.previewTitle}>{name}</div>
-          <div className={styles.previewDesc}>{description}</div>
+          <h3 className={styles.previewTitle}>{widgetName}</h3>
+          <p className={styles.previewDesc}>{widgetDescription}</p>
           {previewData.length > 0 && (
-            <div className={styles.dataCounter}>
+            <div className={styles.helperText}>
               Data points: {previewData.length}
             </div>
           )}
         </div>
 
         <div className={styles.chartContainer}>
-          <div className={styles.chartWrapper}>
-            <ChartPreview
-              chartType={chartType}
+          {loading ? (
+            <div className={styles.preview}>
+              <div>Loading preview...</div>
+            </div>
+          ) : previewError ? (
+            <div className={styles.preview}>
+              <div>
+                <strong>Preview Error</strong>
+                <p>{previewError}</p>
+                <Button 
+                  variant="secondary" 
+                  onClick={refreshPreview}
+                >
+                  Retry
+                </Button>
+              </div>
+            </div>
+          ) : previewData.length > 0 ? (
+            <Chart
+              chartType={selectedChartType}
               data={previewData}
+              rowLimit={rowLimit}
               chartConfig={
-                chartType === "HISTOGRAM"
-                  ? { type: chartType, bins }
-                  : { type: chartType, row_limit: rowLimit }
+                selectedChartType === "PIVOT_TABLE"
+                  ? {
+                      type: selectedChartType,
+                      dimensions: pivotDimensions,
+                      row_limit: rowLimit,
+                      metrics: selectedMetrics
+                        .filter((m) => m.measure && m.measure !== "")
+                        .map((metric) => metric.id),
+                      defaultSort:
+                        defaultSortColumn && defaultSortColumn !== "none"
+                          ? { column: defaultSortColumn, order: defaultSortOrder }
+                          : undefined,
+                    }
+                  : selectedChartType === "HISTOGRAM"
+                    ? { type: selectedChartType, bins: histogramBins }
+                    : { type: selectedChartType, row_limit: rowLimit }
               }
-              loading={loading}
-              error={previewError}
+              sortState={
+                selectedChartType === "PIVOT_TABLE" &&
+                defaultSortColumn &&
+                defaultSortColumn !== "none"
+                  ? { column: defaultSortColumn, order: defaultSortOrder }
+                  : undefined
+              }
+              onSortChange={undefined}
+              isLoading={loading}
             />
-          </div>
+          ) : (
+            <div className={styles.preview}>
+              <p>No data to display</p>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Dashboard Selection Modal */}
+      {/* 대시보드 선택 모달 */}
       <DashboardModal
         isOpen={showDashboardModal}
         onClose={() => setShowDashboardModal(false)}

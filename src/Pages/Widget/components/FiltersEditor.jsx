@@ -1,7 +1,6 @@
 // src/Pages/Widget/components/FiltersEditor.jsx
 import React, { useMemo } from "react";
-import AsyncSelect from "react-select/async"; // npm i react-select 필요
-import widgetAPI from "../services/index.js";
+
 export default function FiltersEditor({
   styles,
   filters,
@@ -9,13 +8,13 @@ export default function FiltersEditor({
   getDimensionsForView,
   view,
 }) {
-  // 원본 UI처럼: any of / none of 만 노출
+  // 연산자 옵션
   const OPERATORS = [
-    { value: "anyOf", label: "any of" }, // IN
-    { value: "noneOf", label: "none of" }, // NOT_IN
+    { value: "anyOf", label: "any of" },
+    { value: "noneOf", label: "none of" },
   ];
 
-  // 뷰별 컬럼 옵션 (기존 getDimensionsForView 사용)
+  // 뷰별 컬럼 옵션
   const DIMENSIONS = useMemo(
     () =>
       typeof getDimensionsForView === "function"
@@ -30,45 +29,43 @@ export default function FiltersEditor({
   const add = () =>
     setFilters([
       ...filters,
-      { column: "", operator: "anyOf", values: [] }, // 원본 포맷: values = []
+      { column: "", operator: "anyOf", values: [] },
     ]);
 
   const remove = (i) => setFilters(filters.filter((_, idx) => idx !== i));
 
-  // 컬럼 값 목록을 서버에서 로드 (원본처럼 동적 로딩)
-  const loadValueOptions = async (column, input) => {
-    if (!column) return [];
-    // widgetAPI에 맞게 구현되어 있어야 함:
-    // getFilterValues({ view, column, search })
-    const items = await widgetAPI.getFilterValues({
-      view,
-      column,
-      search: input || "",
-    });
-    return (items || []).map((v) => ({ label: String(v), value: v }));
+  // 간단한 텍스트 입력으로 values 처리 (쉼표로 구분)
+  const handleValuesChange = (i, valueString) => {
+    const values = valueString
+      .split(',')
+      .map(v => v.trim())
+      .filter(v => v.length > 0);
+    update(i, { values });
+  };
+
+  const getValuesString = (values) => {
+    return Array.isArray(values) ? values.join(', ') : '';
   };
 
   return (
-    <div className={styles["config-section"]}>
-      <div className={styles["section-header"]}>
-        <h3>Filters</h3>
-        <button className={styles["collapse-btn"]}>▲</button>
+    <div className={styles["filter-container"]}>
+      <div className={styles["filter-header"]}>
+        <span className={styles["filter-title"]}>Filters</span>
       </div>
 
       {filters.map((f, i) => {
         const columnSelected = !!f.column;
 
         return (
-          <div key={i} className={styles["filter-row"]}>
-            <span className={styles["filter-label"]}>Where</span>
+          <div key={i} className={styles["simple-filter-row"]}>
+            <span className={styles["filter-where"]}>Where</span>
 
-            {/* Column */}
+            {/* Column Dropdown */}
             <select
-              className={styles["form-select"]}
+              className={styles["simple-select"]}
               value={f.column ?? ""}
               onChange={(e) => {
                 const col = e.target.value;
-                // 컬럼 바꾸면 values 초기화
                 update(i, { column: col, values: [] });
               }}
             >
@@ -82,9 +79,9 @@ export default function FiltersEditor({
               ))}
             </select>
 
-            {/* Operator (any of / none of) */}
+            {/* Operator Dropdown */}
             <select
-              className={styles["form-select"]}
+              className={styles["simple-select"]}
               disabled={!columnSelected}
               value={!columnSelected ? "anyOf" : f.operator ?? "anyOf"}
               onChange={(e) => update(i, { operator: e.target.value })}
@@ -96,30 +93,21 @@ export default function FiltersEditor({
               ))}
             </select>
 
-            {/* Values: 원본처럼 멀티 선택 + 동적 옵션 */}
-            <div style={{ minWidth: 260, flex: 1 }}>
-              <AsyncSelect
-                isMulti
-                cacheOptions
-                defaultOptions
-                isDisabled={!columnSelected}
-                loadOptions={(input) => loadValueOptions(f.column, input)}
-                value={(f.values || []).map((v) => ({
-                  label: String(v),
-                  value: v,
-                }))}
-                onChange={(vals) =>
-                  update(i, { values: (vals || []).map((x) => x.value) })
-                }
-                placeholder="Select"
-              />
-            </div>
+            {/* Values Input */}
+            <input
+              type="text"
+              className={styles["simple-input"]}
+              disabled={!columnSelected}
+              value={getValuesString(f.values || [])}
+              onChange={(e) => handleValuesChange(i, e.target.value)}
+              placeholder="Enter values..."
+            />
 
+            {/* Remove Button */}
             <button
-              className={styles["remove-filter-btn"]}
+              className={styles["simple-remove-btn"]}
               onClick={() => remove(i)}
-              title="Remove"
-              aria-label="Remove"
+              title="Remove filter"
             >
               ×
             </button>
@@ -127,8 +115,10 @@ export default function FiltersEditor({
         );
       })}
 
-      <button className={styles["add-filter-btn"]} onClick={add}>
-        + Add filter
+      {/* Add Filter Button */}
+      <button className={styles["simple-add-btn"]} onClick={add}>
+        <span className={styles["add-icon"]}>+</span>
+        Add filter
       </button>
     </div>
   );

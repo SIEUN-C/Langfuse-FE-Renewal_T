@@ -75,3 +75,33 @@ export const dashboardFilterConfig = [
   { key: "release", label: "Release", type: "string", operators: commonStringOperators },
   { key: "version", label: "Version", type: "string", operators: commonStringOperators },
 ];
+
+// src/components/FilterControls/filterConfig.js 파일 맨 끝에 추가할 내용
+// (기존 변수들을 재사용하므로 새로 선언하지 않음)
+
+// Widget용 필터 설정 추가
+export const widgetFilterConfig = [
+  { key: "environment", label: "Environment", type: "categorical", operators: commonCategoricalOperators, options: [] },
+  { key: "name", label: "Trace Name", type: "categorical", operators: commonCategoricalOperators, options: [] },
+  { key: "observationName", label: "Observation Name", type: "string", operators: commonStringOperators },
+  { key: "scoreName", label: "Score Name", type: "string", operators: commonStringOperators },
+  { key: "tags", label: "Tags", type: "categorical", operators: allCategoricalOperators, options: [] },
+  { key: "userId", label: "User", type: "string", operators: commonStringOperators },
+  { key: "sessionId", label: "Session", type: "string", operators: commonStringOperators },
+  { key: "metadata", label: "Metadata", type: "string", operators: commonStringOperators, hasMetaKey: true },
+  { key: "release", label: "Release", type: "string", operators: commonStringOperators },
+  { key: "version", label: "Version", type: "string", operators: commonStringOperators },
+  { key: "model", label: "Model", type: "categorical", operators: commonCategoricalOperators, options: [] },
+  { key: "type", label: "Type", type: "categorical", operators: commonCategoricalOperators, options: ["GENERATION", "SPAN", "EVENT"] },
+  { key: "level", label: "Level", type: "categorical", operators: commonCategoricalOperators, options: ["DEBUG", "DEFAULT", "WARNING", "ERROR"] },
+  { key: "inputTokens", label: "Input Tokens", type: "number", operators: commonNumericOperators },
+  { key: "outputTokens", label: "Output Tokens", type: "number", operators: commonNumericOperators },
+  { key: "totalTokens", label: "Total Tokens", type: "number", operators: commonNumericOperators },
+  { key: "inputCost", label: "Input Cost ($)", type: "number", operators: commonNumericOperators },
+  { key: "outputCost", label: "Output Cost ($)", type: "number", operators: commonNumericOperators },
+  { key: "totalCost", label: "Total Cost ($)", type: "number", operators: commonNumericOperators },
+  { key: "latency", label: "Latency (s)", type: "number", operators: commonNumericOperators },
+  { key: "scoresNumeric", label: "Scores (numeric)", type: "number", operators: commonNumericOperators, hasMetaKey: true },
+  { key: "scoresCategorical", label: "Scores (categorical)", type: "categorical", operators: commonCategoricalOperators, hasMetaKey: true, options: [] },
+  { key: "timestamp", label: "Timestamp", type: "date", operators: commonNumericOperators },
+];

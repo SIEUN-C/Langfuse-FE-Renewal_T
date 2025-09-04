@@ -1,57 +1,141 @@
 // src/Pages/Widget/components/DateRangePicker.jsx
-import React from "react";
+import React, { useState, useMemo, useRef, useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import dayjs from 'dayjs';
+import { Calendar, ChevronDown } from 'lucide-react';
+import styles from './DateRangePicker.module.css';
 
-// ✅ 팀 공용 DateRange 그대로 사용 (경로만 확인하세요)
-import GlobalDateRangePicker from "../../../components/DateRange/DateRangePicker";
+// 기존 DateRangePopup 컴포넌트를 가져옵니다
+import DateRangePopup from '../../../components/DateRange/DateRangePopup';
 
-/**
- * 위젯 전용 어댑터:
- * - 두 가지 프롭스 모드 모두 지원
- *   A) startDate, endDate, setStartDate, setEndDate  (지금 NewWidgetPage에서 쓰는 방식)
- *   B) value={{from,to}} / onChange({from,to})        (레거시/다른 페이지가 쓰는 방식)
- * - 내부적으로 공용 DateRange를 그대로 렌더링하므로 팀원 코드에 영향 없음
- */
-export default function WidgetDateRangePicker(props) {
-  const isControlledA =
-    "startDate" in props &&
-    "endDate" in props &&
-    "setStartDate" in props &&
-    "setEndDate" in props;
+const dateRangeOptions = [
+  { value: '5m', label: 'Past 5 minutes' },
+  { value: '30m', label: 'Past 30 minutes' },
+  { value: '1h', label: 'Past 1 hour' },
+  { value: '3h', label: 'Past 3 hours' },
+  { value: '24h', label: 'Past 24 hours' },
+  { value: '7d', label: 'Past 7 days' },
+  { value: '1M', label: 'Past 1 month' },
+  { value: '3M', label: 'Past 3 months' },
+  { value: '1y', label: 'Past 1 year' },
+  { value: 'custom', label: 'Custom' },
+];
 
-  const isControlledB =
-    "value" in props &&
-    "onChange" in props &&
-    props.value &&
-    (props.value.from || props.value.to);
+const DateRangePicker = ({ 
+  startDate, 
+  endDate, 
+  setStartDate, 
+  setEndDate
+}) => {
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
+  const [dateRangePreset, setDateRangePreset] = useState('7d');
+  const calendarButtonRef = useRef(null);
 
-  // 현재 페이지(NewWidgetPage)는 A 모드를 사용하므로 그대로 패스.
-  if (isControlledA) {
-    const { startDate, endDate, setStartDate, setEndDate } = props;
-    return (
-      <GlobalDateRangePicker
-        startDate={startDate}
-        endDate={endDate}
-        setStartDate={setStartDate}
-        setEndDate={setEndDate}
-      />
-    );
-  }
+  // 프리셋 선택 시 날짜 계산
+  useEffect(() => {
+    if (!dateRangePreset || dateRangePreset === 'custom') return;
 
-  // 혹시 모를 레거시 모드도 안전하게 지원
-  if (isControlledB) {
-    const { value, onChange } = props;
-    return <GlobalDateRangePicker value={value} onChange={onChange} />;
-  }
+    const newEndDate = new Date();
+    let newStartDate;
+    const valueStr = dateRangePreset.slice(0, -1);
+    const unit = dateRangePreset.slice(-1);
+    const value = parseInt(valueStr) || 1;
 
-  // 안전장치: 아무것도 없으면 기본 7일 범위로 동작
-  const now = new Date();
-  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    switch (unit) {
+      case 'm': 
+        newStartDate = dayjs(newEndDate).subtract(value, 'minute').toDate(); 
+        break;
+      case 'h': 
+        newStartDate = dayjs(newEndDate).subtract(value, 'hour').toDate(); 
+        break;
+      case 'd': 
+        newStartDate = dayjs(newEndDate).subtract(value, 'day').toDate(); 
+        break;
+      case 'M': 
+        newStartDate = dayjs(newEndDate).subtract(value, 'month').toDate(); 
+        break;
+      case 'y': 
+        newStartDate = dayjs(newEndDate).subtract(value, 'year').toDate(); 
+        break;
+      default: 
+        newStartDate = new Date();
+    }
+
+    setStartDate(newStartDate);
+    setEndDate(newEndDate);
+  }, [dateRangePreset, setStartDate, setEndDate]);
+
+  const formattedDateRange = useMemo(() => {
+    const start = dayjs(startDate).format('MMM D, YY : HH:mm');
+    const end = dayjs(endDate).format('MMM D, YY : HH:mm');
+    return `${start} - ${end}`;
+  }, [startDate, endDate]);
+
+  const activePresetLabel = useMemo(() => {
+    return dateRangeOptions.find(o => o.value === dateRangePreset)?.label || 'Custom';
+  }, [dateRangePreset]);
+
+  const handleCustomDateChange = (newStartDate, newEndDate) => {
+    setStartDate(newStartDate);
+    setEndDate(newEndDate);
+    setDateRangePreset('custom');
+  };
+
   return (
-    <GlobalDateRangePicker
-      startDate={sevenDaysAgo}
-      endDate={now}
-      setStartDate={() => {}}
-      setEndDate={() => {}}
-    />
+    <>
+      <div className={styles.container}>
+        {/* 날짜 범위 표시 버튼 */}
+        <button
+          ref={calendarButtonRef}
+          className={styles.filterButton}
+          onClick={() => setIsPickerOpen(true)}
+        >
+          <Calendar size={16} />
+          <span>{formattedDateRange}</span>
+        </button>
+
+        {/* 프리셋 선택 드롭다운 */}
+        <div className={styles.presetContainer}>
+          <span className={styles.presetDisplay}>{activePresetLabel}</span>
+          <ChevronDown size={16} className={styles.presetArrow} />
+          <select
+            className={styles.presetSelect}
+            value={dateRangePreset || 'custom'}
+            onChange={(e) => setDateRangePreset(e.target.value)}
+          >
+            {dateRangeOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {/* 달력 팝업 - Langfuse 스타일 */}
+      {isPickerOpen &&
+        ReactDOM.createPortal(
+          <DateRangePopup
+            startDate={startDate}
+            endDate={endDate}
+            setStartDate={(date) => {
+              setStartDate(date);
+              setDateRangePreset('custom');
+            }}
+            setEndDate={(date) => {
+              setEndDate(date);
+              setDateRangePreset('custom');
+            }}
+            setBothDates={(startDate, endDate) => {
+              handleCustomDateChange(startDate, endDate);
+            }}
+            onClose={() => setIsPickerOpen(false)}
+            triggerRef={calendarButtonRef}
+          />,
+          document.body
+        )}
+    </>
   );
-}
+};
+
+export default DateRangePicker;

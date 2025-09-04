@@ -1,4 +1,4 @@
-// src/Pages/Dashboards/WidgetsView.jsx
+// src/Pages/Widget/pages/WidgetsView.jsx
 import React, { useState, useEffect, useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
 import { DataTable } from "../../../components/DataTable/DataTable.jsx";
@@ -19,7 +19,7 @@ export const WidgetsView = () => {
     direction: "desc",
   });
 
-  // ✅ WidgetsAPI 인스턴스 생성
+  // WidgetsAPI 인스턴스 생성
   const widgetServices = useMemo(() => new WidgetsAPI(), []);
 
   useEffect(() => {
@@ -29,7 +29,6 @@ export const WidgetsView = () => {
   const loadWidgets = async () => {
     try {
       setLoading(true);
-      // ✅ widgetServices 사용
       const res = await widgetServices.getWidgets(
         String(projectId),
         1,
@@ -38,8 +37,17 @@ export const WidgetsView = () => {
       );
       const rows = Array.isArray(res?.data) ? res.data : [];
       setWidgets(rows);
+      
+      // 디버깅용 로그
+      if (import.meta.env.DEV) {
+        console.log("불러온 위젯:", rows);
+        if (rows[0]) {
+          console.log("첫 번째 위젯:", rows[0]);
+          console.log("설명 있나?", !!rows[0].description);
+        }
+      }
     } catch (err) {
-      console.error("Failed to fetch widgets:", err);
+      console.error("위젯 가져오기 실패:", err);
       setWidgets([]);
     } finally {
       setLoading(false);
@@ -72,6 +80,14 @@ export const WidgetsView = () => {
     return sortableItems;
   }, [widgets, sortConfig]);
 
+  // 간단한 설명 렌더링
+  const renderDescription = (row) => {
+    if (row.description && row.description.trim()) {
+      return row.description;
+    }
+    return <em style={{ color: "#64748b" }}>No description</em>;
+  };
+
   const columns = [
     {
       header: "Name",
@@ -86,8 +102,7 @@ export const WidgetsView = () => {
     },
     {
       header: "Description",
-      accessor: (row) =>
-        row.description || <em style={{ color: "#64748b" }}>No description</em>,
+      accessor: renderDescription,
     },
     {
       header: "Owner",
@@ -128,14 +143,14 @@ export const WidgetsView = () => {
     },
   ];
 
-  if (loading) return <div>Loading widgets...</div>;
+  if (loading) return <div>위젯 로딩중...</div>;
 
   return (
     <DataTable
       columns={columns}
       data={sortedWidgets}
       keyField="id"
-      renderEmptyState={() => <div>No widgets found.</div>}
+      renderEmptyState={() => <div>위젯이 없습니다.</div>}
     />
   );
 };

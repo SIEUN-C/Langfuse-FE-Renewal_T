@@ -1,0 +1,143 @@
+/* src/Pages/Widget/components/IntegratedMetricsSelector.module.css */
+
+/* 메인 컨테이너 */
+.metricsSelector {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* 섹션 블록 */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* 라벨 스타일 */
+.label {
+  font-size: 13px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+/* 셀렉트 박스 */
+.select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  background: #0f172a;
+  color: #e5e7eb;
+  font-size: 14px;
+  box-sizing: border-box;
+  min-width: 0; /* 그리드에서 축소 가능 */
+}
+
+.select:focus {
+  outline: none;
+  border-color: #4f46e5;
+}
+
+.select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* 플렉스 레이아웃 */
+.flexRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.flexCol {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* 메트릭 행 (다중 메트릭용) */
+.metricRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* 버튼 스타일 */
+.button {
+  padding: 6px 12px;
+  border: 1px solid #374151;
+  border-radius: 4px;
+  background: transparent;
+  color: #9ca3af;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.button:hover:not(:disabled) {
+  background: #1f2937;
+  border-color: #4b5563;
+  color: #d1d5db;
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 위험 버튼 (삭제용) */
+.dangerButton {
+  background: #ef4444;
+  border-color: #ef4444;
+  min-width: 32px;
+  padding: 8px;
+  justify-content: center;
+  display: flex;
+  align-items: center;
+}
+
+.dangerButton:hover:not(:disabled) {
+  background: #dc2626;
+  border-color: #dc2626;
+}
+
+/* 도움말 텍스트 */
+.helperText {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 4px;
+  font-style: italic;
+}
+
+/* 라벨과 버튼이 함께 있는 행 */
+.flexRow .label {
+  margin-bottom: 0;
+  flex: 1;
+}
+
+.flexRow .button {
+  flex-shrink: 0;
+}
+
+/* 반응형 조정 */
+@media (max-width: 768px) {
+  .flexRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .metricRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .flexRow .button {
+    align-self: flex-start;
+  }
+}
