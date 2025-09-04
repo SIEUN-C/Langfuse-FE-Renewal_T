@@ -17,7 +17,7 @@ const StatusBadge = ({ status }) => {
 };
 
 // 컬럼 정의를 반환하는 함수
-export const getEvaluatorColumns = () => {
+export const getEvaluatorColumns = (projectId) => {
   const handleActionClick = (e, action, row) => {
     e.stopPropagation(); // 행 클릭 이벤트 전파 방지
     console.log(`${action} button clicked for evaluator ${row.id}`);
@@ -27,11 +27,7 @@ export const getEvaluatorColumns = () => {
   return [
     {
       header: 'Generated Score Name',
-      accessor: (row) => (
-        <Link to={`/evaluations/${row.id}`} className={styles.nameLink} onClick={(e) => e.stopPropagation()}>
-          {row.name}
-        </Link>
-      ),
+      accessor: (row) => row.generatedscorename,
     },
     {
       header: 'Status',
@@ -43,19 +39,42 @@ export const getEvaluatorColumns = () => {
     },
     {
       header: 'Logs',
-      accessor: (row) => row.logs,
+      accessor: (row) => (
+        <div className={styles.rowActions}>
+          <Link to={`${row.id}`} className={styles.viewButton} onClick={(e) => e.stopPropagation()}>
+            View
+          </Link>
+        </div>
+      ),
     },
     {
       header: 'Referenced Evaluator',
-      accessor: (row) => row.ReferecedEvaluator,
+      accessor: (row) => row.referecedevaluator,
     },
     {
-      header: ' ', // Actions 컬럼 헤더는 비워둠
+      header: 'Created At',
+      accessor: (row) => row.createdat,
+    },
+    {
+      header: 'Updated At',
+      accessor: (row) => row.updatedat,
+    },
+    {
+      header: 'Target',
+      accessor: (row) => row.target,
+    },
+    {
+      header: 'Filter',
+      accessor: (row) => row.filter,
+    },
+    {
+      header: 'Id',
+      accessor: (row) => row.id,
+    },
+    {
+      header: 'Actions', // Actions 컬럼 헤더는 비워둠
       accessor: (row) => (
         <div className={styles.rowActions}>
-          <button onClick={(e) => handleActionClick(e, 'View', row)} className={styles.viewButton}>
-            View
-          </button>
           {/* TODO: 드롭다운 메뉴 구현 */}
           <button onClick={(e) => handleActionClick(e, 'More', row)} className={styles.moreButton}>
             ...

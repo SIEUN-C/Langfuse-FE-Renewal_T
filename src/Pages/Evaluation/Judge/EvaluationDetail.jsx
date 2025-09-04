@@ -1,110 +1,138 @@
-import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
-import styles from "./EvaluationDetail.module.css";
-import useProjectId from "hooks/useProjectId";
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import styles from './EvaluationDetail.module.css';
 
-// 상세 페이지를 위한 임시 목업 데이터
-const mockEvaluationDetail = {
-  id: "1",
-  name: "Sentiment Analysis Eval",
-  createdAt: "2023-10-27T10:00:00Z",
-  status: "COMPLETED",
-  model: "gpt-3.5-turbo",
-  dataset: "Customer Feedback Q3",
-  scores: [
-    { name: "Accuracy", value: 0.92 },
-    { name: "F1 Score", value: 0.88 },
-    { name: "Precision", value: 0.89 },
-    { name: "Recall", value: 0.87 },
-  ],
-  results: [
-    { input: "I love this product!", output: "Positive", expected: "Positive", score: 1 },
-    { input: "The shipping was too slow.", output: "Positive", expected: "Negative", score: 0 },
-    { input: "It's okay, not great.", output: "Neutral", expected: "Neutral", score: 1 },
-  ],
+// Peek 페이지를 위한 임시 목업 데이터 (기존과 동일)
+const mockPeekData = {
+  'eval-1': { id: 'eval-1', name: 'Sentiment Analysis Eval', status: 'COMPLETED', score: 0.92 },
+  'eval-2': { id: 'eval-2', name: 'Toxicity Detection', status: 'RUNNING', score: null },
+  'eval-3': { id: 'eval-3', name: 'Fact-Checking Test', status: 'COMPLETED', score: 0.88 },
 };
 
-const EvaluationDetailPage = () => {
-  const { evaluationId } = useParams();
-  const { projectId } = useProjectId();
+const EvaluationDetail = ({ onClose }) => {
+  const [searchParams] = useSearchParams();
+  const peekId = searchParams.get('peek');
   const [evaluation, setEvaluation] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
 
+  // 데이터 로딩 로직은 그대로 유지합니다.
   useEffect(() => {
-    setIsLoading(true);
-    if (!projectId || !evaluationId) {
-      setIsLoading(false);
-      return;
+    if (peekId) {
+      console.log('Fetching peek data for evaluation:', peekId);
+      setTimeout(() => {
+        setEvaluation(mockPeekData[peekId]);
+      }, 300);
+    } else {
+      setEvaluation(null);
     }
+  }, [peekId]);
 
-    // TODO: evaluationId를 사용하여 API로 실제 데이터를 가져와야 합니다.
-    console.log(`Fetching evaluation ${evaluationId} for project ${projectId}`);
-    setTimeout(() => {
-      setEvaluation(mockEvaluationDetail);
-      setIsLoading(false);
-    }, 500);
-  }, [evaluationId, projectId]);
 
-  if (isLoading) {
-    return <div className={styles.loading}>Loading...</div>;
+  // 로딩 및 에러 처리는 그대로 유지합니다.
+  if (!peekId) {
+    return (
+      <div className={styles.container}>
+        <p>Select an evaluation to see the details.</p>
+      </div>
+    );
   }
 
   if (!evaluation) {
-    return <div className={styles.error}>Evaluation not found.</div>;
+    return <div className={styles.container}>Loading details...</div>;
   }
 
+  // 화면을 그리는 JSX 부분을 아래와 같이 완전히 교체합니다.
   return (
-    <div className={styles.pageContainer}>
-      <header className={styles.header}>
-        <h1 className={styles.title}>{evaluation.name}</h1>
-        <span className={`${styles.status} ${styles[evaluation.status.toLowerCase()]}`}>
-          {evaluation.status}
-        </span>
-      </header>
-
-      <div className={styles.metaInfo}>
-        <p><strong>Model:</strong> {evaluation.model}</p>
-        <p><strong>Dataset:</strong> {evaluation.dataset}</p>
-        <p><strong>Created At:</strong> {new Date(evaluation.createdAt).toLocaleString()}</p>
+    <div className={styles.container}>
+      {/* 최상단 헤더 */}
+      <div className={styles.panelHeader}>
+        <span>Running evaluator</span>
+        <span className={styles.evaluatorId}>{evaluation.id}</span>
+        <button onClick={onClose} className={styles.closeButton}>×</button>
       </div>
 
-      <section className={styles.scoresSection}>
-        <h2>Overall Scores</h2>
-        <div className={styles.scoresGrid}>
-          {evaluation.scores.map((score) => (
-            <div key={score.name} className={styles.scoreCard}>
-              <h3 className={styles.scoreName}>{score.name}</h3>
-              <p className={styles.scoreValue}>{score.value}</p>
-            </div>
-          ))}
+      {/* 메인 콘텐츠 영역 */}
+      <div className={styles.content}>
+        {/* Configuration 헤더 */}
+        <div className={styles.configHeader}>
+          <div className={styles.configTitle}>
+            <h1>Configuration</h1>
+            <span className={`${styles.statusPill} ${styles.active}`}>active</span>
+            <label className={styles.toggleSwitch}>
+              <input type="checkbox" defaultChecked />
+              <span className={styles.slider}></span>
+            </label>
+          </div>
+          <div className={styles.editMode}>
+            <span>Edit Mode</span>
+            <label className={styles.toggleSwitch}>
+              <input type="checkbox" />
+              <span className={styles.slider}></span>
+            </label>
+          </div>
         </div>
-      </section>
 
-      <section className={styles.resultsSection}>
-        <h2>Results</h2>
-        <table className={styles.resultsTable}>
-          <thead>
-            <tr>
-              <th>Input</th>
-              <th>Output</th>
-              <th>Expected Output</th>
-              <th>Score</th>
-            </tr>
-          </thead>
-          <tbody>
-            {evaluation.results.map((result, index) => (
-              <tr key={index}>
-                <td>{result.input}</td>
-                <td>{result.output}</td>
-                <td>{result.expected}</td>
-                <td>{result.score}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
+        {/* Referenced Evaluator */}
+        <div className={styles.formSection}>
+          <label className={styles.label}>Referenced Evaluator</label>
+          <div className={`${styles.statusPill} ${styles.referenced}`}>
+            Correctness
+          </div>
+        </div>
+        
+        {/* Generated Score Name */}
+        <div className={styles.formSection}>
+          <label className={styles.label}>Generated Score Name</label>
+          <input type="text" className={styles.textInput} defaultValue="Correctness" />
+        </div>
+
+        {/* Target 설정 카드 */}
+        <div className={styles.card}>
+          <div className={styles.formSection}>
+            <h2 className={styles.cardTitle}>Target</h2>
+            <p className={styles.cardSubtitle}>Target data ⓘ</p>
+            <div className={styles.segmentedControl}>
+              <button className={styles.active}>Live tracing data</button>
+              <button>Dataset runs</button>
+            </div>
+          </div>
+          
+          <div className={styles.formSection}>
+            <p className={styles.cardSubtitle}>Evaluator runs on</p>
+            <div className={styles.checkboxGroup}>
+              <label><input type="checkbox" defaultChecked /> New dataset run items</label>
+              <label><input type="checkbox" /> Existing dataset run items</label>
+            </div>
+          </div>
+
+          <div className={styles.formSection}>
+            <label className={styles.label}>Target filter</label>
+            <div className={styles.filterRow}>
+              <span>Where</span>
+              <select className={styles.selectInput}><option>Dataset</option></select>
+              <select className={styles.selectInput}><option>name is</option></select>
+              <select className={styles.selectInput}><option>Select</option></select>
+              <button className={styles.closeButtonSmall}>×</button>
+            </div>
+          </div>
+
+          <div className={styles.formSection}>
+            <label className={styles.label}>Sampling</label>
+            <div className={styles.samplingRow}>
+              <input type="range" min="0" max="100" defaultValue="100" className={styles.rangeSlider} />
+              <input type="text" className={styles.textInput} defaultValue="100.00 %" style={{width: '100px'}} />
+            </div>
+            <p className={styles.description}>This configuration will target all future dataset run items that match these filters.</p>
+          </div>
+
+          <div className={styles.formSection}>
+            <label className={styles.label}>Delay (seconds)</label>
+            <input type="text" className={styles.textInput} defaultValue="30" />
+            <p className={styles.description}>Time between first Trace/Dataset run event and evaluation execution to ensure all data is available</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
 
-export default EvaluationDetailPage;
+export default EvaluationDetail;

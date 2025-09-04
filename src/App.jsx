@@ -25,6 +25,8 @@ import Dataset from "./Pages/Evaluation/DataSets/DatasetsPage";
 import JudgePage from "./Pages/Evaluation/Judge/JudgePage";
 import EvaluationDetail from './Pages/Evaluation/Judge/EvaluationDetail';
 import SetupEvaluator from './Pages/Evaluation/Judge/SetupEvaluator';
+import DefaultEvaluationModel from "Pages/Evaluation/Judge/DefaultEvaluationModel";
+import EvaluationView from "Pages/Evaluation/Judge/EvaluationView";
 
 // 대시보드
 import Dashboards from "./Pages/Dashboards/Dashboards";
@@ -128,10 +130,12 @@ export default function App() {
         {/* <Route path="evaluation/new" element={<Navigate to="/scores/new" replace />} /> */}
         {/* <Route path="evaluation/:id" element={<Navigate to="/scores/:id" replace />} /> */}
         {/* <Route path="evaluation/:id/edit" element={<Navigate to="/scores/:id/edit" replace />} /> */}
-        <Route path="/project/:projectId/evaluations" element={<JudgePage />} />
-        <Route path="/project/:projectId/evaluations/setup" element={<SetupEvaluator />} />
-        <Route path="/project/:projectId/evaluations/:evaluationId" element={<EvaluationDetail />} />
-        
+        {/* <Route path="/project/:projectId/evaluations" element={<JudgePage />} /> */}
+        <Route path="llm-as-a-judge/setup" element={<SetupEvaluator />} />
+        <Route path="llm-as-a-judge" element={<EvaluationDetail />} />
+        <Route path="llm-as-a-judge/default-model" element={<DefaultEvaluationModel />} />
+        <Route path="llm-as-a-judge/:evaluationId" element={<EvaluationView />} />
+
         {/* Dashboard & Widget Routes */}
         <Route path="project/:projectId/dashboards" element={<Dashboards />} />
         <Route

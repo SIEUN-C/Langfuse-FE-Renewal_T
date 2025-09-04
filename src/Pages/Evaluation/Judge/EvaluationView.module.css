@@ -1,0 +1,70 @@
+/* 기존 EvaluationDetail.module.css 파일 하단에 아래 내용을 추가합니다. */
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 1px solid #334155;
+  margin-bottom: 1.5rem;
+}
+
+.tab {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  padding: 0.75rem 1.25rem;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
+  border-bottom: 2px solid transparent;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.tab:hover {
+  color: #f1f5f9;
+}
+
+.tab.active {
+  color: #f1f5f9;
+  border-bottom-color: #f1f5f9;
+}
+
+.tabContent {
+  /* 탭 내용이 들어갈 공간 */
+}
+
+/* Log View */
+.logContainer {
+  background-color: #0f172a; /* 로그 배경은 약간 다르게 */
+  border: 1px solid #334155;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.logEntry {
+  display: flex;
+  gap: 1.5rem;
+  font-size: 0.875rem;
+  margin-bottom: 0.75rem;
+}
+
+.logEntry:last-child {
+  margin-bottom: 0;
+}
+
+.logTimestamp {
+  color: #94a3b8;
+  white-space: nowrap;
+}
+
+.logMessage {
+  flex-grow: 1;
+}
+
+.logMessage p {
+  margin: 0;
+  color: #f1f5f9;
+}
+
+/* CodeBlock 컴포넌트를 사용하므로 별도 스타일은 CodeBlock.module.css에서 처리됩니다. */

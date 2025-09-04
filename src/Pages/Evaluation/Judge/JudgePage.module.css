@@ -73,3 +73,24 @@
   border-radius: 8px;
   padding: 10px;
 }
+
+.pageLayout {
+  display: flex;
+  height: 100%;
+}
+
+.mainContent {
+  flex-grow: 1;
+  overflow-y: auto;
+  /* 내용이 길어지면 스크롤 */
+  padding: 1.5rem;
+  /* 기존 pageContainer의 패딩을 이쪽으로 옮깁니다. */
+}
+
+.peekPanel {
+  width: 700px;
+  min-width: 700px;
+  /* 창 크기가 줄어도 너비 유지 */
+  height: 100%;
+  border-left: 1px solid #334155;
+}
