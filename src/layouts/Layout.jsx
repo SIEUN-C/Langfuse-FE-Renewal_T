@@ -119,7 +119,6 @@ export default function Layout({ session }) {
             title: "Tracing",
             items: [
                 { label: "Trace", icon: <Activity size={18} />, path: "/trace" },
-                { label: "Span", icon: <Activity size={18} />, path: "/span" },
                 { label: "Sessions", icon: <MessageCircleCode size={18} />, path: "/sessions" },
             ],
         },
@@ -199,7 +198,6 @@ export default function Layout({ session }) {
         if (p.startsWith("/prompts")) return "Prompts";
         if (p.startsWith("/playground")) return "Playground";
         if (p.startsWith("/trace")) return "Trace";
-        if (p.startsWith("/span")) return "Span";
         if (p.startsWith("/sessions")) return "Sessions";
         if (p.startsWith("/settings")) return "Settings";
         return "Langfuse";
