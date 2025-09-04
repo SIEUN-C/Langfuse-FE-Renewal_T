@@ -10,29 +10,63 @@ import AddToDatasetModal from '../../components/AddToDatasetModal/AddToDatasetMo
 import { useComments } from '../../hooks/useComments';
 import UsageBreakdown from './UsageBreakdown';
 
-// FormattedTable 컴포넌트 (변경 없음)
+
+// 메시지 content를 텍스트로 안전하게 변환
+const toText = (content) => {
+  if (content == null) return '';
+  if (typeof content === 'string') return content;
+  if (Array.isArray(content)) return content.map(toText).join('');
+  if (typeof content === 'object') return content.text ?? content.content ?? JSON.stringify(content);
+  return String(content);
+};
+
+// 특정 role의 메시지들을 합쳐 한 덩어리 텍스트로
+const extractRoleText = (messages, role) => {
+  if (!Array.isArray(messages)) return '';
+  return messages
+    .filter(m => (m?.role || '').toLowerCase() === role)
+    .map(m => toText(m.content))
+    .filter(Boolean)
+    .join('\n\n');
+};
+
+// 객체를 "path -> value" 로 평탄화
+const flatten = (obj, prefix = '') => {
+  const rows = [];
+  if (Array.isArray(obj)) {
+    obj.forEach((v, i) => {
+      const p = prefix ? `${prefix}.${i}` : `${i}`;
+      if (v && typeof v === 'object') rows.push(...flatten(v, p));
+      else rows.push([p, v]);
+    });
+    return rows;
+  }
+  if (obj && typeof obj === 'object') {
+    Object.entries(obj).forEach(([k, v]) => {
+      const p = prefix ? `${prefix}.${k}` : k;
+      if (v && typeof v === 'object') rows.push(...flatten(v, p));
+      else rows.push([p, v]);
+    });
+    return rows;
+  }
+  return [[prefix || '', obj]];
+};
+
 const FormattedTable = ({ data }) => {
-  if (typeof data !== 'object' || data === null || Array.isArray(data)) {
-    return <pre>{data}</pre>;
-  }
-  const entries = Object.entries(data);
-  if (entries.length === 0) {
-    return <p className={styles.noDataText}>Empty object</p>;
-  }
+  if (!data || typeof data !== 'object') return <pre>{String(data ?? 'null')}</pre>;
+  const rows = flatten(data);
+  if (rows.length === 0) return <p className={styles.noDataText}>Empty object</p>;
   return (
     <table className={styles.formattedTable}>
       <thead>
-        <tr>
-          <th>Path</th>
-          <th>Value</th>
-        </tr>
+        <tr><th>Path</th><th>Value</th></tr>
       </thead>
       <tbody>
-        {entries.map(([key, value]) => (
-          <tr key={key}>
-            <td className={styles.pathCell}>{key}</td>
+        {rows.map(([path, value], idx) => (
+          <tr key={idx}>
+            <td className={styles.pathCell}>{path}</td>
             <td className={styles.valueCell}>
-              {typeof value === 'string' ? `"${value}"` : String(value)}
+              {typeof value === 'string' ? value : String(value)}
             </td>
           </tr>
         ))}
@@ -41,13 +75,69 @@ const FormattedTable = ({ data }) => {
   );
 };
 
+// 문자열(예: "{\"tags\":[...]}" )이면 JSON 파싱, 실패하면 원본을 반환
+const parseMaybeJSON = (v) => {
+  if (typeof v === 'string') {
+    try { return JSON.parse(v); } catch { /* noop */ }
+  }
+  return v;
+};
+
+// 3000처럼 계층형 Path/Value 테이블 렌더
+const MetaTable = ({ data }) => {
+  const obj = parseMaybeJSON(data);
+  if (!obj || typeof obj !== 'object') return <pre>{String(obj ?? 'null')}</pre>;
+
+  // 계층적으로 펼쳐서 테이블 행을 만든다
+  const rows = [];
+  const walk = (value, key, level = 0) => {
+    const isObj = value && typeof value === 'object';
+    const display =
+      isObj
+        ? (Array.isArray(value) ? JSON.stringify(value) : '') // 부모 행엔 요약만
+        : (typeof value === 'string' ? value : String(value));
+
+    // 현재 키를 한 줄로 넣고
+    rows.push({ key, value: display, level });
+
+    // 자식들을 들여쓰기 한 줄씩 추가
+    if (isObj) {
+      if (Array.isArray(value)) {
+        value.forEach((v, i) => walk(v, String(i), level + 1));
+      } else {
+        Object.entries(value).forEach(([k, v]) => walk(v, k, level + 1));
+      }
+    }
+  };
+
+  Object.entries(obj).forEach(([k, v]) => walk(v, k, 0));
+  if (rows.length === 0) return <p className={styles.noDataText}>Empty object</p>;
+
+  return (
+    <table className={styles.formattedTable}>
+      <thead>
+        <tr><th>Path</th><th>Value</th></tr>
+      </thead>
+      <tbody>
+        {rows.map((r, idx) => (
+          <tr key={idx}>
+            <td className={styles.pathCell} style={{ paddingLeft: `${r.level * 16}px` }}>{r.key}</td>
+            <td className={styles.valueCell}>{r.value}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+};
+
+
 // 메인 TraceDetailView 컴포넌트
 const TraceDetailView = ({ details, isLoading, error }) => {
   const [viewFormat, setViewFormat] = useState('Formatted');
   const [toastInfo, setToastInfo] = useState({ isVisible: false, message: '' });
   const [isDatasetModalOpen, setIsDatasetModalOpen] = useState(false);
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
-  
+
   // 툴팁 관련 상태는 그대로 유지
   const [usageTooltip, setUsageTooltip] = useState({ visible: false, style: {}, data: null });
   // usagePillRef는 더 이상 필요 없으므로 삭제합니다.
@@ -55,7 +145,7 @@ const TraceDetailView = ({ details, isLoading, error }) => {
   const isObservation = details && 'type' in details && 'traceId' in details;
   const objectType = isObservation ? 'OBSERVATION' : 'TRACE';
   const projectId = details?.projectId;
-  
+
   const {
     comments,
     isLoading: isCommentsLoading,
@@ -103,7 +193,7 @@ const TraceDetailView = ({ details, isLoading, error }) => {
       visible: true,
       style: {
         // 버튼의 아래쪽(bottom)을 기준으로 top 위치 설정 + 약간의 여백(8px)
-        top: `${rect.bottom + 8}px`, 
+        top: `${rect.bottom + 8}px`,
         // 버튼의 가로 중앙에 위치하도록 left와 transform 설정
         left: `${rect.left + rect.width / 2}px`,
         transform: 'translateX(-50%)',
@@ -150,7 +240,9 @@ const TraceDetailView = ({ details, isLoading, error }) => {
   if (error) return <div className={styles.body} style={{ color: 'red' }}>{error}</div>;
   if (!details) return <div className={styles.body}>No details available.</div>;
 
-  const metadata = details.metadata ?? {};
+  const metadataRaw = details.metadata ?? null;
+  const metadata = parseMaybeJSON(metadataRaw);
+  const hasMetadata = metadata && typeof metadata === 'object' && Object.keys(metadata).length > 0;
   const name = details.name ?? 'N/A';
   const id = details.id;
 
@@ -181,7 +273,7 @@ const TraceDetailView = ({ details, isLoading, error }) => {
         <UsageBreakdown usage={usageTooltip.data} style={usageTooltip.style} />,
         document.body
       )}
-      
+
       <div className={styles.infoBar}>
         <div className={styles.infoBarTop}>
           <div className={styles.infoBarTitle}>
@@ -197,19 +289,19 @@ const TraceDetailView = ({ details, isLoading, error }) => {
           </div>
           <div className={styles.infoBarActions}>
             {isObservation ? (
-                <div className={styles.annotateButton}>
-                    <button>Playground</button>
-                    <div className={styles.annotateButtonChevron}>
-                        <ChevronDown size={16} />
-                    </div>
+              <div className={styles.annotateButton}>
+                <button>Playground</button>
+                <div className={styles.annotateButtonChevron}>
+                  <ChevronDown size={16} />
                 </div>
+              </div>
             ) : (
-                <button
-                  className={styles.actionButton}
-                  onClick={() => setIsDatasetModalOpen(true)}
-                >
-                    <Plus size={14} /> Add to datasets
-                </button>
+              <button
+                className={styles.actionButton}
+                onClick={() => setIsDatasetModalOpen(true)}
+              >
+                <Plus size={14} /> Add to datasets
+              </button>
             )}
             <button
               className={`${styles.iconButton} ${styles.actionButtonSecondary}`}
@@ -235,7 +327,7 @@ const TraceDetailView = ({ details, isLoading, error }) => {
                   Env: {details.environment ?? 'default'}
                 </div>
               </div>
-              
+
               <div className={styles.costBar}>
                 {details.totalPrice != null && (
                   <div className={styles.costPill}>
@@ -245,7 +337,7 @@ const TraceDetailView = ({ details, isLoading, error }) => {
                 )}
                 {/* ▼▼▼ onMouseEnter 핸들러에 event 객체(e) 전달 ▼▼▼ */}
                 {details.usage && formatUsage(details.usage) && (
-                  <div 
+                  <div
                     className={styles.costPill}
                     onMouseEnter={(e) => handleUsageMouseEnter(e, details.usage)}
                     onMouseLeave={handleUsageMouseLeave}
@@ -255,7 +347,7 @@ const TraceDetailView = ({ details, isLoading, error }) => {
                   </div>
                 )}
               </div>
-              
+
               <div className={styles.pills}>
                 {details.model && (
                   <div className={`${styles.pill} ${styles.pillDark}`}>{details.model}</div>
@@ -328,20 +420,76 @@ const TraceDetailView = ({ details, isLoading, error }) => {
         </button>
       </div>
 
-      {renderContent("Input", details.input, 'input')}
-      {renderContent("Output", details.output, 'output')}
-      {isObservation && details.modelParameters && renderContent("Model Parameters", details.modelParameters)}
+      {Array.isArray(details.messages) ? (
+        viewFormat === 'JSON' ? (
+          <>
+            <h3 className={styles.previewTitle}>Preview</h3>
+            {/* JSON 모드: messages/출력의 “원본 구조” 그대로 */}
+            {renderContent("Input", details.messages)}
+            {renderContent(
+              "Output",
+              (() => {
+                // 1) details.output이 JSON-string/object면 파싱해서 사용
+                const out = parseMaybeJSON(details.output);
+                if (out != null) {
+                  return typeof out === 'string' ? { content: out } : out;
+                }
+                // 2) 없으면 messages 안의 마지막 assistant 객체를 그대로
+                const lastAssistant = [...details.messages].reverse()
+                  .find(m => (m?.role || '').toLowerCase() === 'assistant');
+                // 그래도 없으면 빈 문자열 방지
+                return lastAssistant ?? { content: '', role: 'assistant' };
+              })(),
+              'output'
+            )}
+          </>
+        ) : (
+          <>
+            <h3 className={styles.previewTitle}>Preview</h3>
+            {/* Formatted 모드: 역할별로 사람이 읽기 좋게 */}
+            {renderContent("System", extractRoleText(details.messages, 'system'))}
+            {renderContent("User", extractRoleText(details.messages, 'user'))}
+            {renderContent(
+              "Assistant",
+              (() => {
+                const fromMsgs = extractRoleText(details.messages, 'assistant');
+                if (fromMsgs) return fromMsgs;
+                if (typeof details.output === 'string') {
+                  try {
+                    const o = JSON.parse(details.output);
+                    if (o && typeof o === 'object') return toText(o.content ?? o);
+                  } catch { /* plain string */ }
+                  return details.output;
+                }
+                return toText(details.output);
+              })(),
+              'output'
+            )}
+          </>
+        )
+      ) : (
+        <>
+          {/* messages가 없으면 기존 방식 유지 */}
+          {renderContent("Input", details.input, 'input')}
+          {renderContent("Output", details.output, 'output')}
+        </>
+      )}
+      {isObservation &&
+        details.modelParameters &&
+        Object.keys(details.modelParameters || {}).length > 0 &&
+        renderContent("Model Parameters", details.modelParameters)}
       <div className={styles.contentCard}>
         <div className={styles.cardHeader}>
           <h3 className={styles.cardTitle}>Metadata</h3>
         </div>
         <div className={styles.cardBody}>
-          {Object.keys(metadata).length > 0
+          {hasMetadata
             ? (viewFormat === 'JSON'
               ? <pre>{JSON.stringify(metadata, null, 2)}</pre>
-              : <FormattedTable data={metadata} />)
-            : <p className={styles.noDataText}>No metadata available.</p>
-          }
+              : <MetaTable data={metadata} />)
+            : (typeof metadataRaw === 'string' && metadataRaw.trim()
+              ? <pre>{metadataRaw}</pre> // 파싱 실패한 ‘문자열 메타’는 원문 노출
+              : <p className={styles.noDataText}>No metadata available.</p>)}
         </div>
       </div>
 

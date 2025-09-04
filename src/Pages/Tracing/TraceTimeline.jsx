@@ -40,6 +40,7 @@ const ObservationNode = ({ node, allNodes, level, onSelect, selectedId }) => {
       <div
         className={`${styles.timelineItem} ${selectedId === node.id ? styles.selected : ''}`}
         style={{ paddingLeft: `${level * 24}px` }}
+        data-observation-id={node.id}
         onClick={() => onSelect(node.id)}
       >
         <div className={styles.itemIcon}>
@@ -97,13 +98,13 @@ const TraceTimeline = ({ details, onObservationSelect }) => {
 
   // 검색 로직: 모든 텍스트 필드를 대상으로 검색
   const filteredObservations = useMemo(() => {
-      const query = searchQuery.trim().toLowerCase();
-      if (!query) {
-          return observations;
-      }
-      return observations.filter(obs =>
-          JSON.stringify(obs).toLowerCase().includes(query)
-      );
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) {
+      return observations;
+    }
+    return observations.filter(obs =>
+      JSON.stringify(obs).toLowerCase().includes(query)
+    );
   }, [searchQuery, observations]);
 
 
@@ -137,7 +138,9 @@ const TraceTimeline = ({ details, onObservationSelect }) => {
 
         setObservations(processedData);
         setSelectedObservationId(null);
-        onObservationSelect(null);
+        if (typeof onObservationSelect === 'function') {
+          onObservationSelect(null); // ← trace가 바뀔 때에만 초기화
+        }
 
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An unknown error occurred.');
@@ -147,11 +150,15 @@ const TraceTimeline = ({ details, onObservationSelect }) => {
     };
 
     loadObservations();
-  }, [details, onObservationSelect]);
+  }, [details?.id]);
 
   const handleSelect = (id) => {
     setSelectedObservationId(id);
-    onObservationSelect(id);
+    const node = observations.find(o => o.id === id);
+    // id만이 아니라 traceId / projectId까지 함께 전달
+    onObservationSelect(
+      node ? { id: node.id, traceId: node.traceId, projectId: node.projectId } : id
+    );
   };
 
   const renderContent = () => {
@@ -176,31 +183,31 @@ const TraceTimeline = ({ details, onObservationSelect }) => {
       <ul className={styles.timelineList}>
         {/* Trace 자체를 루트 노드로 렌더링 */}
         <li className={styles.nodeContainer}>
-           <div
-              className={`${styles.timelineItem} ${selectedObservationId === null ? styles.selected : ''}`}
-              onClick={() => handleSelect(null)}
-            >
-              <div className={styles.itemIcon}>
-                <div className={styles.chevronPlaceholder}></div>
-                <ListTree size={16} />
-              </div>
-              <div className={styles.itemContent}>
-                <div className={styles.itemHeader}>
-                  <span className={styles.itemName}>{details?.name ?? 'Trace'}</span>
-                  {/* ▼▼▼ 이 부분 수정 ▼▼▼ */}
-                  {details?.latency && <span className={styles.latency}>{details.latency.toFixed(2)}s</span>}
-                </div>
+          <div
+            className={`${styles.timelineItem} ${selectedObservationId === null ? styles.selected : ''}`}
+            onClick={() => handleSelect(null)}
+          >
+            <div className={styles.itemIcon}>
+              <div className={styles.chevronPlaceholder}></div>
+              <ListTree size={16} />
+            </div>
+            <div className={styles.itemContent}>
+              <div className={styles.itemHeader}>
+                <span className={styles.itemName}>{details?.name ?? 'Trace'}</span>
                 {/* ▼▼▼ 이 부분 수정 ▼▼▼ */}
-                {details?.scores && details.scores.length > 0 && (
-                  <div className={styles.scoreTags}>
-                    {details.scores.map(score => (
-                      <span key={score.name} className={styles.scoreTag}>
-                        {score.name}: {score.value.toFixed(2)} <MessageCircle size={12} />
-                      </span>
-                    ))}
-                  </div>
-                )}
+                {details?.latency && <span className={styles.latency}>{details.latency.toFixed(2)}s</span>}
               </div>
+              {/* ▼▼▼ 이 부분 수정 ▼▼▼ */}
+              {details?.scores && details.scores.length > 0 && (
+                <div className={styles.scoreTags}>
+                  {details.scores.map(score => (
+                    <span key={score.name} className={styles.scoreTag}>
+                      {score.name}: {score.value.toFixed(2)} <MessageCircle size={12} />
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
           <ul className={styles.nodeChildren}>
             {rootObservations.map((obs) => (
