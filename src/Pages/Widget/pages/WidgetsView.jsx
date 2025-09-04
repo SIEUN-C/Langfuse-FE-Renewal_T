@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
 import { DataTable } from "../../../components/DataTable/DataTable.jsx";
-import { Bot, ChevronDown, ChevronUp } from "lucide-react";
+import { Bot, ChevronDown, ChevronUp, Trash2 } from "lucide-react";
 import styles from "../../Dashboards/Dashboards.module.css";
 
 // Widget API
@@ -60,6 +60,29 @@ export const WidgetsView = () => {
       direction = "desc";
     }
     setSortConfig({ key, direction });
+  };
+
+  const handleDelete = async (widgetId, widgetName) => {
+    if (!confirm(`"${widgetName}" 위젯을 삭제하시겠습니까?`)) {
+      return;
+    }
+
+    try {
+      const result = await widgetServices.deleteWidget(String(projectId), widgetId);
+      
+      if (result.success) {
+        // 성공적으로 삭제되면 목록에서 제거
+        setWidgets(prevWidgets => prevWidgets.filter(w => w.id !== widgetId));
+        
+        // 선택적: 성공 메시지 표시
+        console.log("위젯이 성공적으로 삭제되었습니다.");
+      } else {
+        alert(`위젯 삭제 실패: ${result.error}`);
+      }
+    } catch (error) {
+      console.error("위젯 삭제 중 오류:", error);
+      alert(`위젯 삭제 중 오류가 발생했습니다: ${error.message}`);
+    }
   };
 
   const sortedWidgets = React.useMemo(() => {
@@ -140,6 +163,21 @@ export const WidgetsView = () => {
         </div>
       ),
       accessor: (row) => dashboardUtils.formatDate(row.updatedAt),
+    },
+    {
+      header: "Actions",
+      accessor: (row) => (
+        <div className={styles.actionsCell}>
+          <button
+            className={styles.iconButton}
+            onClick={() => handleDelete(row.id, row.name)}
+            title="Delete widget"
+            disabled={row.owner === "LANGFUSE"} // Langfuse 소유 위젯은 삭제 불가
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
+      ),
     },
   ];
 

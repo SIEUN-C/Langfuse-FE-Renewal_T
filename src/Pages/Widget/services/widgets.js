@@ -26,6 +26,10 @@ function extractItems(d) {
 }
 
 export class WidgetsAPI extends ApiClient {
+  constructor(projectId = null) {
+    super(projectId);
+  }
+
   async getWidgets(projectId, page = 1, pageSize = 50, order = "DESC") {
     const payload = {
       page: Math.max(0, Number(page) - 1),
@@ -45,18 +49,15 @@ export class WidgetsAPI extends ApiClient {
 
       let items = extractItems(data);
       
-      // ✅ 간단한 데이터 정리
       items = items.map(widget => {
-        // 이름 정리 (COUNT COUNT -> COUNT)
         const cleanName = widget.name ? widget.name.replace(/^(COUNT\s+)+/i, 'COUNT ') : widget.name;
         
-        // 설명 기본값 설정
         let description = widget.description;
         if (!description || description.trim() === '') {
           if (cleanName && cleanName.toLowerCase().includes('count')) {
             description = 'Shows the count of Traces';
           } else {
-            description = null; // null로 두면 UI에서 "No description" 표시
+            description = null;
           }
         }
 
@@ -105,10 +106,8 @@ export class WidgetsAPI extends ApiClient {
     }
   }
 
-  // ✅ createWidget 메서드 수정 - 인자 순서와 처리 로직 개선
   async createWidget(projectId, payload) {
     try {
-      // payload 유효성 검사
       if (!payload || typeof payload !== 'object') {
         throw new Error('Invalid payload: payload must be an object');
       }
@@ -117,7 +116,6 @@ export class WidgetsAPI extends ApiClient {
         console.log("[WidgetsAPI] createWidget 호출:", { projectId, payload });
       }
 
-      // ✅ 위젯 데이터 구성 - Langfuse 구조에 맞게
       const widgetData = {
         projectId: projectId || this.projectId,
         name: payload.name || "New Widget",
@@ -128,7 +126,7 @@ export class WidgetsAPI extends ApiClient {
         metrics: payload.metrics || [{ measure: "count", agg: "count" }],
         filters: payload.filters || [],
         chartConfig: payload.chartConfig || { type: payload.chartType || "LINE_TIME_SERIES" },
-        ...payload // 나머지 속성들 포함
+        ...payload
       };
 
       if (DEBUG) {
@@ -148,7 +146,6 @@ export class WidgetsAPI extends ApiClient {
     }
   }
 
-  // ✅ 대시보드에 위젯 추가하는 메서드
   async addWidgetToDashboard(projectId, dashboardId, widgetId) {
     try {
       if (!dashboardId || !widgetId) {
@@ -156,22 +153,57 @@ export class WidgetsAPI extends ApiClient {
       }
 
       if (DEBUG) {
-        console.log("[WidgetsAPI] 대시보드에 위젯 추가:", { projectId, dashboardId, widgetId });
+        console.log("[WidgetsAPI] === 대시보드 위젯 추가 시작 ===");
+        console.log("[WidgetsAPI] projectId:", projectId);
+        console.log("[WidgetsAPI] dashboardId:", dashboardId);
+        console.log("[WidgetsAPI] widgetId:", widgetId);
       }
 
-      const result = await this.trpcPost("dashboardWidgets.addToDashboard", {
+      console.log("[WidgetsAPI] 1단계: 대시보드 조회");
+      const dashboard = await this.trpcGet("dashboard.getDashboard", {
         projectId: projectId || this.projectId,
-        dashboardId,
-        widgetId
+        dashboardId
       });
 
-      if (DEBUG) {
-        console.log("[WidgetsAPI] 대시보드 추가 결과:", result);
+      if (!dashboard) {
+        throw new Error('대시보드를 찾을 수 없습니다');
       }
 
+      console.log("[WidgetsAPI] 현재 대시보드:", dashboard);
+
+      const currentDefinition = dashboard.definition || { widgets: [] };
+      console.log("[WidgetsAPI] 현재 대시보드 정의:", currentDefinition);
+
+      const newWidget = {
+        id: `widget-${Date.now()}`,
+        widgetId: widgetId,
+        x: 0,
+        y: 0, 
+        w: 6,
+        h: 4,
+      };
+
+      const updatedDefinition = {
+        ...currentDefinition,
+        widgets: [...(currentDefinition.widgets || []), newWidget]
+      };
+
+      console.log("[WidgetsAPI] 업데이트된 정의:", updatedDefinition);
+
+      console.log("[WidgetsAPI] 2단계: 대시보드 정의 업데이트");
+      const result = await this.trpcPost("dashboard.updateDashboardDefinition", {
+        projectId: projectId || this.projectId,
+        dashboardId,
+        definition: updatedDefinition
+      });
+
+      console.log("[WidgetsAPI] 대시보드 업데이트 결과:", result);
+
       return { success: true, data: result };
+      
     } catch (error) {
-      console.error("[WidgetsAPI] 대시보드 위젯 추가 실패:", error);
+      console.error("[WidgetsAPI] === 대시보드 위젯 추가 실패 ===");
+      console.error("[WidgetsAPI] 에러:", error);
       return { success: false, error: error.message };
     }
   }

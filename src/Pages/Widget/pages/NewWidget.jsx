@@ -967,7 +967,7 @@ export default function NewWidget() {
     selectedView, userFilterState, selectedChartType, pivotDimensions
   ]);
 
-  // ✅ 저장 핸들러 - 수정된 API 호출 방식
+  // ✅ 수정된 저장 핸들러 - 위젯 생성 후 대시보드에 자동 추가
   const handleSaveWithDashboard = async (dashboardId) => {
     if (!projectId) {
       alert("Project ID is required");
@@ -975,12 +975,55 @@ export default function NewWidget() {
     }
     
     setSaving(true);
+    console.log("🚀 위젯 저장 시작");
     
     try {
       // 위젯 데이터 준비
       const activeFilters = userFilterState.filter(f => 
         f.column && (f.values && f.values.length > 0)
       );
+      
+      console.log("📊 현재 선택된 차트 타입:", selectedChartType);
+      
+      // 차트 설정 강화
+      let chartConfig;
+      
+      switch(selectedChartType) {
+        case "HISTOGRAM":
+          chartConfig = { type: "HISTOGRAM", bins: histogramBins };
+          break;
+        case "PIVOT_TABLE":
+          chartConfig = {
+            type: "PIVOT_TABLE",
+            dimensions: pivotDimensions,
+            row_limit: rowLimit,
+            defaultSort: defaultSortColumn && defaultSortColumn !== "none"
+              ? { column: defaultSortColumn, order: defaultSortOrder }
+              : undefined,
+          };
+          break;
+        case "NUMBER":
+          chartConfig = { type: "NUMBER" };
+          break;
+        case "PIE":
+          chartConfig = { type: "PIE", row_limit: rowLimit };
+          break;
+        case "HORIZONTAL_BAR":
+          chartConfig = { type: "HORIZONTAL_BAR", row_limit: rowLimit };
+          break;
+        case "VERTICAL_BAR":
+          chartConfig = { type: "VERTICAL_BAR", row_limit: rowLimit };
+          break;
+        case "LINE_TIME_SERIES":
+          chartConfig = { type: "LINE_TIME_SERIES", row_limit: rowLimit };
+          break;
+        case "BAR_TIME_SERIES":
+          chartConfig = { type: "BAR_TIME_SERIES", row_limit: rowLimit };
+          break;
+        default:
+          chartConfig = { type: selectedChartType, row_limit: rowLimit };
+          break;
+      }
       
       const widgetData = {
         name: widgetName,
@@ -1001,52 +1044,60 @@ export default function NewWidget() {
           : [{ measure: selectedMeasure, agg: selectedAggregation }],
         filters: transformFiltersToWidgetFormat(activeFilters),
         chartType: selectedChartType,
-        chartConfig: selectedChartType === "HISTOGRAM"
-          ? { type: selectedChartType, bins: histogramBins }
-          : selectedChartType === "PIVOT_TABLE"
-            ? {
-                type: selectedChartType,
-                row_limit: rowLimit,
-                defaultSort: defaultSortColumn && defaultSortColumn !== "none"
-                  ? { column: defaultSortColumn, order: defaultSortOrder }
-                  : undefined,
-              }
-            : { type: selectedChartType, row_limit: rowLimit },
+        chartConfig: chartConfig,
       };
 
-      console.log("[NewWidget] 저장할 위젯 데이터:", widgetData);
-      console.log("[NewWidget] 대시보드 ID:", dashboardId);
+      console.log("📋 최종 위젯 데이터:", widgetData);
 
-      // ✅ 수정된 API 호출 방식 - dashboardId를 두 번째 인자로 전달
-      const response = await api.createWidget(widgetData, dashboardId);
+      // ✅ 위젯만 생성 (dashboardId 제거)
+      console.log("📡 API 호출 시작... (위젯만 생성)");
+      const response = await api.createWidget(widgetData);
       
-      console.log("[NewWidget] API 응답:", response);
+      console.log("📨 API 응답:", response);
       
       if (response.success) {
-        if (response.warning) {
-          // 부분 성공 (위젯은 생성되었지만 대시보드 추가 실패)
-          alert(`위젯이 생성되었지만 대시보드 추가에 실패했습니다: ${response.warning}`);
-        } else if (dashboardId) {
-          alert("위젯이 대시보드에 성공적으로 추가되었습니다!");
-        } else {
-          alert("위젯이 저장되었습니다!");
+        // ✅ 위젯 ID 추출
+        let widgetId = null;
+        
+        if (response.data?.widget?.widget?.id) {
+          widgetId = response.data.widget.widget.id;
+        } else if (response.data?.widget?.id) {
+          widgetId = response.data.widget.id;
+        } else if (response.data?.id) {
+          widgetId = response.data.id;
         }
         
-        // 적절한 페이지로 이동
-        if (dashboardId) {
-          navigate(`/project/${projectId}/dashboards/${dashboardId}`);
-        } else {
+        console.log("🎉 위젯 생성 성공! ID:", widgetId);
+        
+        if (dashboardId && widgetId) {
+          // ✅ 대시보드에 추가하기 위해 state와 함께 이동
+          console.log("🔄 대시보드로 이동하며 위젯 추가:", dashboardId);
+          navigate(`/project/${projectId}/dashboards/${dashboardId}`, {
+            state: { 
+              addWidgetId: widgetId,
+              refreshDashboard: true 
+            }
+          });
+          alert("위젯이 생성되었습니다! 대시보드에 추가됩니다.");
+        } else if (widgetId) {
+          // ✅ 위젯만 저장한 경우
+          console.log("🔄 대시보드 목록으로 이동");
           navigate(`/project/${projectId}/dashboards`);
+          alert("위젯이 저장되었습니다!");
+        } else {
+          throw new Error("위젯 ID를 가져올 수 없습니다.");
         }
       } else {
+        console.error("❌ API 실패:", response.error);
         throw new Error(response.error || 'Failed to create widget');
       }
     } catch (error) {
-      console.error('[NewWidget] Save error:', error);
-      alert(`저장 실패: ${error.message || error}`);
+      console.error("💥 저장 에러:", error);
+      alert(`저장 실패:\n${error.message || error}`);
     } finally {
       setSaving(false);
       setShowDashboardModal(false);
+      console.log("🔚 저장 프로세스 완료");
     }
   };
 

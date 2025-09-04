@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom"; // ✅ useLocation 추가
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Plus, Copy } from "lucide-react";
 import { dashboardAPI } from "./services/dashboardApi.js";
 import { dashboardFilterConfig } from "../../components/FilterControls/filterConfig.js";
@@ -13,7 +13,7 @@ import { v4 as uuidv4 } from "uuid";
 const DashboardDetail = () => {
   const { projectId, dashboardId } = useParams();
   const navigate = useNavigate();
-  const location = useLocation(); // ✅ useLocation 추가
+  const location = useLocation();
 
   // 기본 상태
   const [dashboard, setDashboard] = useState(null);
@@ -38,6 +38,12 @@ const DashboardDetail = () => {
   const [nameOptions, setNameOptions] = useState([]);
   const [tagsOptions, setTagsOptions] = useState([]);
   const [filterOptionsLoading, setFilterOptionsLoading] = useState(false);
+
+  // 위젯 자동 추가 상태
+  const [widgetAddProcessed, setWidgetAddProcessed] = useState(false);
+
+  // ✅ 강제 리렌더링을 위한 상태 추가
+  const [forceRefreshKey, setForceRefreshKey] = useState(0);
 
   // 권한 체크
   const hasCUDAccess = dashboard?.owner !== "LANGFUSE";
@@ -161,7 +167,7 @@ const DashboardDetail = () => {
     }
   }, [projectId, dashboardId]);
 
-  // 디바운스된 대시보드 저장 함수
+  // ✅ 디바운스된 대시보드 저장 함수 - 시간 단축 및 에러 처리 개선
   const debouncedSaveDashboard = useDebounce(
     async (definition) => {
       if (!hasCUDAccess || !projectId || !dashboardId) return;
@@ -176,14 +182,20 @@ const DashboardDetail = () => {
 
         if (result.success) {
           console.log("Dashboard updated successfully");
+          // ✅ 저장 성공 후 상태 동기화
+          setLocalDashboardDefinition(definition);
         } else {
           console.error("Failed to update dashboard:", result.error);
+          // ✅ 저장 실패 시 이전 상태로 롤백
+          loadDashboard();
         }
       } catch (error) {
         console.error("Failed to update dashboard:", error);
+        // ✅ 에러 시 롤백
+        loadDashboard();
       }
     },
-    500,
+    200, // ✅ 500ms → 200ms로 단축
     false
   );
 
@@ -209,7 +221,7 @@ const DashboardDetail = () => {
     setDateRange(newDateRange);
   }, []);
 
-  // 위젯 추가
+  // ✅ 위젯 추가 - 즉시 UI 업데이트
   const addWidgetToDashboard = useCallback(
     (widget) => {
       if (!localDashboardDefinition) return;
@@ -240,7 +252,13 @@ const DashboardDetail = () => {
         widgets: [...localDashboardDefinition.widgets, newWidgetPlacement],
       };
 
+      // ✅ 즉시 UI 업데이트
       setLocalDashboardDefinition(updatedDefinition);
+      
+      // ✅ 강제 리렌더링을 위한 key 업데이트
+      setForceRefreshKey(prev => prev + 1);
+      
+      // ✅ 백그라운드에서 저장
       debouncedSaveDashboard(updatedDefinition);
     },
     [localDashboardDefinition, debouncedSaveDashboard]
@@ -260,7 +278,12 @@ const DashboardDetail = () => {
         widgets: updatedWidgets,
       };
 
+      // ✅ 즉시 UI 업데이트
       setLocalDashboardDefinition(updatedDefinition);
+      
+      // ✅ 강제 리렌더링
+      setForceRefreshKey(prev => prev + 1);
+      
       debouncedSaveDashboard(updatedDefinition);
     },
     [localDashboardDefinition, debouncedSaveDashboard]
@@ -295,22 +318,41 @@ const DashboardDetail = () => {
     loadFilterOptions();
   }, [loadFilterOptions]);
 
-  // ✅ 새 위젯 추가 후 대시보드 새로고침을 위한 useEffect 추가
+  // ✅ 새 위젯 자동 추가 기능 - 개선된 로직
   useEffect(() => {
-    // 위젯 추가 후 리다이렉트된 경우 대시보드 새로고침
-    if (location.state?.refreshDashboard) {
-      console.log("새 위젯 추가로 인한 대시보드 새로고침");
+    if (location.state?.refreshDashboard && 
+        location.state?.addWidgetId && 
+        !widgetAddProcessed &&
+        localDashboardDefinition) {
       
-      // 대시보드 데이터 새로고침
-      loadDashboard();
+      console.log("위젯 자동 추가 프로세스 시작:", location.state.addWidgetId);
       
-      // state 정리 (무한 새로고침 방지)
-      window.history.replaceState(
-        { ...location.state, refreshDashboard: false },
-        document.title
+      // ✅ 즉시 처리 완료 표시
+      setWidgetAddProcessed(true);
+      
+      // 중복 위젯 체크
+      const existingWidget = localDashboardDefinition.widgets.find(
+        w => w.widgetId === location.state.addWidgetId
       );
+      
+      if (!existingWidget) {
+        // ✅ 즉시 위젯 추가 (UI 우선)
+        const widgetToAdd = { id: location.state.addWidgetId };
+        addWidgetToDashboard(widgetToAdd);
+        console.log("위젯 자동 추가 완료:", location.state.addWidgetId);
+        
+        // ✅ 성공 피드백
+        setTimeout(() => {
+          console.log("위젯이 대시보드에 추가되었습니다!");
+        }, 100);
+      } else {
+        console.log("위젯이 이미 존재함, 추가 생략:", location.state.addWidgetId);
+      }
+      
+      // ✅ state 정리 (즉시)
+      window.history.replaceState({}, document.title);
     }
-  }, [location.state, loadDashboard]);
+  }, [location.state?.refreshDashboard, location.state?.addWidgetId, widgetAddProcessed, localDashboardDefinition, addWidgetToDashboard]);
 
   // 로딩 상태
   if (loading) {
@@ -335,13 +377,16 @@ const DashboardDetail = () => {
     );
   }
 
+  // ✅ 위젯 개수 계산
+  const widgetCount = localDashboardDefinition?.widgets?.length || 0;
+
   return (
     <div className={styles.container}>
       {/* 헤더 */}
       <div className={styles.header}>
         <div className={styles.titleGroup}>
           <h1 className={styles.title}>
-            {dashboard.name}
+            {dashboard.name} ({widgetCount} widgets)
             {dashboard.owner === "LANGFUSE" && " (Langfuse Maintained)"}
           </h1>
           {dashboard.description && (
@@ -383,6 +428,7 @@ const DashboardDetail = () => {
       <div className={styles.mainContent}>
         {localDashboardDefinition?.widgets?.length > 0 ? (
           <DashboardGrid
+            key={forceRefreshKey} // ✅ 강제 리렌더링
             widgets={localDashboardDefinition.widgets}
             onChange={handleGridChange}
             canEdit={hasCUDAccess}
