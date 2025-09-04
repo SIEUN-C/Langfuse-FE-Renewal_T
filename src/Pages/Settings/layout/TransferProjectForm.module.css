@@ -1,102 +1,240 @@
+/* ===================================================================
+   TransferProjectForm.module.css  (DARK THEME)
+   - 우리 프론트 다크 팔레트에 맞춘 Langfuse형 모달
+   - 구조는 그대로, 색/보더/타이포만 다크 톤으로 재설계
+   =================================================================== */
+
+/* ---------- 카드 컨테이너 ---------- */
 .container {
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  background: #0f172a;           /* slate-900 */
+  color: #e5e7eb;                /* gray-200 */
+  border-radius: 12px;
+  min-width: 500px;
+  max-width: 600px;
+  width: 100%;
 }
 
+/* ---------- Warning 박스 ---------- */
 .warningBox {
-    background-color: rgba(251, 191, 36, 0.1); /* amber-400 with 10% opacity */
-    border: 1px solid #FBBF24; /* amber-400 */
-    border-radius: 8px;
-    padding: 16px;
-    display: flex;
-    gap: 12px;
+  background-color: #0b1220;     /* 아주 진한 네이비 */
+  border: 1px solid #334155;     /* slate-600 */
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  gap: 12px;
 }
 
 .warningIcon {
-    color: #FBBF24; /* amber-400 */
-    flex-shrink: 0;
-    margin-top: 2px;
+  color: #f59e0b;                /* amber-500 */
+  flex-shrink: 0;
+  margin-top: 2px;
 }
 
 .warningTitle {
-    margin: 0 0 8px 0;
-    font-weight: 600;
-    color: #FDE68A; /* amber-200 */
+  margin: 0 0 8px 0;
+  font-weight: 800;
+  color: #f8fafc;                /* slate-50 */
 }
 
 .warningText {
-    margin: 0 0 8px 0;
-    font-size: 14px;
-    color: #FEF3C7; /* amber-100 */
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  color: #cbd5e1;                /* slate-300 */
 }
 
 .warningList {
-    margin: 0;
-    padding-left: 20px;
-    font-size: 14px;
-    color: #FEF3C7; /* amber-100 */
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
+  margin: 0;
+  padding-left: 20px;
+  font-size: 14px;
+  color: #cbd5e1;                /* slate-300 */
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
+/* ---------- 섹션 구분선 ---------- */
+.sectionDivider {
+  height: 1px;
+  background: #334155;           /* slate-600 */
+  margin: 0 -24px;
+}
+
+/* ---------- 폼 그룹 ---------- */
 .formGroup {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.formGroup label {
-    font-weight: 500;
-    color: #F9FAFB; /* gray-50 */
+.label {
+  font-weight: 800;
+  color: #f8fafc;                /* slate-50 */
 }
 
 .description {
-    font-size: 14px;
-    color: #9CA3AF; /* gray-400 */
-    margin: 0;
+  font-size: 14px;
+  color: #94a3b8;                /* slate-400 */
+  margin: 0;
 }
 
-.select, .input {
-    width: 100%;
-    padding: 10px 12px;
-    background-color: #020817;
-    border: 1px solid #4A5568;
-    border-radius: 6px;
-    color: #F9FAFB;
-    font-size: 14px;
+/* ---------- 입력/셀렉트 ---------- */
+.select,
+.input {
+  width: 100%;
+  padding: 12px;
+  background-color: #0b1220;     /* 다크 입력 배경 */
+  border: 1px solid #334155;     /* slate-600 */
+  border-radius: 10px;
+  color: #e5e7eb;                /* gray-200 */
+  font-size: 14px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
+  transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
 }
 
-.select:focus, .input:focus {
-    outline: none;
-    border-color: #60a5fa;
-    box-shadow: 0 0 0 1px #60a5fa;
+.select {
+  appearance: none;
 }
 
+.select:focus,
+.input:focus {
+  outline: none;
+  border-color: #38bdf8;         /* sky-400 */
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25);
+  background-color: #0c1425;
+}
+
+.input::placeholder {
+  color: #64748b;                /* slate-500 */
+}
+
+/* 같은 조직 선택 경고 */
+.helperWarn {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #f59e0b;                /* amber-500 */
+}
+
+/* ---------- 하단 액션 바 ---------- */
 .actions {
-    margin-top: 8px;
-    display: flex;
-    justify-content: flex-end;
+  margin-top: 8px;
+  padding-top: 16px;
+  border-top: 1px solid #334155; /* slate-600 */
+  display: grid;
+  grid-template-columns: auto 1fr; /* 좌: Cancel, 우: Transfer(가로 꽉) */
+  gap: 12px;
+  align-items: center;
 }
 
+.cancelButton {
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  background: transparent;
+  color: #e2e8f0;                /* slate-200 */
+  border: 1px solid #334155;     /* slate-600 */
+  cursor: pointer;
+  transition: background .15s ease, border-color .15s ease, transform .05s ease;
+}
+.cancelButton:hover {
+  background: #0b1220;
+  border-color: #3f4c63;         /* hover 보더 */
+  transform: translateY(-1px);
+}
+
+/* 빨간 메인 버튼 */
 .transferButton {
-    padding: 10px 16px;
-    border-radius: 6px;
-    font-weight: 500;
-    cursor: pointer;
-    font-size: 14px;
-    background-color: #DC2626; /* red-600 */
-    color: white;
-    border: none;
+  padding: 12px 18px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  border: 1px solid #ef4444;     /* red-500 윤곽 */
+  background-color: #ef4444;     /* red-500 채움 */
+  color: #ffffff;
+  width: 100%;
+  transition: filter .15s ease, transform .05s ease, background .15s ease, border-color .15s ease;
 }
-
 .transferButton:hover:not(:disabled) {
-    background-color: #B91C1C; /* red-700 */
+  background-color: #dc2626;     /* red-600 */
+  border-color: #dc2626;
+  transform: translateY(-1px);
+}
+.transferButton:disabled {
+  background-color: #1f2937;     /* gray-800 */
+  border-color: #374151;         /* gray-700 */
+  color: #9ca3af;                /* gray-400 */
+  cursor: not-allowed;
+  transform: none;
 }
 
-.transferButton:disabled {
-    background-color: #4B5563; /* gray-600 */
-    color: #9CA3AF; /* gray-400 */
-    cursor: not-allowed;
+/* ---------- 반응형 ---------- */
+@media (max-width: 560px) {
+  .actions { grid-template-columns: 1fr; }
+  .cancelButton { width: 100%; text-align: center; }
+  .sectionDivider { margin: 0 -16px; }
+}
+
+/* ===================================================================
+   모달 (전역 적용)
+   =================================================================== */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.7);           /* 더 진한 오버레이 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 9999;
+}
+
+.modalContent {
+  width: 100%;
+  max-width: 720px;                          /* 살짝 넓게 */
+  background: #0f172a;                       /* slate-900 */
+  color: #e5e7eb;
+  border-radius: 14px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55);
+  overflow: hidden;
+  border: 1px solid #334155;                 /* 테두리 */
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid #334155;
+  background: linear-gradient(180deg, rgba(15,23,42,.65), rgba(15,23,42,0));
+}
+
+.modalTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  color: #f8fafc;                            /* 타이틀 밝게 */
+}
+
+.closeButton {
+  appearance: none;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: #94a3b8;                            /* slate-400 */
+  border-radius: 8px;
+  padding: 6px;
+  transition: background .15s ease, color .15s ease, transform .05s ease;
+}
+.closeButton:hover {
+  color: #e2e8f0;                            /* slate-200 */
+  background: rgba(148,163,184,0.12);
+  transform: translateY(-1px);
+}
+
+.modalBody {
+  padding: 16px;
 }

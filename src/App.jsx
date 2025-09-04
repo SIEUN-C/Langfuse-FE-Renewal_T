@@ -5,6 +5,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import Layout from "./layouts/Layout";
 
 import Login from "./Pages/Login/LoginPage";
+import SelectProjectPage from "./Pages/Settings/SelectProjectPage";
 
 import Home from "./Pages/Home/Home";
 
@@ -171,6 +172,7 @@ export default function App() {
 
         {/* ✅ Settings: 표준 & 짧은 경로 모두 지원 */}
         <Route path="project/:projectId/settings" element={<SettingsPage />}>
+        
           <Route index element={<General />} />
           <Route path="general" element={<General />} />
           <Route path="api-keys" element={<ApiKeys />} />
@@ -179,6 +181,9 @@ export default function App() {
           <Route path="scores" element={<Scores />} />
           <Route path="members" element={<Members />} />
         </Route>
+
+         {/* 프로젝트 선택/생성 라우트 추가 */}
+    <Route path="projects/select" element={<SelectProjectPage />} />
 
         {/* 짧은 경로는 Gate가 projectId 찾아 리다이렉트 */}
         <Route path="settings" element={<ProjectGate to="settings" />} />

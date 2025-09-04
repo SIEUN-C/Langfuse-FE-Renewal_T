@@ -1,8 +1,29 @@
 // src/Pages/Settings/lib/sessionOrg.js
 
+function pickSessionBase() {
+  const base = import.meta.env.VITE_API_BASE || window.__API_BASE__;
+  if (!base) return { base: "", absolute: false };
+  try {
+    const t = new URL(base);
+    const here = window.location;
+    const same =
+      t.protocol === here.protocol &&
+      t.hostname === here.hostname &&
+      String(t.port || "") === String(here.port || "");
+    return { base, absolute: !same };
+  } catch {
+    return { base: "", absolute: false };
+  }
+}
+const { base: SESSION_BASE, absolute: SESSION_ABS } = pickSessionBase();
+const toUrl = (p) => (SESSION_ABS ? `${SESSION_BASE}${p}` : p);
+
 export async function fetchSession() {
   try {
-    const res = await fetch("/api/auth/session", { credentials: "include" });
+    const res = await fetch(toUrl("/api/auth/session"), {
+      credentials: "include",
+      ...(SESSION_ABS ? { mode: "cors" } : {}),
+    });
     return await res.json();
   } catch {
     return null;

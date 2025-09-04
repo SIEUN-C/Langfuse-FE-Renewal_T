@@ -1,6 +1,6 @@
-// src/Pages/Settings/lib/MemberInvites.js
-import { trpcQuery, trpcMutation } from "./trpc";
+import { trpcQuery /*, trpcMutation*/ } from "./trpc";
 import { resolveOrgId } from "./sessionOrg";
+import { trpcTryManyMutation } from "./trpcTryMany"; // ✅ 추가
 
 /** 목록: Project 기준 (page: 1-based → 서버 0-based로 변환) */
 export async function listInvitesFromProject(projectId, { page = 1, limit = 10 } = {}) {
@@ -62,5 +62,35 @@ export async function createInvite(projectId, { email, orgRole = "MEMBER", proje
   if (projectId) payload.projectId = projectId;
   if (orgRole) payload.orgRole = orgRole;
   if (projectRole) payload.projectRole = projectRole;
-  return trpcMutation("members.create", payload);
+  // 기존처럼 단일 절차명일 경우:
+  // return trpcMutation("members.create", payload);
+
+  // ✅ 서버 환경마다 절차명이 다를 수 있어 안전하게 시도
+  return trpcTryManyMutation(
+    [
+      "members.create",
+      "organizationMembers.invite",
+      "projectMembers.invite",
+    ],
+    payload
+  );
+}
+
+/** ✅ 초대 취소 */
+export async function cancelInvite(projectId, inviteId) {
+  const orgId = await resolveOrgId(projectId);
+  const payload = { inviteId, orgId };
+  if (projectId) payload.projectId = projectId;
+
+  // 환경에 따라 가능한 절차명 후보를 순차 시도
+  return trpcTryManyMutation(
+    [
+      "members.cancelInvite",               // 공통(커스텀)
+      "organizationMembers.cancelInvite",   // 조직 스코프
+      "projectMembers.cancelInvite",        // 프로젝트 스코프
+      "organizationInvites.cancel",         // 일부 구현
+      "projectInvites.cancel",              // 일부 구현
+    ],
+    payload
+  );
 }

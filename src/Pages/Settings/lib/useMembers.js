@@ -1,18 +1,17 @@
 // src/Pages/Settings/lib/useMembers.js
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   listProjectMembers,
   inviteProjectMember,
   updateProjectMemberRole,
-  removeProjectMember,
 } from "./ProjectMembers";
 import {
   listOrgMembers,
   inviteOrgMember,
   updateOrgMemberRole,
-  removeOrgMember,
 } from "./OrgMembers";
 import { resolveOrgId } from "./sessionOrg";
+import { removeMembershipUniversal } from "./removeMembership";
 
 /**
  * 멤버 목록 훅
@@ -56,13 +55,13 @@ export default function useMembers(projectId) {
     if (route === "project") {
       try {
         const res = await listProjectMembers(projectId, { page, limit, search });
-        const items = Array.isArray(res?.items) ? res.items : (Array.isArray(res) ? res : []);
-        setItems(items);
+        const list = Array.isArray(res?.items) ? res.items : (Array.isArray(res) ? res : []);
+        setItems(list);
         setMeta({
           page: res?.page ?? page,
           limit: res?.limit ?? limit,
-          totalItems: res?.totalItems ?? items.length,
-          totalPages: res?.totalPages ?? Math.max(1, Math.ceil((res?.totalItems ?? items.length) / (res?.limit ?? limit))),
+          totalItems: res?.totalItems ?? list.length,
+          totalPages: res?.totalPages ?? Math.max(1, Math.ceil((res?.totalItems ?? list.length) / (res?.limit ?? limit))),
         });
         setLoading(false);
         return;
@@ -84,13 +83,13 @@ export default function useMembers(projectId) {
     try {
       const oid = orgId || (await resolveOrgId(projectId));
       const res = await listOrgMembers(oid, { page, limit, search });
-      const items = Array.isArray(res?.items) ? res.items : (Array.isArray(res) ? res : []);
-      setItems(items);
+      const list = Array.isArray(res?.items) ? res.items : (Array.isArray(res) ? res : []);
+      setItems(list);
       setMeta({
         page: res?.page ?? page,
         limit: res?.limit ?? limit,
-        totalItems: res?.totalItems ?? items.length,
-        totalPages: res?.totalPages ?? Math.max(1, Math.ceil((res?.totalItems ?? items.length) / (res?.limit ?? limit))),
+        totalItems: res?.totalItems ?? list.length,
+        totalPages: res?.totalPages ?? Math.max(1, Math.ceil((res?.totalItems ?? list.length) / (res?.limit ?? limit))),
       });
     } catch (e2) {
       setErr(e2?.message || "Failed to load members");
@@ -105,61 +104,61 @@ export default function useMembers(projectId) {
   const setPage = useCallback((p) => setMeta((m) => ({ ...m, page: p })), []);
   const setLimit = useCallback((l) => setMeta((m) => ({ ...m, limit: l })), []);
 
-  // 낙관적 초대
+  // 초대 (실제 초대 API 호출 + 404 폴백 + 리로드)
   const invite = useCallback(async ({ email, role }) => {
     if (!projectId) throw new Error("projectId not provided");
+
+    // 낙관적 UI 반영
     const optimistic = {
       id: "temp-" + Math.random().toString(36).slice(2),
       name: email.split("@")[0],
       email,
-      role,
-      createdAt: new Date().toISOString(),
+      organizationRole: role,
+      projectRole: null,
+      memberSince: new Date().toISOString(),
     };
-    const snapshot = { items, meta };
+    const snapshot = items;
     setItems((prev) => [optimistic, ...prev]);
- try {
-   const res = await listProjectMembers(projectId, { page, limit, search });
-   const items = Array.isArray(res?.items) ? res.items : (Array.isArray(res) ? res : []);
-   setItems(items);
-   setMeta({
-     page: res?.page ?? page,
-     limit: res?.limit ?? limit,
-     totalItems: res?.totalItems ?? items.length,
-     totalPages: res?.totalPages ?? Math.max(1, Math.ceil((res?.totalItems ?? items.length) / (res?.limit ?? limit))),
-   });
-   setLoading(false);
-   return;
- } catch (_ignore) {
-   // 그냥 org로 바로 재시도
- }
 
-  // 2) 조직 라우터 폴백
-  try {
-    const oid = orgId || (await resolveOrgId(projectId));
-    const res = await listOrgMembers(oid, { page, limit, search });
-    const items = Array.isArray(res?.items) ? res.items : (Array.isArray(res) ? res : []);
-    setItems(items);
-    setMeta({
-      page: res?.page ?? page,
-      limit: res?.limit ?? limit,
-      totalItems: res?.totalItems ?? items.length,
-      totalPages: res?.totalPages ?? Math.max(1, Math.ceil((res?.totalItems ?? items.length) / (res?.limit ?? limit))),
-    });
-  } catch (e2) {
-    setErr(e2?.message || "Failed to load members");
-  } finally {
-    setLoading(false);
-  }
-}, [projectId, orgId, page, limit, search]);
+    try {
+      if (route === "project") {
+        try {
+          await inviteProjectMember(projectId, { email, role });
+        } catch (e) {
+          const is404 = /404|Not Found/i.test(e?.message || "");
+          if (!is404) throw e;
+          const oid = orgId || (await resolveOrgId(projectId));
+          await inviteOrgMember(oid, { email, role });
+          setRoute("org");
+        }
+      } else {
+        const oid = orgId || (await resolveOrgId(projectId));
+        await inviteOrgMember(oid, { email, role });
+      }
+      await reload();
+    } catch (e) {
+      // 실패 시 롤백
+      setItems(snapshot);
+      throw e;
+    }
+  }, [projectId, orgId, route, items, reload]);
 
-  // 낙관적 역할변경
+  // 역할변경 (프로젝트 → 404 시 조직으로 폴백)
   const updateRole = useCallback(async (memberId, role) => {
     if (!projectId) throw new Error("projectId not provided");
     const snapshot = items;
-    setItems((prev) => prev.map((m) => (m.id === memberId ? { ...m, role } : m)));
+    setItems((prev) => prev.map((m) => (m.id === memberId ? { ...m, organizationRole: role } : m)));
     try {
       if (route === "project") {
-        await updateProjectMemberRole(projectId, memberId, role);
+        try {
+          await updateProjectMemberRole(projectId, memberId, role);
+        } catch (e) {
+          const is404 = /404|Not Found/i.test(e?.message || "");
+          if (!is404) throw e;
+          const oid = orgId || (await resolveOrgId(projectId));
+          await updateOrgMemberRole(oid, memberId, role);
+          setRoute("org");
+        }
       } else {
         const oid = orgId || (await resolveOrgId(projectId));
         await updateOrgMemberRole(oid, memberId, role);
@@ -170,23 +169,23 @@ export default function useMembers(projectId) {
     }
   }, [projectId, orgId, route, items]);
 
-  // 낙관적 삭제
+  // 삭제: 서버 표준 members.deleteMembership 1순위 + 폴백
   const remove = useCallback(async (memberId) => {
     if (!projectId) throw new Error("projectId not provided");
     const snapshot = items;
     setItems((prev) => prev.filter((m) => m.id !== memberId));
     try {
-      if (route === "project") {
-        await removeProjectMember(projectId, memberId);
-      } else {
-        const oid = orgId || (await resolveOrgId(projectId));
-        await removeOrgMember(oid, memberId);
-      }
+      const oid = orgId || (await resolveOrgId(projectId));
+      await removeMembershipUniversal({
+        membershipId: memberId, // 목록에서 내려오는 m.id가 "멤버십 ID"
+        orgId: oid,
+        projectId,
+      });
     } catch (e) {
       setItems(snapshot); // 롤백
       throw e;
     }
-  }, [projectId, orgId, route, items]);
+  }, [projectId, orgId, items]);
 
   // 로컬 패치(서버 호출 없이 즉시 반영용)
   const patchLocal = useCallback((memberId, patch) => {

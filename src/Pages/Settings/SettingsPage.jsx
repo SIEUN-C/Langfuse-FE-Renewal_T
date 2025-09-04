@@ -3,6 +3,7 @@ import { Outlet, useLocation, useNavigate, useParams } from "react-router-dom";
 import SettingsSidebar from "../../layouts/SettingsSidebar";
 import styles from "./layout/SettingsPage.module.css";
 import useProjectId from "../../hooks/useProjectId";
+import ProjectSwitcher from "./form/ProjectSwitcher";
 
 const SettingsPage = () => {
   const location = useLocation();
@@ -39,9 +40,13 @@ const SettingsPage = () => {
 
   // URL의 :projectId와 내부 해석 값이 다르면 표준 경로로 정정
   useEffect(() => {
-    if (routeProjectId && resolvedId && routeProjectId !== resolvedId) {
-      navigate(`/project/${resolvedId}/settings`, { replace: true });
-    }
+    if (!routeProjectId || !resolvedId) return;
+  if (routeProjectId === resolvedId) return; // 동일하면 조용히 유지
+  // URL을 우선 신뢰: 유효성 검증은 useProjectId 내부/다음 렌더에서 처리
+  try {
+    localStorage.setItem("projectId", routeProjectId);
+  } catch {}
+  // 여기서는 즉시 리다이렉트하지 않음 (무한 되돌리기 방지)
   }, [routeProjectId, resolvedId, navigate]);
 
   // 현재 경로 확인
@@ -64,7 +69,10 @@ const SettingsPage = () => {
     <div>
       <div className={styles.headerWrapper}>
         <div className={styles.contentContainer}>
-          <h1 className={styles.headerTitle}>Project Settings</h1>
+          <div className={styles.headerFlex}>
+            <ProjectSwitcher currentProjectId={resolvedId} />
+            <h1 className={styles.headerTitle}>Project Settings</h1>
+          </div>
         </div>
       </div>
 

@@ -1,0 +1,91 @@
+/* 바깥 카드 컨테이너 */
+.card {
+  border: 1px solid var(--border-color, rgba(148, 163, 184, 0.2));
+  border-radius: 12px;
+  padding: 16px;
+  background: var(--panel-bg, transparent);
+}
+
+/* 섹션 타이틀 */
+.title {
+  font-size: 22px;
+  font-weight: 800;
+  margin: 0 0 12px 0;
+}
+
+/* 한 줄(제목/설명/버튼) 레이아웃 */
+.row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 8px;
+}
+
+.texts { min-width: 0; }
+
+.rowTitle {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.desc {
+  margin: 0;
+  line-height: 1.5;
+  opacity: 0.9;
+}
+
+/* 행 구분선 */
+.divider {
+  height: 1px;
+  background: var(--border-color, rgba(148, 163, 184, 0.2));
+  margin: 8px 0;
+}
+
+/* 오른쪽 버튼 영역 */
+.action {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* 버튼 기본 */
+.btn {
+  appearance: none;
+  border: 1px solid transparent;
+  font-weight: 600;
+  padding: 10px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform .05s ease, background .2s ease, border-color .2s ease;
+  white-space: nowrap;
+}
+
+/* Langfuse 느낌의 얇은 붉은 윤곽선 버튼 (테마 변수 사용) */
+.btnOutline {
+  background: transparent;
+  border-color: var(--destructive-border, #ef4444);
+  color: var(--destructive-fg, #ef4444);
+}
+
+.btnOutline:hover {
+  background: color-mix(in srgb, var(--destructive-fg, #ef4444) 12%, transparent);
+  transform: translateY(-1px);
+}
+
+.btn:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* 모바일 대응: 버튼을 아래로 배치 */
+@media (max-width: 640px) {
+  .row {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .action {
+    justify-content: flex-start;
+  }
+}
