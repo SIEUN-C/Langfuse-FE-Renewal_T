@@ -1,4 +1,4 @@
-/* 기존 EvaluatorsTable.module.css 내용을 모두 삭제하고 아래 코드로 대체 */
+/* src/Pages/Evaluation/Judge/components/EvaluatorsTable.module.css */
 
 .statusBadge {
   padding: 0.25rem 0.625rem;
@@ -10,17 +10,22 @@
 }
 
 .statusRunning {
-  background-color: #3b82f6; /* Blue for running */
+  background-color: #3b82f6;
   color: #eff6ff;
 }
 
 .statusCompleted {
-  background-color: #22c55e; /* Green for completed */
+  background-color: #22c55e;
   color: #f0fdf4;
 }
 
+.statusActive {
+  background-color: #f59e0b; /* Active 상태를 위한 주황색 예시 */
+  color: #fffbeb;
+}
+
 .statusDefault {
-  background-color: #6b7280; /* Gray for default */
+  background-color: #6b7280;
   color: #f3f4f6;
 }
 
@@ -67,4 +72,16 @@
   text-align: center;
   padding: 4rem 2rem;
   color: #94a3b8;
+}
+
+/* --- 수정: .filterTag 스타일을 여기에 추가합니다 --- */
+.filterTag {
+  display: inline-block;
+  padding: 4px 8px;
+  background-color: #334155; /* 어두운 배경 */
+  border: 1px solid #475569; /* 조금 더 밝은 테두리 */
+  border-radius: 4px; /* 둥근 모서리 */
+  font-size: 12px;
+  font-weight: 500;
+  color: #cbd5e1; /* 밝은 글자색 */
 }

@@ -3,9 +3,11 @@ import { DataTable } from '../../../../components/DataTable/DataTable'; // DataT
 import { getEvaluatorColumns } from './EvaluatorColumns'; // 방금 만든 컬럼 파일 import
 import styles from './EvaluatorsTable.module.css';
 
-const EvaluatorsTable = ({ data, onRowClick, isLoading }) => {
-  // 컬럼 정의 함수를 호출하여 컬럼 정보를 가져옵니다.
-  const columns = getEvaluatorColumns();
+// --- 수정: JudgePage로부터 datasetMap을 props로 받습니다. ---
+const EvaluatorsTable = ({ data, onRowClick, isLoading, datasetMap }) => {
+  
+  // --- 수정: getEvaluatorColumns 함수에 datasetMap을 전달합니다. ---
+  const columns = getEvaluatorColumns(null, datasetMap);
 
   const renderEmptyState = () => (
     <div className={styles.emptyState}>No evaluators found.</div>
