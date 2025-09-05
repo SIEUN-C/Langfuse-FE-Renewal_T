@@ -76,6 +76,9 @@ export const dashboardFilterConfig = [
   { key: "version", label: "Version", type: "string", operators: commonStringOperators },
 ];
 
+// src/components/FilterControls/filterConfig.js 파일 맨 끝에 추가할 내용
+// (기존 변수들을 재사용하므로 새로 선언하지 않음)
+
 // Widget용 필터 설정 추가
 export const widgetFilterConfig = [
   { key: "environment", label: "Environment", type: "categorical", operators: commonCategoricalOperators, options: [] },
