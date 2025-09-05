@@ -366,6 +366,7 @@ const Tracing = () => {
               <ObservationsTab
                 projectId={projectId}
                 searchQuery={searchQuery}
+                searchMode={searchType}
                 selectedEnvs={selectedEnvs}
                 timeRangeFilter={timeRangeFilter}
                 builderFilters={builderFilters}
