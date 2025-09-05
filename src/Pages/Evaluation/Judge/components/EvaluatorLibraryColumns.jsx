@@ -4,8 +4,7 @@ import styles from './EvaluatorsTable.module.css'; // 메인 테이블 스타일
 // 컬럼 정의를 반환하는 함수
 export const getEvaluatorLibraryColumns = () => {
   const handleSetUpClick = (e, row) => {
-    e.stopPropagation(); // 행 클릭 이벤트가 있다면 전파 방지
-    // TODO: 'Set up' 버튼 클릭 시 로직 구현
+    e.stopPropagation();
     console.log(`Setting up: ${row.name}`);
     alert(`"${row.name}" setup process initiated.`);
   };
@@ -21,15 +20,15 @@ export const getEvaluatorLibraryColumns = () => {
     },
     {
       header: 'Last Edit',
-      accessor: (row) => row.lastedit,
+      accessor: (row) => row.latestCreatedAt,
     },
     {
       header: 'Usage Count',
-      accessor: (row) => row.usagecount,
+      accessor: (row) => row.usageCount,
     },
     {
       header: 'Latest Version',
-      accessor: (row) => row.latestversion,
+      accessor: (row) => row.version,
     },
     {
       header: 'Id',

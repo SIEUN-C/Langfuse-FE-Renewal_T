@@ -7,10 +7,12 @@ const DefaultEvaluationModel = () => {
   const navigate = useNavigate();
   const { projectId } = useProjectId();
 
+  // edit
   const handleEdit = () => {
     navigate(-1); 
   };
 
+  // delete
   const handleDelete = () => {
     navigate(-1);
   };

@@ -1,46 +1,54 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { DataTable } from '../../../../components/DataTable/DataTable';
-import { getEvaluatorLibraryColumns } from './EvaluatorLibraryColumns'; 
-// import styles from './EvaluatorLibrary.module.css'; // 이 라인을 삭제합니다.
-
-// 라이브러리 목업 데이터
-const mockLibraryEvaluators = [
-  // ...(데이터는 이전과 동일)...
-  { 
-    id: 'lib-1', 
-    name: 'Standard Toxicity Check', 
-    description: 'Uses the Perspective API to check for toxic comments.' 
-  },
-  { 
-    id: 'lib-2', 
-    name: 'PII Detection', 
-    description: 'Scans text for personally identifiable information.' 
-  },
-  { 
-    id: 'lib-3', 
-    name: 'Fact-Checking Evaluator', 
-    description: 'Cross-references statements with a knowledge base.' 
-  },
-  { 
-    id: 'lib-4', 
-    name: 'Readability Score', 
-    description: 'Calculates Flesch-Kincaid readability score.' 
-  },
-   { 
-    id: 'lib-5', 
-    name: 'Custom Evaluator', 
-    description: 'Bring your own evaluator logic.' 
-  },
-];
+import { getEvaluatorLibraryColumns } from './EvaluatorLibraryColumns';
+import { getTemplateEvaluators } from '../services/libraryApi'
+import useProjectId from 'hooks/useProjectId';
+import { useNavigate } from 'react-router-dom';
 
 const EvaluatorLibrary = () => {
   const columns = getEvaluatorLibraryColumns();
+  const { projectId } = useProjectId();
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!projectId) {
+      setLoading(false);
+      return;
+    }
+
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const evaluatorsData = await getTemplateEvaluators(projectId);
+        setData(evaluatorsData);
+      } catch (err) {
+        console.error(err);
+        setError("Failed to load evaluator templates. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [projectId]);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div style={{ color: 'red' }}>{error}</div>;
+  }
 
   return (
     // className을 지정할 필요가 없으므로 div도 삭제 가능합니다.
     <DataTable
       columns={columns}
-      data={mockLibraryEvaluators}
+      data={data}
       keyField="id"
       showCheckbox={false}
       showFavorite={false}

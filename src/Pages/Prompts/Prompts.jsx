@@ -304,14 +304,16 @@ const Prompts = () => {
       </div>
 
       <div className={styles.toolbar}>
-        <SearchInput
-          placeholder="Search..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          searchType={searchType}
-          setSearchType={setSearchType}
-          searchTypes={['Names, Tags', 'Full Text']}
-        />
+        <div className={styles.searchBox}>
+          <SearchInput
+            placeholder="Search..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            searchType={searchType}
+            setSearchType={setSearchType}
+            searchTypes={['Names, Tags', 'Full Text']}
+          />
+        </div>
         {/* --- ▼▼▼ [추가] filter ▼▼▼ --- */}
         <FilterControls
           builderFilterProps={{

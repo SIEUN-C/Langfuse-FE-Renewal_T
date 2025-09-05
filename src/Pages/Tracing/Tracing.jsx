@@ -303,20 +303,24 @@ const Tracing = () => {
         </div>
 
         <div className={styles.filterBar}>
-          <SearchInput
-            placeholder="Search..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            searchType={searchType}
-            setSearchType={setSearchType}
-            searchTypes={['IDs / Names', 'Full Text']}
-          />
-          <FilterControls
-            onRefresh={loadTraces}
-            envFilterProps={envFilterProps}
-            timeRangeFilterProps={timeRangeFilter}
-            builderFilterProps={builderFilterProps}
-          />
+          <div classname={styles.searchBox}>
+            <SearchInput
+              placeholder="Search..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              searchType={searchType}
+              setSearchType={setSearchType}
+              searchTypes={['IDs / Names', 'Full Text']}
+            />
+          </div>
+          <div classname={styles.filtersBox}>
+            <FilterControls
+              onRefresh={loadTraces}
+              envFilterProps={envFilterProps}
+              timeRangeFilterProps={timeRangeFilter}
+              builderFilterProps={builderFilterProps}
+            />
+          </div>
           <div className={styles.filterRightGroup}>
             <FilterButton onClick={handleCreateClick}>
               <Plus size={16} /> New Trace

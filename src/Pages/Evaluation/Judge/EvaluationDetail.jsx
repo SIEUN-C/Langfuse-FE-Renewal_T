@@ -2,19 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import styles from './EvaluationDetail.module.css';
 
-// Peek 페이지를 위한 임시 목업 데이터 (기존과 동일)
+// 임시 목업 데이터
 const mockPeekData = {
   'eval-1': { id: 'eval-1', name: 'Sentiment Analysis Eval', status: 'COMPLETED', score: 0.92 },
   'eval-2': { id: 'eval-2', name: 'Toxicity Detection', status: 'RUNNING', score: null },
   'eval-3': { id: 'eval-3', name: 'Fact-Checking Test', status: 'COMPLETED', score: 0.88 },
 };
 
+// onClose를 prop으로 받음
 const EvaluationDetail = ({ onClose }) => {
   const [searchParams] = useSearchParams();
   const peekId = searchParams.get('peek');
   const [evaluation, setEvaluation] = useState(null);
 
-  // 데이터 로딩 로직은 그대로 유지합니다.
+  // peekId가 바뀔 때마다 실행 (현재는 0.3초 딜레이 지연을 흉내내서 목업 데이터를 상태에 반영)
   useEffect(() => {
     if (peekId) {
       console.log('Fetching peek data for evaluation:', peekId);
@@ -26,8 +27,6 @@ const EvaluationDetail = ({ onClose }) => {
     }
   }, [peekId]);
 
-
-  // 로딩 및 에러 처리는 그대로 유지합니다.
   if (!peekId) {
     return (
       <div className={styles.container}>
@@ -36,6 +35,7 @@ const EvaluationDetail = ({ onClose }) => {
     );
   }
 
+  // peekId는 있지만 데이터 로딩 전 상태
   if (!evaluation) {
     return <div className={styles.container}>Loading details...</div>;
   }

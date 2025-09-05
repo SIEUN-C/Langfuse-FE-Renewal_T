@@ -28,6 +28,8 @@ import EvaluationDetail from './Pages/Evaluation/Judge/EvaluationDetail';
 import SetupEvaluator from './Pages/Evaluation/Judge/SetupEvaluator';
 import DefaultEvaluationModel from "Pages/Evaluation/Judge/DefaultEvaluationModel";
 import EvaluationView from "Pages/Evaluation/Judge/EvaluationView";
+import Templates from "Pages/Evaluation/Judge/Templates";
+// import EvaluatorLibrary from "./Pages/Evaluation/Judge/components/EvaluatorLibrary";
 
 // 대시보드
 import Dashboards from "./Pages/Dashboards/Dashboards";
@@ -120,6 +122,7 @@ export default function App() {
         <Route path="playground" element={<ProjectGate />} />
 
         <Route path="llm-as-a-judge" element={<JudgePage />} />
+            {/* <Route path="library" element={<EvaluatorLibrary />} /> */}
         <Route path="datasets" element={<Dataset />} />
 
         {/* <Route path="/evaluations" element={<JudgePage />}> */}
@@ -136,6 +139,7 @@ export default function App() {
         <Route path="llm-as-a-judge" element={<EvaluationDetail />} />
         <Route path="llm-as-a-judge/default-model" element={<DefaultEvaluationModel />} />
         <Route path="llm-as-a-judge/:evaluationId" element={<EvaluationView />} />
+        <Route path="llm-as-a-judge/:templateId" element={<Templates />} />
 
         {/* Dashboard & Widget Routes */}
         <Route path="project/:projectId/dashboards" element={<Dashboards />} />
