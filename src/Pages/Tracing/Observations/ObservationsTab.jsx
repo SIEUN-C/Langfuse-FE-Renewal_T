@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { DataTable } from 'components/DataTable/DataTable';
 import { makeObservationColumns } from './observationColumns';
 import { listGenerations, getObservationById } from './ObservationsApi';
-import { buildFilterStateWithRange, squeezeBuilderFilters } from './filterMapping';
+import { buildFilterStateWithRange, squeezeBuilderFilters, filterByTypeGroups } from './filterMapping';
 import ObservationDetailPanel from './ObservationDetailPanel';
 import { SEARCH_MODE } from './searchModes';
 
@@ -28,7 +28,10 @@ export default function ObservationsTab({
         searchMode === 'Full Text' || searchMode === SEARCH_MODE?.FULL_TEXT;
     const SEARCHTYPE_ID = useRef(['id']).current;
     const SEARCHTYPE_CONTENT = useRef(['content']).current;
-    const searchTypeApi = isFullText ? SEARCHTYPE_CONTENT : SEARCHTYPE_ID;
+    const searchTypeApi = useMemo(
+        () => (isFullText ? SEARCHTYPE_CONTENT : SEARCHTYPE_ID),
+        [isFullText, SEARCHTYPE_CONTENT, SEARCHTYPE_ID]
+    );
 
 
     // ────────────────── 값 스냅샷(참조 대신 내용) ──────────────────
@@ -39,6 +42,17 @@ export default function ObservationsTab({
     const dep_envs = JSON.stringify((selectedEnvs || []).map(e => e.name));
     const dep_builder = JSON.stringify(builderFilters || []);
     const dep_query_raw = (searchQuery || '').trim();
+
+
+    // 🔹 builder 필터에서 typeCsv/levelCsv/typeGroups만 먼저 추출 (한 번만 계산)
+    const { typeCsv, levelCsv, typeGroups } = useMemo(() => {
+        try {
+            const bfs = JSON.parse(dep_builder);
+            return squeezeBuilderFilters(bfs);
+        } catch {
+            return { typeCsv: '', levelCsv: '', typeGroups: [] };
+        }
+    }, [dep_builder]);
 
     // ────────────────── 검색어만 디바운스 ──────────────────
     const [debouncedQuery, setDebouncedQuery] = useState(dep_query_raw);
@@ -51,8 +65,7 @@ export default function ObservationsTab({
     const fullRequest = useMemo(() => {
         const time = JSON.parse(dep_time);
         const envs = JSON.parse(dep_envs);
-        const bfs = JSON.parse(dep_builder);
-        const { typeCsv, levelCsv } = squeezeBuilderFilters(bfs);
+
 
         const base = {
             projectId,
@@ -73,7 +86,7 @@ export default function ObservationsTab({
         };
 
         return base;
-    }, [projectId, dep_time, dep_envs, dep_builder, debouncedQuery, isFullText]);
+    }, [projectId, dep_time, dep_envs, debouncedQuery, searchTypeApi, typeCsv, levelCsv]);
 
     // ────────────────── 최신 요청만 반영 가드 ──────────────────
     const reqIdRef = useRef(0);
@@ -130,7 +143,7 @@ export default function ObservationsTab({
                 costDetails: g.costDetails || {},
                 environment: g.environment,
             }));
-            setRows(baseRows);
+            setRows(filterByTypeGroups(baseRows, typeGroups || []));
         } catch (e) {
             if (reqIdRef.current !== myReqId) return; // 최신요청 아님: 무시
             console.error('load generations failed:', e);
@@ -138,7 +151,7 @@ export default function ObservationsTab({
         } finally {
             if (reqIdRef.current === myReqId) setLoading(false);
         }
-    }, [projectId, fullRequest]);
+    }, [projectId, fullRequest, typeGroups]);
 
     // 변경될 때마다 호출 (검색어는 위에서 250ms 디바운스됨)
     useEffect(() => { load(); }, [load]);

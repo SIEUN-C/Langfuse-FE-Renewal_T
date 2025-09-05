@@ -17,7 +17,11 @@ const allCategoricalOperators = ["any of", "none of", "all of"];
 export const observationsFilterConfig = [
     {
         key: "Type", label: "Type", type: "categorical", operators: commonCategoricalOperators,
-        options: ["GENERATION", "SPAN", "EVENT"]
+        options: [
+            "GENERATION", "SPAN", "EVENT",
+            "AGENT", "TOOL", "CHAIN", "RETRIEVER", "EVALUATOR",
+            "EMBEDDING", "GUARDRAIL"
+        ]
     },
     {
         key: "Level", label: "Level", type: "categorical", operators: commonCategoricalOperators,

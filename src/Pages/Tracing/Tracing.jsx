@@ -19,6 +19,7 @@ import { fetchTraceDetails } from './TraceDetailApi';
 import { getProjects } from '../../api/Settings/ProjectApi';
 // --- ▼▼▼ [추가] filter ▼▼▼ ---
 import { tracingFilterConfig } from 'components/FilterControls/filterConfig';
+import { observationsFilterConfig } from './Observations/observationFilterConfig';
 // --- ▲▲▲ [추가] filter ▲▲▲ ---
 
 // Observation 추가
@@ -76,10 +77,22 @@ const Tracing = () => {
   const [favoriteState, setFavoriteState] = useState({});
   const [selectedRows, setSelectedRows] = useState(new Set());
   const [pendingTraceId, setPendingTraceId] = useState(null);
-  const [builderFilters, setBuilderFilters] = useState(() => {
-    const initialColumn = tracingFilterConfig[0];
-    return [{ id: 1, column: initialColumn.key, operator: initialColumn.operators[0], value: '', metaKey: '' }];
+  // Traces 탭 필터 상태
+  const [builderFiltersTraces, setBuilderFiltersTraces] = useState(() => {
+    const c = tracingFilterConfig[0];
+    return [{ id: 1, column: c.key, operator: c.operators[0], value: '', metaKey: '' }];
   });
+  // Observations 탭 필터 상태 (기본 8개 선택)
+  const [builderFiltersObs, setBuilderFiltersObs] = useState(() => ([
+    {
+      id: 1,
+      column: 'Type',
+      operator: 'any of',
+      value: ['GENERATION', 'SPAN', 'EVENT', 'AGENT', 'TOOL', 'CHAIN', 'RETRIEVER', 'EVALUATOR'],
+      metaKey: ''
+    },
+  ]));
+
 
   const [projectId, setProjectId] = useState(null);
 
@@ -109,10 +122,16 @@ const Tracing = () => {
   const timeRangeFilter = useTimeRangeFilter();
   const { selectedEnvs, ...envFilterProps } = useEnvironmentFilter(allEnvironments);
 
+  const isObsTab = activeTab === 'Observations';
+  const currentFilterConfig = isObsTab ? observationsFilterConfig : tracingFilterConfig;
+  const builderFilters = isObsTab ? builderFiltersObs : builderFiltersTraces;
+  const setBuilderFilters = isObsTab ? setBuilderFiltersObs : setBuilderFiltersTraces;
+
+
   const builderFilterProps = {
     filters: builderFilters,
     onFilterChange: setBuilderFilters,
-    filterConfig: tracingFilterConfig
+    filterConfig: currentFilterConfig
   };
 
   const columnMapping = {
@@ -303,7 +322,7 @@ const Tracing = () => {
         </div>
 
         <div className={styles.filterBar}>
-          <div classname={styles.searchBox}>
+          <div className={styles.searchBox}>
             <SearchInput
               placeholder="Search..."
               value={searchQuery}
@@ -313,7 +332,7 @@ const Tracing = () => {
               searchTypes={['IDs / Names', 'Full Text']}
             />
           </div>
-          <div classname={styles.filtersBox}>
+          <div className={styles.filtersBox}>
             <FilterControls
               onRefresh={loadTraces}
               envFilterProps={envFilterProps}
