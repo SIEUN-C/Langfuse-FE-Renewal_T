@@ -1,5 +1,5 @@
 import { Loader } from 'lucide-react';
-import './DashboardCard.module.css';
+import styles from './DashboardCard.module.css'; // 이렇게 변경!
 
 /**
  * DashboardCard 컴포넌트
@@ -27,36 +27,36 @@ export const DashboardCard = ({
   headerClassName = '',
   headerRight,
 }) => {
-  const cardClasses = `dashboard-card ${className}`.trim();
-  const headerClasses = `dashboard-card-header ${headerClassName}`.trim();
-  const contentClasses = `dashboard-card-content ${cardContentClassName}`.trim();
+  const cardClasses = `${styles.dashboardCard} ${className}`.trim();
+  const headerClasses = `${styles.dashboardCardHeader} ${headerClassName}`.trim();
+  const contentClasses = `${styles.dashboardCardContent} ${cardContentClassName}`.trim();
 
   return (
     <div className={cardClasses}>
       <div className={headerClasses}>
-        <div className="dashboard-card-header-top">
-          <div className="dashboard-card-header-left">
-            <h3 className="dashboard-card-title">{title}</h3>
+        <div className={styles.dashboardCardHeaderTop}>
+          <div className={styles.dashboardCardHeaderLeft}>
+            <h3 className={styles.dashboardCardTitle}>{title}</h3>
             {description && (
-              <p className="dashboard-card-description">{description}</p>
+              <p className={styles.dashboardCardDescription}>{description}</p>
             )}
           </div>
           {headerRight && (
-            <div className="dashboard-card-header-right">
+            <div className={styles.dashboardCardHeaderRight}>
               {headerRight}
             </div>
           )}
         </div>
         
         {headerChildren && (
-          <div className="dashboard-card-header-children">
+          <div className={styles.dashboardCardHeaderChildren}>
             {headerChildren}
           </div>
         )}
         
         {isLoading && (
-          <div className="dashboard-card-loader">
-            <Loader className="loader-icon" />
+          <div className={styles.dashboardCardLoader}>
+            <Loader className={styles.loaderIcon} />
           </div>
         )}
       </div>

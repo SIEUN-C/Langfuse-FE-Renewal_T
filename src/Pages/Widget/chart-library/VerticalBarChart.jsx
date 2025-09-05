@@ -1,87 +1,174 @@
 import React from "react";
 import { Bar, BarChart, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
+import ChartContainer from "./ChartContainer.jsx";
 import styles from './chart-library.module.css';
 
 /**
- * VerticalBarChart component displays data as vertical bars
+ * VerticalBarChart 컴포넌트 - 데이터를 수직 막대 차트로 표시
  * 
- * @param {Object} props - Component props
- * @param {import('./chart-props.js').DataPoint[]} props.data - Data to be displayed. Expects an array of objects with dimension and metric properties
- * @param {import('./chart-props.js').ChartConfig} [props.config] - Configuration object for the chart. Can include theme settings for light and dark modes
- * @param {boolean} [props.accessibilityLayer=true] - Boolean to enable or disable the accessibility layer
- * @returns {React.ReactElement} Rendered vertical bar chart
+ * 주요 기능:
+ * 1. 차원(dimension)별 메트릭 값을 수직 막대로 시각화
+ * 2. 긴 라벨을 위한 X축 회전 표시 (-45도)
+ * 3. 하단 여백 확보로 회전된 라벨 공간 제공
+ * 4. 커스텀 툴팁으로 정확한 값 표시
+ * 5. 반응형 컨테이너로 크기 자동 조절
+ * 6. 테마 설정 지원 (라이트/다크 모드)
+ * 
+ * 사용 케이스:
+ * - 시간별 트렌드 데이터 (시간별, 일별, 월별 등)
+ * - 카테고리별 비교 데이터 (제품별, 지역별 등)
+ * - 순위나 크기 비교가 중요한 데이터
+ * - 다수의 카테고리를 가진 데이터 (X축 회전으로 라벨 겹침 방지)
+ * 
+ * @param {Object} props - 컴포넌트 props
+ * @param {import('./chart-props.js').DataPoint[]} props.data - 차트 데이터 배열
+ *        각 객체는 { dimension: string, metric: number } 구조를 가져야 함
+ * @param {import('./chart-props.js').ChartConfig} [props.config] - 차트 설정 객체
+ *        테마 설정(라이트/다크 모드 색상)을 포함할 수 있음
+ * @param {boolean} [props.accessibilityLayer=true] - 접근성 기능 활성화 여부
+ *        스크린 리더 지원 및 키보드 내비게이션 등
+ * @returns {React.ReactElement} 렌더링된 수직 막대 차트
  */
 const VerticalBarChart = ({
   data,
   config = {
+    // ===== 기본 테마 설정 =====
     metric: {
       theme: {
-        light: "#3b82f6",
-        dark: "#3b82f6",
+        light: "#3b82f6", // 라이트 모드: 파란색 (blue-500)
+        dark: "#3b82f6",  // 다크 모드: 동일한 파란색 (일관성 유지)
       },
     },
   },
   accessibilityLayer = true,
 }) => {
-  // Custom tooltip formatter
+  
+  /**
+   * 커스텀 툴팁 컴포넌트
+   * 수직 막대 차트용으로 최적화된 툴팁 레이아웃
+   * 
+   * 기능:
+   * - 차원 이름 (카테고리) 표시
+   * - 메트릭 값을 천 단위 콤마와 함께 표시
+   * - 시각적 인디케이터 (색상 점) 포함
+   * 
+   * @param {Object} props - Recharts 툴팁 props
+   * @param {boolean} props.active - 마우스 호버 시 툴팁 활성화 상태
+   * @param {Array} props.payload - 툴팁에 표시할 데이터 배열
+   * @param {string} props.label - 호버된 막대의 차원(라벨) 값
+   * @returns {React.ReactElement|null} 툴팁 컴포넌트 또는 null
+   */
   const CustomTooltip = ({ active, payload, label }) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className={styles.tooltip}>
-          <p className={styles.tooltipLabel}>{label}</p>
-          <p className={styles.tooltipValue}>
-            <span className={styles.tooltipIndicator}></span>
-            {`Value: ${payload[0].value}`}
-          </p>
-        </div>
-      );
+    // ===== 툴팁 표시 조건 검사 =====
+    // 마우스가 막대 위에 있고, 데이터가 존재할 때만 툴팁 표시
+    if (!active || !payload || !payload.length || payload[0]?.value === undefined) {
+      return null;
     }
-    return null;
+
+    const value = payload[0].value;
+    
+    // ===== 툴팁 렌더링 =====
+    return (
+      <div className={styles.tooltip}>
+        {/* 차원명 (카테고리) 표시 */}
+        <p className={styles.tooltipLabel}>
+          {label || "Unknown"} {/* 라벨이 없는 경우 기본값 표시 */}
+        </p>
+        
+        {/* 메트릭 값 표시 */}
+        <p className={styles.tooltipValue}>
+          {/* 색상 인디케이터 (막대와 동일한 파란색) */}
+          <span className={styles.tooltipIndicator}></span>
+          {/* 값을 천 단위 콤마와 함께 표시 */}
+          {`Value: ${typeof value === 'number' ? value.toLocaleString() : value}`}
+        </p>
+      </div>
+    );
   };
 
-  if (!data || data.length === 0) {
+  // ===== 빈 데이터 상태 처리 =====
+  // 데이터가 없거나 빈 배열인 경우 안내 메시지 표시
+  if (!Array.isArray(data) || data.length === 0) {
+    console.warn("VerticalBarChart: 데이터가 비어있음 또는 유효하지 않음", data);
+    
     return (
-      <div className={styles.empty}>
-        No data available
-      </div>
+      <ChartContainer config={config}>
+        <div className={styles.empty}>
+          No data available
+        </div>
+      </ChartContainer>
     );
   }
 
+  // ===== 데이터 유효성 검사 및 로깅 =====
+  const validDataCount = data.filter(item => 
+    item && 
+    typeof item === 'object' && 
+    (item.dimension !== undefined) && 
+    (typeof item.metric === 'number' || !isNaN(Number(item.metric)))
+  ).length;
+  
+  console.log("VerticalBarChart 렌더링:", {
+    totalItems: data.length,
+    validItems: validDataCount,
+    hasLongLabels: data.some(item => item.dimension && item.dimension.length > 10),
+    sampleData: data.slice(0, 3) // 처음 3개 항목만 로그
+  });
+
+  // ===== 메인 차트 렌더링 =====
   return (
-    <div className={styles.chartContainer}>
+    <ChartContainer config={config}>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={data}
-          margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+          margin={{ 
+            top: 20,     // 상단 여백
+            right: 30,   // 우측 여백
+            left: 20,    // 좌측 여백
+            bottom: 60   // 하단 여백 (회전된 라벨을 위한 충분한 공간)
+          }}
         >
+          {/* ===== X축 설정 (카테고리 축) ===== */}
           <XAxis
-            type="category"
-            dataKey="dimension"
-            fontSize={12}
-            tickLine={false}
-            axisLine={false}
-            stroke="#6b7280"
-            angle={-45}
-            textAnchor="end"
-            height={60}
-            interval={0}
+            type="category"               // 카테고리형 축으로 설정
+            dataKey="dimension"           // 차원 필드를 X축 라벨로 사용
+            fontSize={12}                 // 글꼴 크기 (가독성을 위해 작게)
+            tickLine={false}              // 눈금선 숨김 (깔끔한 디자인)
+            axisLine={false}              // 축선 숨김 (미니멀 디자인)
+            stroke="#6b7280"              // 텍스트 색상 (중간 회색)
+            angle={-45}                   // 라벨 45도 반시계방향 회전 (겹침 방지)
+            textAnchor="end"              // 회전된 텍스트의 앵커 포인트 (끝점 기준)
+            height={60}                   // X축 영역 높이 (회전된 라벨 공간 확보)
+            interval={0}                  // 모든 라벨 표시 (생략하지 않음)
           />
+          
+          {/* ===== Y축 설정 (수치 축) ===== */}
           <YAxis
-            type="number"
-            fontSize={12}
-            tickLine={false}
-            axisLine={false}
-            stroke="#6b7280"
+            type="number"                 // 수치형 축으로 설정
+            fontSize={12}                 // 글꼴 크기
+            tickLine={false}              // 눈금선 숨김
+            axisLine={false}              // 축선 숨김
+            stroke="#6b7280"              // 텍스트 색상 (중간 회색)
           />
+          
+          {/* ===== 막대 설정 ===== */}
           <Bar
-            dataKey="metric"
-            radius={[4, 4, 0, 0]}
-            fill="#3b82f6"
+            dataKey="metric"              // 메트릭 필드를 막대 높이로 사용
+            radius={[4, 4, 0, 0]}         // 막대 모서리 둥글게 (상단만)
+                                          // [topLeft, topRight, bottomRight, bottomLeft]
+            fill="#3b82f6"                // 막대 색상 (파란색)
           />
-          <Tooltip content={<CustomTooltip />} />
+          
+          {/* ===== 툴팁 설정 ===== */}
+          <Tooltip 
+            content={<CustomTooltip />}  // 커스텀 툴팁 컴포넌트 사용
+            cursor={{                    // 호버 시 배경 하이라이트 설정
+              fill: 'rgba(59, 130, 246, 0.1)' // 반투명 파란색 배경
+            }}
+          />
         </BarChart>
       </ResponsiveContainer>
-    </div>
+    </ChartContainer>
   );
 };
 
