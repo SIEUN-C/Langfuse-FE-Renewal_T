@@ -3,7 +3,6 @@ import { Outlet, useLocation, useNavigate, useParams } from "react-router-dom";
 import SettingsSidebar from "../../layouts/SettingsSidebar";
 import styles from "./layout/SettingsPage.module.css";
 import useProjectId from "../../hooks/useProjectId";
-import ProjectSwitcher from "./form/ProjectSwitcher";
 
 const SettingsPage = () => {
   const location = useLocation();
@@ -41,12 +40,10 @@ const SettingsPage = () => {
   // URL의 :projectId와 내부 해석 값이 다르면 표준 경로로 정정
   useEffect(() => {
     if (!routeProjectId || !resolvedId) return;
-  if (routeProjectId === resolvedId) return; // 동일하면 조용히 유지
-  // URL을 우선 신뢰: 유효성 검증은 useProjectId 내부/다음 렌더에서 처리
-  try {
-    localStorage.setItem("projectId", routeProjectId);
-  } catch {}
-  // 여기서는 즉시 리다이렉트하지 않음 (무한 되돌리기 방지)
+    if (routeProjectId === resolvedId) return; // 동일하면 조용히 유지
+    try {
+      localStorage.setItem("projectId", routeProjectId);
+    } catch {}
   }, [routeProjectId, resolvedId, navigate]);
 
   // 현재 경로 확인
@@ -62,15 +59,15 @@ const SettingsPage = () => {
     }
   };
 
-  if (resolvedId === null) return null;           // 아직 판별 중
-  if (resolvedId === "") return null;             // 게이트에서 처리
+  if (resolvedId === null) return null; // 아직 판별 중
+  if (resolvedId === "") return null;   // 게이트에서 처리
 
   return (
     <div>
       <div className={styles.headerWrapper}>
         <div className={styles.contentContainer}>
           <div className={styles.headerFlex}>
-            <ProjectSwitcher currentProjectId={resolvedId} />
+            {/* 🔴 ProjectSwitcher 제거됨 */}
             <h1 className={styles.headerTitle}>Project Settings</h1>
           </div>
         </div>
@@ -80,7 +77,7 @@ const SettingsPage = () => {
         {/* 모바일에서만 표시되는 드롭다운 메뉴 */}
         {isMobile && (
           <div className={styles.mobileMenuWrapper}>
-            <select 
+            <select
               className={styles.mobileMenuSelect}
               value={getCurrentPath()}
               onChange={handleMenuChange}
@@ -98,8 +95,8 @@ const SettingsPage = () => {
           {/* 사이드바는 항상 렌더하고, 표시 여부는 CSS에서 제어 */}
           <aside className={styles.sidebar}>
             <SettingsSidebar projectId={resolvedId} />
-          </aside> 
-           
+          </aside>
+
           <div className={styles.mainContent}>
             {/* Outlet context로 projectId 내려줌 */}
             <Outlet context={{ projectId: resolvedId }} />

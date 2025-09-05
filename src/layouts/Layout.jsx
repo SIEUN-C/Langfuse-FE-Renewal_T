@@ -19,7 +19,7 @@ import PageHeader from "../components/PageHeader/PageHeader";
 
 import useProjectId from "../hooks/useProjectId";
 import useHeaderMeta from "../hooks/useHeaderMeta";
-
+import { fetchSession } from "../Pages/Settings/lib/sessionOrg";
 
 export default function Layout({ session }) {
     const [collapsed, setCollapsed] = useState(false);
@@ -220,6 +220,9 @@ export default function Layout({ session }) {
         return null;
     }, [location.pathname, navigate]);
 
+    // 헤더 우측 액션 최종 묶음: 기존 액션 + ProjectSwitcher
+    const headerRightActionsCombined = headerConfig.rightActions ?? headerRightActionsDefault;
+
 
     return (
         <div className={styles.layout}>
@@ -345,7 +348,9 @@ export default function Layout({ session }) {
                     title={headerConfig.title ?? pageTitle}
                     onToggleSidebar={() => setCollapsed((prev) => !prev)}
                     flushLeft
-                    rightActions={headerConfig.rightActions ?? headerRightActionsDefault}
+                    rightActions={headerRightActionsCombined}
+                    sessionLoader={fetchSession}
+                    currentProjectId={activeProjectId}
                 />
                 <div className={styles.pageBody}>
                     <Outlet context={{ setHeader: setHeaderConfig }} />
