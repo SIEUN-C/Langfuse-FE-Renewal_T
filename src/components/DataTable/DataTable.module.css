@@ -118,3 +118,27 @@
 .clickableRow:hover {
  background-color: #f1f4f86a !important;
 }
+
+/* 선택된 행 스타일 - selectedRowKey prop이 전달된 경우에만 적용됨 */
+.selectedRow {
+  background-color: #1e40af !important;
+  border-left: 3px solid #3b82f6;
+}
+
+.selectedRow td {
+  color: #ffffff !important;
+}
+
+.selectedRow:hover {
+  background-color: #1d4ed8 !important;
+}
+
+/* 선택된 행의 아이콘 색상도 조정 */
+.selectedRow .starIcon,
+.selectedRow .iconButton {
+  color: #ffffff !important;
+}
+
+.selectedRow .iconButton:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}

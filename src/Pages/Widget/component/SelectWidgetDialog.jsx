@@ -180,6 +180,7 @@ export const SelectWidgetDialog = ({
                 selectedRowKey={selectedWidget?.id}
                 onRowClick={setSelectedWidget}
                 renderEmptyState={() => <div>No widgets available.</div>}
+                showFavorite={false}
               />
             </div>
           )}

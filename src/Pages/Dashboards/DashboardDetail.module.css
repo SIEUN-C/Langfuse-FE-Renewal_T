@@ -73,7 +73,7 @@
   }
   
   /* =========================
-     필터 바
+     필터 바 (기존 스타일 유지)
      ========================= */
   .filterBar {
     display: flex;
@@ -96,6 +96,21 @@
   
   .filterButton:hover {
     background-color: #334155;
+  }
+  
+  /* =========================
+     필터 섹션 (수정된 부분)
+     데스크톱에서는 가로 배치, 모바일에서는 세로 배치
+     ========================= */
+  .filterSection {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start; /* center에서 flex-start로 변경 - 세로 정렬 시 상단 맞춤 */
+    margin-bottom: 24px;
+    flex-wrap: wrap; /* 화면이 좁아지면 다음 줄로 넘어감 */
+    
+    /* 데스크톱에서는 기본 가로 배치 유지 */
+    flex-direction: row;
   }
   
   /* =========================
@@ -368,38 +383,65 @@
   }
   
   /* =========================
-     반응형 디자인
+     반응형 디자인 (수정된 부분)
+     모바일과 태블릿에서 필터 레이아웃 최적화
      ========================= */
+  
+  /* 태블릿 크기 (1024px 이하) - 필터만 세로 배치 */
+  @media (max-width: 1024px) {
+    .filterSection {
+      flex-direction: column; /* 세로 배치로 변경 */
+      align-items: stretch; /* 전체 너비 사용 */
+      gap: 8px; /* 간격 줄임 */
+    }
+  }
+  
+  /* 모바일 크기 (768px 이하) - 전체 레이아웃 최적화 */
   @media (max-width: 768px) {
+    /* 전체 컨테이너 패딩 및 간격 줄임 */
     .container {
       padding: 16px;
       gap: 16px;
     }
     
+    /* 헤더를 세로 배치 */
     .header {
       flex-direction: column;
       align-items: flex-start;
       gap: 12px;
     }
     
+    /* 액션 버튼들을 오른쪽 정렬 */
     .actions {
       width: 100%;
       justify-content: flex-end;
     }
     
+    /* 필터 섹션 - 더 컴팩트하게 */
+    .filterSection {
+      flex-direction: column; /* 세로 배치 유지 */
+      align-items: stretch; /* 전체 너비 사용 */
+      gap: 8px; /* 작은 간격 */
+      margin-bottom: 16px; /* 하단 마진 줄임 */
+    }
+    
+    /* 기존 필터 바도 세로 배치 (혹시 사용 중인 경우) */
     .filterBar {
       flex-direction: column;
       gap: 8px;
     }
     
+    /* 위젯 내용 조정 */
     .kpiValue {
-      font-size: 36px;
+      font-size: 36px; /* 모바일에서는 작게 */
     }
     
+    /* 위젯 컨테이너 높이 제한 해제 */
     .widgetContainer {
       max-height: none;
     }
     
+    /* 위젯 타입별 최소 높이 조정 */
     .metricWidget {
       min-height: 140px;
     }
@@ -407,6 +449,27 @@
     .timeSeriesWidget,
     .barChartWidget {
       min-height: 220px;
+    }
+  }
+  
+  /* 작은 모바일 화면 (480px 이하) - 추가 최적화 */
+  @media (max-width: 480px) {
+    .container {
+      padding: 12px; /* 더 작은 패딩 */
+      gap: 12px;
+    }
+    
+    .title {
+      font-size: 18px; /* 제목 크기 줄임 */
+    }
+    
+    .filterSection {
+      gap: 6px; /* 더 작은 간격 */
+      margin-bottom: 12px;
+    }
+    
+    .kpiValue {
+      font-size: 32px; /* 더 작게 */
     }
   }
   

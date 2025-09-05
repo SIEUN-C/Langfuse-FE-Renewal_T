@@ -41,6 +41,75 @@ async function trpcPost(path, bodyObj) {
 // ============================================
 export const dashboardAPI = {
   /**
+   * ✅ 추가: Trace 필터 옵션 조회 함수
+   * @param {string} projectId - 프로젝트 ID
+   * @returns {Promise<Object>} { success: boolean, data: { name: [], tags: [] } }
+   */
+  async getTraceFilterOptions(projectId) {
+    try {
+      console.log("Trace 필터 옵션 조회:", { projectId });
+      
+      // tRPC API 호출
+      const data = await trpcGet('traces.filterOptions', { projectId });
+      
+      console.log("Trace 필터 옵션 응답:", data);
+      
+      // API 응답 구조에 맞춰 데이터 변환
+      const processedData = {
+        name: data?.name?.map(item => item.value || item) || [],
+        tags: data?.tags?.map(item => item.value || item) || []
+      };
+      
+      return {
+        success: true,
+        data: processedData
+      };
+    } catch (error) {
+      console.error("Trace 필터 옵션 조회 실패:", error);
+      
+      return {
+        success: false,
+        error: error.message,
+        data: { name: [], tags: [] }
+      };
+    }
+  },
+
+  /**
+   * ✅ 추가: Environment 필터 옵션 조회 함수  
+   * @param {string} projectId - 프로젝트 ID
+   * @returns {Promise<Object>} { success: boolean, data: [] }
+   */
+  async getEnvironmentFilterOptions(projectId) {
+    try {
+      console.log("Environment 필터 옵션 조회:", { projectId });
+      
+      // tRPC API 호출
+      const data = await trpcGet('projects.environmentFilterOptions', { projectId });
+      
+      console.log("Environment 필터 옵션 응답:", data);
+      
+      // API 응답 구조에 맞춰 데이터 변환
+      const environments = Array.isArray(data) 
+        ? data.map(item => item.environment || item) 
+        : [];
+      
+      return {
+        success: true,
+        data: environments
+      };
+    } catch (error) {
+      console.error("Environment 필터 옵션 조회 실패:", error);
+      
+      return {
+        success: false,
+        error: error.message,
+        data: []
+      };
+    }
+  },
+
+  /**
    * 대시보드 목록 조회
    */
   async getAllDashboards(projectId, page = 0, limit = 50) {

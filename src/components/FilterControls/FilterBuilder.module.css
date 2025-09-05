@@ -1,44 +1,91 @@
 /* src/components/FilterControls/FilterBuilder.module.css */
 
+/* ==================== 컨테이너 스타일 ==================== */
 .container {
   position: relative;
   display: inline-block;
 }
 
+/* ==================== 드롭다운 메뉴 스타일 ==================== */
 .dropdownMenu {
+  /* 기본 위치 설정 - JavaScript에서 동적으로 덮어씌워짐 */
   position: absolute;
-  top: calc(100% + 8px);
-
-  right: 50%;
-  transform: translateX(50%);
-
+  top: calc(100% + 8px); /* 컨테이너 아래 8px 간격 */
+  right: 50%; /* 중앙 정렬 기본값 */
+  transform: translateX(50%); /* 중앙 정렬 기본값 */
+  
+  /* 크기 및 레이아웃 */
   width: max-content;
-  min-width: 700px; 
+  min-width: 700px; /* 최소 너비 보장 */
+  max-width: 90vw; /* 모바일에서 화면 너비 초과 방지 */
+  
+  /* 스택 순서 */
   z-index: 1000;
+  
+  /* 스타일링 */
   background-color: #0f172a;
   border: 1px solid #334155;
   border-radius: 8px;
   padding: 16px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  
+  /* 레이아웃 */
   display: flex;
   flex-direction: column;
   gap: 12px;
+  
+  /* 반응형 대응 */
+  box-sizing: border-box;
 }
 
+/* 모바일 대응 */
+@media (max-width: 768px) {
+  .dropdownMenu {
+    min-width: 90vw; /* 모바일에서는 화면 너비에 맞춤 */
+    left: 50% !important; /* 강제 중앙 정렬 */
+    right: auto !important;
+    transform: translateX(-50%) !important;
+  }
+}
 
+/* ==================== 필터 행 스타일 ==================== */
 .filterRow {
   display: flex;
   align-items: center;
   gap: 8px;
+  
+  /* 모바일에서 줄바꿈 허용 */
+  flex-wrap: wrap;
 }
 
+/* 모바일에서 필터 행 세로 배치 */
+@media (max-width: 768px) {
+  .filterRow {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+}
+
+/* ==================== 조건 연결어 스타일 ==================== */
 .conjunction {
   color: #8a8a9e;
   font-size: 14px;
   width: 60px;
   flex-shrink: 0;
+  text-align: left;
 }
 
+/* 모바일에서 조건 연결어 */
+@media (max-width: 768px) {
+  .conjunction {
+    width: 100%;
+    text-align: center;
+    font-weight: bold;
+  }
+}
+
+/* ==================== 입력 요소 공통 스타일 ==================== */
 .select, .input {
   background-color: #1e293b;
   color: #e0e0ff;
@@ -49,22 +96,45 @@
   height: 38px;
   box-sizing: border-box;
   flex-shrink: 0;
+  
+  /* 포커스 상태 */
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
+.select:focus, .input:focus {
+  outline: none;
+  border-color: #3a86ff;
+  box-shadow: 0 0 0 2px rgba(58, 134, 255, 0.2);
+}
+
+/* ==================== 개별 입력 요소 크기 ==================== */
+
+/* 컬럼 및 연산자 선택창 */
 .select {
-  width: 130px; /* [수정] 컬럼 및 연산자 선택창 너비 축소 */
+  width: 130px;
 }
 
+/* 메타키 입력창 */
 .metaKeyInput {
-  width: 90px; /* [수정] Key 입력창 너비 축소 */
+  width: 90px;
   flex-shrink: 0;
 }
 
+/* 값 입력창 - 가변 너비 */
 .valueInput {
   flex-grow: 1;
-  min-width: 120px; /* [수정] 값 입력창의 최소 너비 축소 */
+  min-width: 120px;
 }
 
+/* 모바일에서 입력 요소 전체 너비 사용 */
+@media (max-width: 768px) {
+  .select, .metaKeyInput, .valueInput {
+    width: 100%;
+    flex-grow: 1;
+  }
+}
+
+/* ==================== 버튼 스타일 ==================== */
 .removeButton, .addButton {
   background-color: transparent;
   color: #8a8a9e;
@@ -77,13 +147,19 @@
   border-radius: 6px;
   transition: background-color 0.2s, color 0.2s;
   flex-shrink: 0;
+  
+  /* 버튼 텍스트 선택 방지 */
+  -webkit-user-select: none;
+  user-select: none;
 }
 
+/* 제거 버튼 호버 효과 */
 .removeButton:hover {
   background-color: #ff4a4a20;
   color: #ff7a7a;
 }
 
+/* 추가 버튼 스타일 */
 .addButton {
   background-color: #3c3c5a50;
   align-self: flex-start;
@@ -95,6 +171,16 @@
   color: #ffffff;
 }
 
+/* 모바일에서 버튼 전체 너비 */
+@media (max-width: 768px) {
+  .addButton {
+    width: 100%;
+    justify-content: center;
+    align-self: stretch;
+  }
+}
+
+/* ==================== 필터 카운트 배지 ==================== */
 .badge {
   background-color: #3a86ff;
   color: white;
@@ -103,8 +189,14 @@
   font-size: 10px;
   margin-left: 8px;
   font-weight: bold;
+  
+  /* 배지 최소 크기 보장 */
+  min-width: 18px;
+  text-align: center;
+  line-height: 1.2;
 }
 
+/* ==================== 날짜 선택 버튼 ==================== */
 .dateButton {
   display: flex;
   align-items: center;
@@ -121,16 +213,87 @@
   white-space: nowrap;
   height: 38px;
   box-sizing: border-box;
+  
+  /* 호버 효과 */
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .dateButton:hover {
   border-color: #4a4a6a;
 }
 
-.dateButton span {
-  color: #8a8a9e;
+.dateButton:focus {
+  outline: none;
+  border-color: #3a86ff;
+  box-shadow: 0 0 0 2px rgba(58, 134, 255, 0.2);
 }
 
+/* 날짜 버튼 텍스트 */
+.dateButton span {
+  color: #8a8a9e;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ==================== 다중 선택 컨테이너 ==================== */
 .valueInput > div {
-    flex-grow: 1;
+  flex-grow: 1;
+}
+
+/* ==================== 접근성 개선 ==================== */
+
+/* 포커스 가능한 요소들의 탭 순서 개선 */
+.select, .input, .dateButton, .removeButton, .addButton {
+  /* 키보드 포커스 시 더 명확한 아웃라인 */
+  outline-offset: 2px;
+}
+
+/* 스크린 리더를 위한 숨김 텍스트 */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ==================== 고해상도 대응 ==================== */
+@media (min-resolution: 2dppx) {
+  .dropdownMenu {
+    /* 고해상도에서 더 선명한 그림자 */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  }
+}
+
+/* ==================== 다크모드 추가 대응 ==================== */
+@media (prefers-color-scheme: dark) {
+  /* 이미 다크 테마가 기본이므로 추가 조정 불필요 */
+  /* 필요시 여기에 다크모드 전용 스타일 추가 */
+}
+
+/* ==================== 로딩 상태 스타일 (향후 확장용) ==================== */
+.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* ==================== 애니메이션 (성능 고려) ==================== */
+.dropdownMenu {
+  /* 드롭다운 나타남 애니메이션 */
+  animation: fadeInDropdown 0.2s ease-out;
+}
+
+@keyframes fadeInDropdown {
+  from {
+    opacity: 0;
+    transform: translateX(50%) translateY(-4px); /* 애니메이션 거리 더 축소: 6px → 4px */
+  }
+  to {
+    opacity: 1;
+    transform: translateX(50%) translateY(0);
+  }
 }
