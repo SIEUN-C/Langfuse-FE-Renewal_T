@@ -11,6 +11,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@reduxjs/toolkit": "^2.9.0",
     "@types/node": "^22.8.2",
     "@vitejs/plugin-react-swc": "~3.7.1",
     "ag-grid-community": "~32.3.1",
@@ -33,6 +34,7 @@
     "react-grid-layout": "^1.5.2",
     "react-imask": "^7.6.1",
     "react-number-format": "^5.4.2",
+    "react-redux": "^9.2.0",
     "react-resizable": "^3.0.5",
     "react-router-dom": "~6.27.0",
     "react-select": "^5.10.2",

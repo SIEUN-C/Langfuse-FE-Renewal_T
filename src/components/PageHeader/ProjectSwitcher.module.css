@@ -1,0 +1,99 @@
+/* ===== ProjectSwitcher (Dark) ===== */
+.ps-switcherWrap { position: relative; }
+
+/* Button (header) */
+.ps-switcherButton{
+  display:flex; align-items:center; gap:6px;
+  padding:6px 10px;
+  border:1px solid #2a3446;
+  background:#0b1220;
+  color:#e5e7eb;
+  border-radius:8px; font-weight:600; line-height:1;
+}
+.ps-switcherButton:hover{ background:#121a2b; }
+.ps-switcherLabel{}
+.ps-switcherCaret{ opacity:.8; }
+
+/* Menu */
+.ps-switcherMenu{
+  position:absolute; top:calc(100% + 8px); left:0;
+  min-width:260px; max-width:360px;
+  background:#0b1220; color:#e5e7eb;
+  border:1px solid #2a3446;
+  border-radius:12px;
+  box-shadow:0 12px 28px rgba(0,0,0,.45);
+  padding:8px 0;
+  z-index:1000;
+}
+
+/* Header inside menu */
+.ps-switcherHeader{
+  padding:8px 12px;
+  font-size:12px; font-weight:700; color:#9aa4b2;
+  border-bottom:1px solid #1c2433;
+  position: sticky; top:0; background:#0b1220;
+}
+
+/* List */
+.ps-switcherList{
+  list-style:none; margin:0; padding:6px 4px;
+  max-height:300px; overflow:auto;
+}
+.ps-switcherList::-webkit-scrollbar { width: 6px; }
+.ps-switcherList::-webkit-scrollbar-thumb { background:#2a3446; border-radius:999px; }
+
+/* Row */
+.ps-switcherRow{
+  display:flex; align-items:center; justify-content:space-between;
+  gap:8px; padding:2px 8px;
+  border-radius:10px;
+}
+
+/* 선택 강조 */
+.isActive{
+  background:#101a33;
+}
+.ps-activeIcon{
+  opacity:.9;
+}
+
+/* Left side (name + id) */
+.ps-switcherNameBtn{
+  flex:1; display:flex; align-items:center; gap:8px;
+  padding:8px 10px; background:transparent; border:none;
+  text-align:left; border-radius:8px; color:#e5e7eb; cursor:pointer;
+}
+.ps-switcherNameBtn:hover{ background:#121a2b; }
+
+.ps-switcherNameText{
+  font-size:14px; font-weight:600;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  max-width:170px;
+}
+.ps-switcherIdText{
+  font-size:12px; color:#93a0b8;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+
+/* Right side (gear) */
+.ps-switcherGear{
+  display:inline-flex; align-items:center; justify-content:center;
+  width:30px; height:30px; border:none; border-radius:8px;
+  background:transparent; color:#c0c6d4; cursor:pointer;
+}
+.ps-switcherGear:hover{ background:#121a2b; color:#fff; }
+
+/* Empty state */
+.ps-switcherEmpty{
+  padding:10px 12px; color:#93a0b8; font-size:13px;
+}
+
+/* Footer: + New Project */
+.ps-switcherCreate{
+  display:flex; align-items:center; gap:8px; justify-content:center;
+  width:calc(100% - 16px); margin:8px; padding:10px 12px;
+  background:#0f172a; color:#e5e7eb;
+  border:1px dashed #2a3446; border-radius:10px;
+  cursor:pointer;
+}
+.ps-switcherCreate:hover{ background:#121a2b; }
