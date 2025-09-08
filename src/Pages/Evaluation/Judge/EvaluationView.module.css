@@ -1,70 +1,43 @@
-/* 기존 EvaluationDetail.module.css 파일 하단에 아래 내용을 추가합니다. */
+/* src/Pages/Evaluation/Judge/EvaluationView.module.css */
+/*
+  수정: 파일 전체를 아래의 새 코드로 교체합니다.
+  - 주석: EvaluationView.jsx 컴포넌트의 전체 레이아웃, 제목,
+    그리고 데이터가 없을 때 표시되는 "No jobs yet" 영역을 위한 스타일입니다.
+*/
 
-/* Tabs */
-.tabs {
+/* 주석: 페이지 전체의 패딩과 같은 기본 레이아웃을 정의합니다. */
+.container {
+  padding: 24px;
+}
+
+/* 주석: 'Evaluation Jobs for: ...' 제목의 스타일입니다. */
+.title {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: #f1f5f9; /* 주석: 전체적인 테마에 맞게 밝은 글자색으로 설정합니다. */
+}
+
+/* 주석: 데이터가 없을 때 "No jobs yet" 메시지를 표시하는 영역의 스타일입니다. */
+.emptyState {
   display: flex;
-  gap: 0.5rem;
-  border-bottom: 1px solid #334155;
-  margin-bottom: 1.5rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  margin-top: 40px;
+  border: 1px dashed #475569; /* 주석: 테마에 맞는 어두운 점선 테두리입니다. */
+  border-radius: 8px;
+  background-color: #1e293b; /* 주석: 테이블과 유사한 배경색을 사용합니다. */
+  text-align: center;
 }
 
-.tab {
-  background: none;
-  border: none;
-  color: #94a3b8;
-  padding: 0.75rem 1.25rem;
-  cursor: pointer;
-  font-size: 1rem;
-  font-weight: 500;
-  border-bottom: 2px solid transparent;
-  transition: color 0.2s, border-color 0.2s;
+.emptyState h2 {
+  font-size: 20px;
+  margin-bottom: 8px;
+  color: #cbd5e1; /* 주석: "No jobs yet" 제목 텍스트 색상입니다. */
 }
 
-.tab:hover {
-  color: #f1f5f9;
+.emptyState p {
+  color: #94a3b8; /* 주석: 설명 텍스트 색상입니다. */
 }
-
-.tab.active {
-  color: #f1f5f9;
-  border-bottom-color: #f1f5f9;
-}
-
-.tabContent {
-  /* 탭 내용이 들어갈 공간 */
-}
-
-/* Log View */
-.logContainer {
-  background-color: #0f172a; /* 로그 배경은 약간 다르게 */
-  border: 1px solid #334155;
-  border-radius: 0.5rem;
-  padding: 1.5rem;
-  font-family: 'Courier New', Courier, monospace;
-}
-
-.logEntry {
-  display: flex;
-  gap: 1.5rem;
-  font-size: 0.875rem;
-  margin-bottom: 0.75rem;
-}
-
-.logEntry:last-child {
-  margin-bottom: 0;
-}
-
-.logTimestamp {
-  color: #94a3b8;
-  white-space: nowrap;
-}
-
-.logMessage {
-  flex-grow: 1;
-}
-
-.logMessage p {
-  margin: 0;
-  color: #f1f5f9;
-}
-
-/* CodeBlock 컴포넌트를 사용하므로 별도 스타일은 CodeBlock.module.css에서 처리됩니다. */

@@ -4,6 +4,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import styles from './EvaluatorsTable.module.css';
 
+
 // 상태 뱃지 컴포넌트 - 다른 곳에서 import할 수 있도록 export 추가
 export const StatusBadge = ({ status }) => {
   const getStatusClassName = (s) => {
@@ -81,13 +82,33 @@ export const getEvaluatorColumns = (projectId, datasetMap) => {
     },
     {
       header: 'Result',
-      accessor: () => '-',
+      accessor: (row) => {
+        // 주석: row 데이터에 jobExecutionsByState 배열이 있는지 확인합니다.
+        if (!row.jobExecutionsByState || row.jobExecutionsByState.length === 0) {
+          return '-';
+        }
+
+        // 주석: 배열의 각 항목에 있는 _count 값을 모두 더하여 총 결과 개수를 계산합니다.
+        const totalCount = row.jobExecutionsByState.reduce(
+          (sum, state) => sum + state._count, 
+          0
+        );
+
+        // 주석: 총 개수가 0이면 '-'를, 0보다 크면 "N results" 형식으로 표시합니다.
+        return totalCount > 0 ? `✅ ${totalCount}` : '-';
+      },
     },
+    // --------------------------------------------------------
     {
       header: 'Logs',
       accessor: (row) => (
         <div className={styles.rowActions}>
-          <Link to={`/project/${projectId}/evaluations/${row.id}`} className={styles.viewButton} onClick={(e) => e.stopPropagation()}>
+         {/* --- ✨ 수정: App.jsx의 기존 경로에 맞게 링크 주소를 수정했습니다 --- */}
+          <Link 
+            to={`/llm-as-a-judge/${row.id}`} 
+            className={styles.viewButton} 
+            onClick={(e) => e.stopPropagation()}
+          >
             View
           </Link>
         </div>
@@ -149,4 +170,26 @@ export const getEvaluatorColumns = (projectId, datasetMap) => {
 const EvaluatorColumns = () => null;
 export default EvaluatorColumns;
 
-
+//추가 : Use Evaluator 버튼 활성화 << 시작
+export const getEvaluatorLibraryColumns = (onUseEvaluator) => [
+  { header: 'Name', accessor: row => row.name },
+  { header: 'Maintainer', accessor: row => row.maintainer },
+  { header: 'Last Edit', accessor: row => row.latestCreatedAt },
+  { header: 'Usage Count', accessor: row => row.usageCount },
+  { header: 'Latest Version', accessor: row => row.version },
+  { header: 'Id', accessor: row => row.latestId }, //eunju 수정
+  {
+    header: 'Actions',
+    accessor: row => (
+      <div className={styles.rowActions}>
+        <button
+          onClick={(e) => { e.stopPropagation(); onUseEvaluator?.(row.latestId); }} //eunju 수정
+          className={styles.viewButton}
+        >
+          Use Evaluator
+        </button>
+      </div>
+    ),
+  },
+];
+//추가 : Use Evaluator 버튼 활성화 << 끝

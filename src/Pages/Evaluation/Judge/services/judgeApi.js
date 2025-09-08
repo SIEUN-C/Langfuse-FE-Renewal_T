@@ -30,3 +30,21 @@ export const getAllEvaluatorConfigs = ({ projectId, page = 0, limit = 50 }) => {
     searchQuery: null,
   });
 };
+
+
+// --- ✨ 수정: 각 행에 맞는 데이터를 불러오도록 파라미터 이름을 최종 수정했습니다 ---
+/**
+ * 특정 Evaluator의 실행 로그 목록을 조회합니다. (View 페이지용)
+ */
+export const getEvaluationJobs = ({ projectId, evalConfigId }) => {
+  // 주석: 서버 백엔드 코드(evalRouter)를 확인한 결과, 'jobConfigurationId'가
+  //      특정 Evaluator를 필터링하는 정확한 파라미터 이름입니다.
+  return trpcQuery("evals.getLogs", {
+    projectId,
+    jobConfigurationId: evalConfigId, 
+    filter: [], 
+    page: 0,
+    limit: 50,
+  });
+};
+// --------------------------------------------------------------------
