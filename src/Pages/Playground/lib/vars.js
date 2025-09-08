@@ -1,4 +1,4 @@
-// {{ name }} 공통 정규식
+// src\Pages\Playground\lib\vars.js
 export const VAR_RE = /\{\{\s*([a-zA-Z0-9_\-]+)\s*\}\}/g;
 
 export function extractVarsFromText(text, set) {

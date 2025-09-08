@@ -369,7 +369,17 @@
   background: var(--c-surface-2, #0f1218);
   border-radius: 10px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-  z-index: 10;
+  /* footerBar(z-index:20)보다 크게 */
+  z-index: 50;
+  /*길면 스크롤 */
+  max-height: min(60vh, 420px);
+  overflow: auto;
+}
+
+/* ✅ 아래 공간이 부족하면 위로 펼치기 */
+.modelMenuUp {
+  top: auto;
+  bottom: calc(100% + 6px);
 }
 
 .menuSectionLabel {
@@ -390,6 +400,7 @@
   border: none;
   color: var(--c-text, #fff);
   text-align: left;
+  flex-wrap: nowrap;
 }
 
 .menuItem:hover {
@@ -402,6 +413,9 @@
 
 .menuMain {
   font-weight: 600;
+  word-break: keep-all;
+  white-space: nowrap;
+  flex: 0 0 auto;
 }
 
 .menuSep {
@@ -410,6 +424,9 @@
 
 .menuModel {
   opacity: 0.9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .menuDivider {

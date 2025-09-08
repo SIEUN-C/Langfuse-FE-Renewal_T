@@ -1,4 +1,4 @@
-// src/lib/getMaskedKey.js
+// src\Pages\Playground\lib\getMaskedKey.js
 import { api } from "./api";
 
 /** Langfuse tRPC llmApiKey.all 응답에서 displaySecretKey만 뽑기 */

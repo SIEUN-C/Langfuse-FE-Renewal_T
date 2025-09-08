@@ -1,77 +1,56 @@
-// src/lib/api.js
-const DEFAULT_TIMEOUT = 30000;
+// src\Pages\Playground\lib\api.js
+// 5173 → 3000 교차 도메인에서도 세션 쿠키가 전달되도록 fetch 래퍼
+// - credentials: 'include' 필수
+// - BASE는 .env 에서 VITE_BACKEND_ORIGIN=http://localhost:3000 로 주거나 기본값 사용
 
-function buildInit({ method="GET", headers, json, formData, body, timeout } = {}) {
-  const init = { method, headers: new Headers(headers || {}), credentials: "include" };
-  
-  if (json !== undefined) {
-    init.headers.set("content-type", "application/json");
-    init.body = JSON.stringify(json);
-  } else if (formData instanceof FormData) {
-    init.body = formData;
-  } else if (body !== undefined) {
-    init.body = body;
+const BASE =
+  (typeof import.meta !== "undefined" &&
+    import.meta.env &&
+    import.meta.env.VITE_BACKEND_ORIGIN) ||
+  "http://localhost:3000";
+
+async function handle(res) {
+  // tRPC/Next 응답은 대부분 JSON
+  const ctype = res.headers.get("content-type") || "";
+  if (!res.ok) {
+    const text = ctype.includes("application/json") ? await res.json().catch(() => ({})) : await res.text();
+    const msg = typeof text === "string" ? text : JSON.stringify(text);
+    throw new Error(`[${res.status}] ${msg || "Request failed"}`);
   }
-
-  const ctl = new AbortController();
-  const t = setTimeout(() => ctl.abort(), timeout ?? DEFAULT_TIMEOUT);
-  init.signal = ctl.signal;
-
-  return { init, clear: () => clearTimeout(t) };
+  if (ctype.includes("application/json")) {
+    return await res.json();
+  }
+  return await res.text();
 }
 
-export async function api(path, opts = {}) {
-  const { init, clear } = buildInit(opts);
-  try {
-    const response = await fetch(path, init);
-    
-    // 디버깅을 위한 로그 추가
-    if (path.includes('/api/trpc/')) {
-      console.log(`[API] ${init.method} ${path}`, {
-        status: response.status,
-        headers: Object.fromEntries(init.headers.entries()),
-        body: init.body,
-      });
-    }
-    
-    return response;
-  } finally {
-    clear();
-  }
-}
-
-// tRPC 전용 헬퍼 함수 (httpBatchLink 포맷)
-export async function trpcCall(procedure, input, options = {}) {
-  const envProjectId = import.meta.env.VITE_DEFAULT_PROJECT_ID;
-  const projectId = input?.projectId || envProjectId;
-  if (!projectId) throw new Error("projectId가 비어있습니다 (.env VITE_DEFAULT_PROJECT_ID 확인)");
-
-  const isQuery = /\.?(all|get|getAll|list)(?:$|[.?])/.test(procedure);
-  const method = isQuery ? "query" : "mutation";
-
-  const batchPayload = [
-    {
-      id: 1,
-      json: {
-        method,
-        params: { input }, // 반드시 params.input에!
+export const api = {
+  get: async (url, opts = {}) => {
+    const target = url.startsWith("http") ? url : `${BASE}${url}`;
+    const res = await fetch(target, {
+      method: "GET",
+      credentials: "include", // ← 세션 쿠키(3000번) 전달
+      headers: {
+        ...(opts.headers || {}),
       },
-    },
-  ];
+      signal: opts.signal,
+    });
+    return handle(res);
+  },
 
-  const url = `/api/trpc/${procedure}?batch=1&projectId=${encodeURIComponent(projectId)}`;
+  post: async (url, body, opts = {}) => {
+    const target = url.startsWith("http") ? url : `${BASE}${url}`;
+    const headers = { ...(opts.headers || {}) };
+    // FormData가 아니면 JSON 헤더
+    const isFormData = typeof FormData !== "undefined" && body instanceof FormData;
+    if (!isFormData) headers["content-type"] = "application/json";
 
-  return api(url, {
-    method: "POST",
-    headers: {
-      "accept": "application/json",
-      "content-type": "application/json",
-      // 배포에 따라 헤더에서 읽는 경우까지 커버
-      "x-project": projectId,
-      "x-project-id": projectId,
-      ...(options.headers || {}),
-    },
-    json: batchPayload,
-    ...options,
-  });
-}
+    const res = await fetch(target, {
+      method: "POST",
+      credentials: "include", // ← 세션 쿠키(3000번) 전달
+      headers,
+      body: isFormData ? body : JSON.stringify(body ?? {}),
+      signal: opts.signal,
+    });
+    return handle(res);
+  },
+};

@@ -67,7 +67,6 @@ export default function ModelHeader({
                 >
                     <span className={styles.modelProvider}>
                         {selectedProvider || (loadingConn ? "Loading…" : "No connection")}
-                        {selectedProvider && (selectedAdapter ? ` (${selectedAdapter})` : "")}
                     </span>
                     <span className={styles.modelSep}>:</span>
                     <strong className={styles.modelName}>
@@ -134,7 +133,6 @@ export default function ModelHeader({
                                     >
                                         <span className={styles.menuMain}>
                                             {item.conn.provider}
-                                            {item.conn.adapter ? ` (${item.conn.adapter})` : ""}
                                         </span>
                                         <span className={styles.menuSep}>:</span>
                                         <span className={styles.menuModel}>{item.model}</span>

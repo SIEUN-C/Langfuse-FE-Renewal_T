@@ -1,6 +1,6 @@
 // src/components/PageHeader/ProjectSwitcher.jsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { fetchSession } from "../../Pages/Settings/lib/sessionOrg";
 import { Settings as SettingsIcon, ChevronDown, Plus, Check } from "lucide-react";
 import styles from "./ProjectSwitcher.module.css";
@@ -14,6 +14,7 @@ function cx(...args) {
 
 export default function ProjectSwitcher({ currentProjectId }) {
   const nav = useNavigate();
+  const location = useLocation();
   const [open, setOpen] = useState(false);
   const [session, setSession] = useState(null);
   const btnRef = useRef(null);
@@ -22,33 +23,6 @@ export default function ProjectSwitcher({ currentProjectId }) {
 
   // 전역에 저장된 현재 프로젝트 이름 (Optimistic 라벨)
   const selectedName = useSelector((s) => s.currentProject.name);
-
-  // 항상 settings/general로 이동
-  const gotoProjectSettings = (pid, pname) => {
-    if (!pid) return;
-    setOpen(false);
-
-    // 1) 즉시 전역 업데이트 → 라벨/화면 즉시 반영
-    dispatch(setProject({ id: pid, name: pname ?? null }));
-
-    // 2) 조직 전역 갱신 (클릭한 프로젝트가 속한 org로)
-   let orgForPid = org;
-   if (!orgForPid && session?.user?.organizations) {
-     orgForPid = (session.user.organizations || []).find(o =>
-       (o.projects || []).some(p => p.id === pid)
-     ) || null;
-   }
-   if (orgForPid) {
-     dispatch(setOrganization({ id: orgForPid.id, name: orgForPid.name }));
-     try {
-       localStorage.setItem("orgId", orgForPid.id);
-       localStorage.setItem("orgName", orgForPid.name);
-     } catch {}
-   }
-
-    // 라우팅 이동
-    setTimeout(() => nav(`/project/${pid}/settings/general`), 0);
-  };
 
   useEffect(() => {
     (async () => {
@@ -60,7 +34,7 @@ export default function ProjectSwitcher({ currentProjectId }) {
   // 세션에서 org/projects 만들기 + 폴백 로직
   const { org, projects, currentProject } = useMemo(() => {
     const orgs = session?.user?.organizations || [];
-    const allProjects = orgs.flatMap((o) => Array.isArray(o.projects) ? o.projects : []);
+    const allProjects = orgs.flatMap((o) => (Array.isArray(o.projects) ? o.projects : []));
 
     let foundOrg = null;
 
@@ -93,14 +67,81 @@ export default function ProjectSwitcher({ currentProjectId }) {
     return { org: foundOrg, projects: list, currentProject: cur };
   }, [session, currentProjectId]);
 
+  // 현재 경로 유지하면서, '짧은 경로'는 projectId를 절대 붙이지 않고 그대로 두고,
+  // '프로젝트 필요한 경로'는 /project/:id 세그먼트만 교체 / 필요 시 prepend
+  const gotoProjectSettings = (pid, pname) => {
+    if (!pid) return;
+    setOpen(false);
+
+    // 1) 즉시 전역 업데이트 → 라벨/화면 즉시 반영
+    dispatch(setProject({ id: pid, name: pname ?? null }));
+    try {
+      localStorage.setItem("projectId", pid);
+      localStorage.setItem("projectName", pname ?? "");
+    } catch {}
+
+    // 2) 조직 전역 갱신 (클릭한 프로젝트가 속한 org로)
+    let orgForPid = org;
+    if (!orgForPid && session?.user?.organizations) {
+      orgForPid =
+        (session.user.organizations || []).find((o) =>
+          (o.projects || []).some((p) => p.id === pid)
+        ) || null;
+    }
+    if (orgForPid) {
+      dispatch(setOrganization({ id: orgForPid.id, name: orgForPid.name }));
+      try {
+        localStorage.setItem("orgId", orgForPid.id);
+        localStorage.setItem("orgName", orgForPid.name);
+      } catch {}
+    }
+
+    // 3) 경로 규칙 적용
+    const SHORT_PATHS = [
+      /^\/trace(\/|$)/,
+      /^\/sessions(\/|$)/,
+      /^\/prompts(\/|$)/,
+      /^\/datasets(\/|$)/,
+      /^\/llm-as-a-judge(\/|$)/,
+    ];
+    const NEED_PROJECT_PATHS = [
+      /^\/playground(\/|$)/,
+      /^\/dashboards(\/|$)/,
+      /^\/widgets(\/|$)/,
+      /^\/settings(\/|$)/,
+      /^\/project(\/|$)/, // 이미 project 세그먼트가 있는 경로도 포함
+    ];
+
+    const replaceProjectIdInPath = (pathname, search, newId) => {
+      // 3-1) 짧은 경로면 URL 변경 금지 (projectId 미부착)
+      if (SHORT_PATHS.some((re) => re.test(pathname))) {
+        return pathname + search; // 그대로
+      }
+      // 3-2) /project/:oldId → /project/:newId 치환
+      const replaced = pathname.replace(/\/project\/[^/]+/, `/project/${newId}`);
+      if (replaced !== pathname) return replaced + search;
+      // 3-3) project 세그먼트가 없는데, 프로젝트가 필요한 경로면 prepend
+      if (NEED_PROJECT_PATHS.some((re) => re.test(pathname))) {
+        return `/project/${newId}${pathname}${search}`;
+      }
+      // 3-4) 그 외 일반 경로는 그대로 유지 (projectId 미부착)
+      return pathname + search;
+    };
+
+    const nextPath = replaceProjectIdInPath(location.pathname, location.search, pid);
+    setTimeout(() => nav(nextPath, { replace: true }), 0);
+  };
+
   // 오버레이 닫기(외부 클릭/ESC)
   useEffect(() => {
     if (!open) return;
     const onDoc = (e) => {
       const t = e.target;
       if (
-        btnRef.current && !btnRef.current.contains(t) &&
-        menuRef.current && !menuRef.current.contains(t)
+        btnRef.current &&
+        !btnRef.current.contains(t) &&
+        menuRef.current &&
+        !menuRef.current.contains(t)
       ) {
         setOpen(false);
       }
@@ -159,10 +200,7 @@ export default function ProjectSwitcher({ currentProjectId }) {
                 return (
                   <li
                     key={p.id}
-                    className={cx(
-                      styles["ps-switcherRow"],
-                      isActive && styles["isActive"]
-                    )}
+                    className={cx(styles["ps-switcherRow"], isActive && styles["isActive"])}
                   >
                     <button
                       type="button"
@@ -192,11 +230,7 @@ export default function ProjectSwitcher({ currentProjectId }) {
             )}
           </ul>
 
-          <button
-            type="button"
-            className={styles["ps-switcherCreate"]}
-            onClick={goNewProject}
-          >
+          <button type="button" className={styles["ps-switcherCreate"]} onClick={goNewProject}>
             <Plus size={16} />
             <span>New Project</span>
           </button>
