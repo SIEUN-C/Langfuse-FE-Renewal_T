@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { useSearchParams, useParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { getRunningConfig, updateEvalJob } from '../Judge/services/evaluatorsApi';
 import EvaluationForm from './components/EvaluationForm';
 import styles from './EvaluationDetail.module.css';
+import useProjectId from 'hooks/useProjectId';
+
+
 
 const EvaluationDetail = ({ onClose }) => {
-  const { projectId } = useParams();
+  const { projectId } = useProjectId();
   const [searchParams] = useSearchParams();
   const peekId = searchParams.get('peek');
 
