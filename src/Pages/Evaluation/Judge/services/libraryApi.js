@@ -95,3 +95,52 @@ export const getDefaultModel = async (projectId) => {
         throw new Error(error.response?.data?.error?.message || "Failed to fetch default model.");
     }
 };
+
+/**
+ * 새로운 Custom Evaluator 템플릿을 생성합니다.
+ * @param {object} templateData - 생성할 템플릿 데이터
+ */
+export const createTemplate = async (templateData) => {
+  // 필수 파라미터 확인
+  if (!templateData.projectId || !templateData.name || !templateData.prompt) {
+    throw new Error("projectId, name, and prompt are required.");
+  }
+
+  try {
+    // 서버가 요구하는 payload 형식에 맞춰 데이터를 구성합니다.
+    const payload = {
+      json: {
+        name: templateData.name,
+        projectId: templateData.projectId,
+        prompt: templateData.prompt,
+        provider: null, 
+        model: null,     
+        modelParams: null,
+        vars: templateData.variables,
+        outputSchema: {
+          score: templateData.scoreRange,
+          reasoning: templateData.scoreReasoning,
+        },
+        referencedEvaluators: "persist",
+        sourceTemplateId: null,
+      },
+      meta: {
+        values: {
+          provider: ["undefined"],
+          model: ["undefined"],
+          modelParams: ["undefined"],
+          sourceTemplateId: ["undefined"],
+        },
+      },
+    };
+
+    const url = `/api/trpc/evals.createTemplate`;
+    const response = await axios.post(url, payload);
+
+    return response.data.result.data.json;
+
+  } catch (error) {
+    console.error("Failed to create template via tRPC:", error);
+    throw new Error(error.response?.data?.error?.message || "Failed to create template.");
+  }
+};

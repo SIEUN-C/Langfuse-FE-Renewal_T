@@ -5,6 +5,7 @@
   width: 100%;
   margin: 0 auto;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  /* display: flex; */
   /* border: 1px solid #334155; */
 }
 
@@ -57,6 +58,12 @@ textarea {
   width: 100%;
 }
 
+input[type="text"]:focus,
+textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
 .checkboxGroup {
   display: flex;
   align-items: center;
@@ -85,6 +92,7 @@ textarea {
   display: flex;
   justify-content: flex-end;
   padding-top: 16px;
+  padding-right: 20px;
 }
 
 /* 이 부분을 기존 CSS 파일에 추가하세요 */
@@ -97,12 +105,25 @@ textarea {
   gap: 24px; /* 박스 내부 항목 간의 간격 */
 }
 
+.saveButton {
+  background-color: #334155;
+  color: #f1f5f9;
+  order: none;
+  border-radius: 4px;
+  padding: 10px 20px;
+  cursor: pointer;
+  border: none;
+  font-size: 16px;
+}
+
 .editButton {
   background-color: #020817;
   cursor: pointer;
   border-radius: 4px;
   border: none;
 }
+
+/* CustomEvaluator.module.css 파일 맨 아래에 추가 */
 
 .variablesContainer {
   display: flex;

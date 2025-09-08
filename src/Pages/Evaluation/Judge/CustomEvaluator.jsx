@@ -1,28 +1,29 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { Book } from 'lucide-react';
 import useProjectId from 'hooks/useProjectId';
-import { getTemplateById, getDefaultModel } from "./services/libraryApi";
-import styles from "./Templates.module.css";
+import { getDefaultModel, createTemplate } from "./services/libraryApi";
+import styles from "./CustomEvaluator.module.css";
 import FormPageLayout from "../../../components/Layouts/FormPageLayout.jsx";
 import FormGroup from "../../../components/Form/FormGroup.jsx";
 import CodeBlock from "../../../components/CodeBlock/CodeBlock.jsx";
 
-const Templates = () => {
-  const { templateId } = useParams();
+const CustomEvaluator = () => {
   const { projectId } = useProjectId();
-  const navigate = useNavigate();
-
-  const [templateData, setTemplateData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [variables, setVariables] = useState([]);
   const [defaultModel, setDefaultModel] = useState(null);
   const [useDefaultModel, setUseDefaultModel] = useState(true);
+  const [name, setName] = useState('');
   const [prompt, setPrompt] = useState('');
+  const [scoreReasoning, setScoreReasoning] = useState('One sentence reasoning for the score');
+  const [scoreRange, setScoreRange] = useState("Score between 0 and 1. Score 0 if false or negative and 1 if true or positive.")
+  const navigate = useNavigate();
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    if (!projectId || !templateId) {
+    if (!projectId) {
       setLoading(false);
       return;
     }
@@ -31,60 +32,97 @@ const Templates = () => {
       try {
         setLoading(true);
         setError(null);
-        const [templateResponse, modelResponse] = await Promise.all([
-          getTemplateById(projectId, templateId),
+        const [modelResponse] = await Promise.all([
           getDefaultModel(projectId)
         ]);
 
-        // 각 API의 결과를 state에 저장합니다.
-        setTemplateData(templateResponse);
         setDefaultModel(modelResponse);
-
-        // 기존의 변수 추출 로직은 그대로 유지합니다.
-        if (templateResponse && templateResponse.prompt) {
-          const extractVariables = (text) => {
-            const regex = /{{\s*(\w+)\s*}}/g;
-            const matches = text.match(regex) || [];
-            return [...new Set(matches.map(match => match.replace(/[{}]/g, '').trim()))];
-          };
-          setVariables(extractVariables(templateResponse.prompt));
-        }
 
       } catch (err) {
         setError("Failed to load template details.");
         console.error(err);
       } finally {
         setLoading(false);
+        setIsLoading(false);
       }
     };
 
     fetchData();
-  }, [projectId, templateId]);
+  }, [projectId]);
 
+  useEffect(() => {
+    const extractVariables = (text) => {
+      if (!text) return [];
+      const regex = /{{\s*(\w+)\s*}}/g;
+      const matches = text.match(regex) || [];
+      return [...new Set(matches.map(match => match.replace(/[{}]/g, '').trim()))];
+    };
+
+    const newVariables = extractVariables(prompt);
+    setVariables(newVariables);
+  }, [prompt]);
 
   if (loading) {
-    return <div className={styles.message}>Loading template...</div>;
+    return <div className={styles.message}>Loading Custom...</div>;
   }
 
   if (error) {
     return <div className={styles.errorMessage}>{error}</div>;
   }
 
-  if (!templateData) {
-    return <div className={styles.message}>Template not found.</div>;
-  }
-
   const handleDefaultModel = () => {
     navigate(`/llm-as-a-judge/default-model`)
   };
 
+  const handleSave = async () => {
+    if (!name.trim()) {
+      alert('Evaluator 이름을 입력해주세요');
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      const templeData = {
+        projectId,
+        name,
+        prompt,
+        variables,
+        scoreReasoning,
+        scoreRange,
+      };
+
+      const newTemplate = await createTemplate(templateData)
+
+      alert('성공적으로 저장되었습니다.');
+
+      navigate(`/llm-as-a-judge/templates/${newTemplate.id}`);
+    } catch (error) {
+      alert(`저장에 실패했습니다. ${error.message}`);
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
   return (
     <div className={styles.evaluatorFormContainer}>
       <header className={styles.evaluatorFormHeader}>
-        <h2>{templateData.name}</h2>
+        <h2>Create Custom Evaluator</h2>
       </header>
 
       <form className={styles.evaluatorFormBody} onSubmit={(e) => e.preventDefault()}>
+        {/* Name Section */}
+        <div className={styles.formGroup}>
+          <label htmlFor="name">Name</label>
+          <input
+            type="text"
+            id="name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Select a template name"
+          />
+        </div>
+
         {/* --- Model Section Box START --- */}
         <div className={styles.formSectionBox}>
           <div className={styles.formGroup}>
@@ -99,8 +137,19 @@ const Templates = () => {
               <label htmlFor="useDefaultModel">Use default evaluation model</label>
             </div>
             <div className={styles.modelInfo}>
-              <span>Current default model: </span>
-              <span className={styles.modelName}>{defaultModel.provider}/{defaultModel.model}</span>
+              <span className={styles.modelName}> {isLoading ? (
+                <p>Loading default model...</p>
+              ) : defaultModel ? (
+                <p>
+                  Current default model:{" "}
+                  <strong>
+                    {defaultModel.provider} / {defaultModel.model}
+                  </strong>
+                </p>
+              ) : (
+                // 데이터가 없거나 API 호출에 실패한 경우
+                <p>Default model not found.</p>
+              )}</span>
               <button onClick={handleDefaultModel} className={styles.editButton}>
                 ✏️
               </button>
@@ -117,7 +166,8 @@ const Templates = () => {
               Define your llm-as-a-judge evaluation template. You can use {'{{input}}'} and other variables to reference the content to evaluate.
             </p>
             <CodeBlock
-              code={templateData.prompt}
+              code={prompt}
+              onChange={(newValue) => setPrompt(newValue)}
             />
             {variables.length > 0 && (
               <div className={styles.variablesContainer}>
@@ -131,7 +181,6 @@ const Templates = () => {
             )}
           </div>
 
-
           <div className={styles.formGroup}>
             <label htmlFor="scoreReasoningPrompt">Score reasoning prompt</label>
             <p className={styles.description}>
@@ -140,7 +189,9 @@ const Templates = () => {
             <input
               type="text"
               id="scoreReasoningPrompt"
-              value={templateData.outputSchema.score}
+              value={scoreReasoning}
+              onChange={(e) => setScoreReasoning(e.target.value)}
+              placeholder="One sentence reasoning for the score"
             />
           </div>
 
@@ -152,13 +203,24 @@ const Templates = () => {
             <input
               type="text"
               id="scoreRangePrompt"
-              value={templateData.outputSchema.reasoning}
+              value={scoreRange}
+              onChange={(e) => setScoreRange(e.target.value)}
+              placeholder="Score between 0 and 1. Score 0 if false or negative and 1 if true or positive."
             />
           </div>
         </div>
         {/* --- Prompt Section Box END --- */}
       </form>
+      <div className={styles.formFooter}>
+        <button
+          className={styles.saveButton}
+          onClick={handleSave}
+          disables={isSaving}
+          >
+          {isSaving ? 'Saving...' : 'Save'}
+        </button>
+      </div>
     </div>
   );
 };
-export default Templates;
+export default CustomEvaluator;

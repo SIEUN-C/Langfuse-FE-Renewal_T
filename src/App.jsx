@@ -28,6 +28,7 @@ import SetupEvaluator from "./Pages/Evaluation/Judge/SetupEvaluator";
 import DefaultEvaluationModel from "Pages/Evaluation/Judge/DefaultEvaluationModel";
 import EvaluationView from "Pages/Evaluation/Judge/EvaluationView";
 import Templates from "Pages/Evaluation/Judge/Templates";
+import CustomEvaluator from "Pages/Evaluation/Judge/CustomEvaluator";
 // import EvaluatorLibrary from "./Pages/Evaluation/Judge/components/EvaluatorLibrary";
 
 // 대시보드
@@ -129,6 +130,7 @@ export default function App() {
         <Route path="llm-as-a-judge/default-model" element={<DefaultEvaluationModel />} />
         <Route path="llm-as-a-judge/:evaluationId" element={<EvaluationView />} />
         <Route path="llm-as-a-judge/templates/:templateId" element={<Templates />} />
+        <Route path="llm-as-a-judge/custom" element={<CustomEvaluator />} />
 
         {/* Dashboards */}
         <Route path="project/:projectId/dashboards" element={<DashboardsKeyed />} />
