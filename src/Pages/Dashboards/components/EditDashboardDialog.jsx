@@ -1,17 +1,20 @@
+// src/Pages/Dashboards/components/EditDashboardDialog.jsx
+
 import React, { useState, useEffect } from "react";
 import { dashboardAPI } from "../services/dashboardApi.js";
 import styles from "./EditDashboardDialog.module.css";
 
 /**
- * 대시보드 편집 다이얼로그 컴포넌트
- * @param {Object} props
- * @param {boolean} props.open - 다이얼로그 열림 상태
- * @param {Function} props.onOpenChange - 다이얼로그 상태 변경 핸들러
- * @param {string} props.projectId - 프로젝트 ID
- * @param {string} props.dashboardId - 대시보드 ID
- * @param {string} props.initialName - 초기 대시보드 이름
- * @param {string} props.initialDescription - 초기 대시보드 설명
- * @param {Function} props.onSuccess - 성공 시 콜백 함수
+ * 대시보드 편집 다이얼로그
+ * 대시보드 이름과 설명을 수정할 수 있는 모달
+ * 
+ * @param {boolean} open - 다이얼로그 열림 상태
+ * @param {Function} onOpenChange - 다이얼로그 열림/닫힘 핸들러
+ * @param {string} projectId - 프로젝트 ID
+ * @param {string} dashboardId - 수정할 대시보드 ID
+ * @param {string} initialName - 현재 대시보드 이름
+ * @param {string} initialDescription - 현재 대시보드 설명
+ * @param {Function} onSuccess - 저장 성공 시 콜백
  */
 export function EditDashboardDialog({
   open,
@@ -27,7 +30,7 @@ export function EditDashboardDialog({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // props가 변경될 때 state 업데이트
+  // 다이얼로그가 열릴 때마다 초기값으로 리셋
   useEffect(() => {
     if (open) {
       setName(initialName || "");
@@ -37,7 +40,6 @@ export function EditDashboardDialog({
   }, [open, initialName, initialDescription]);
 
   const handleSave = async () => {
-    // 유효성 검사
     if (!name.trim()) {
       setError("Dashboard name is required");
       return;
@@ -59,12 +61,10 @@ export function EditDashboardDialog({
       if (result.success) {
         console.log("✅ Dashboard updated successfully");
         
-        // 성공 콜백 호출 (부모 컴포넌트에서 데이터 새로고침)
         if (onSuccess) {
           onSuccess(result.data);
         }
         
-        // 다이얼로그 닫기
         onOpenChange(false);
       } else {
         setError(result.error || "Failed to update dashboard");
@@ -84,6 +84,7 @@ export function EditDashboardDialog({
     onOpenChange(false);
   };
 
+  // 키보드 단축키: Ctrl+Enter(저장), Escape(취소)
   const handleKeyPress = (e) => {
     if (e.key === "Enter" && e.ctrlKey) {
       handleSave();
@@ -93,7 +94,6 @@ export function EditDashboardDialog({
     }
   };
 
-  // 다이얼로그가 닫혀있으면 렌더링하지 않음
   if (!open) return null;
 
   return (
@@ -103,7 +103,7 @@ export function EditDashboardDialog({
         onClick={(e) => e.stopPropagation()}
         onKeyDown={handleKeyPress}
       >
-        {/* 다이얼로그 헤더 */}
+        {/* 헤더 */}
         <div className={styles.header}>
           <h2 className={styles.title}>Edit Dashboard</h2>
           <button 
@@ -115,7 +115,7 @@ export function EditDashboardDialog({
           </button>
         </div>
 
-        {/* 다이얼로그 본문 */}
+        {/* 본문 */}
         <div className={styles.body}>
           {error && (
             <div className={styles.errorMessage}>
@@ -155,7 +155,7 @@ export function EditDashboardDialog({
           </div>
         </div>
 
-        {/* 다이얼로그 푸터 */}
+        {/* 푸터 */}
         <div className={styles.footer}>
           <button
             className={styles.cancelButton}

@@ -1,10 +1,12 @@
+// src/Pages/Dashboards/components/cards/DashboardTable.jsx
+
 import { useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import './DashboardTable.module.css';
 import { NoDataOrLoading } from '../charts/NoDataOrLoading';
 
 /**
- * ExpandListButton 컴포넌트 (인라인으로 구현)
+ * 테이블 접기/펼치기 버튼
  */
 const ExpandListButton = ({ 
   isExpanded, 
@@ -40,20 +42,15 @@ const ExpandListButton = ({
   );
 };
 
-
 /**
  * DashboardTable 컴포넌트
- * 기본 대시보드에서 사용되는 범용 테이블 컴포넌트
+ * 대시보드용 데이터 테이블. 접기/펼치기, 로딩상태, 빈데이터 처리 지원
  * 
  * @param {Array} headers - 테이블 헤더 (ReactNode 배열)
  * @param {Array} rows - 테이블 행 데이터 (ReactNode[][] 배열)
- * @param {React.ReactNode} [children] - 테이블 상단에 표시될 추가 내용
- * @param {Object} [collapse] - 접기/펼치기 설정
- * @param {number} collapse.collapsed - 접힌 상태에서 보여줄 행 개수
- * @param {number} collapse.expanded - 펼친 상태에서 보여줄 행 개수
- * @param {Object} [noDataProps] - 데이터 없을 때 설정
- * @param {string} noDataProps.description - 설명 텍스트
- * @param {string} noDataProps.href - 참고 링크
+ * @param {React.ReactNode} children - 테이블 상단 추가 내용
+ * @param {Object} collapse - 접기/펼치기 설정 { collapsed: 5, expanded: 20 }
+ * @param {Object} noDataProps - 빈 데이터 설정 { description, href }
  * @param {boolean} isLoading - 로딩 상태
  */
 export const DashboardTable = ({
@@ -116,6 +113,7 @@ export const DashboardTable = ({
             </div>
           </div>
           
+          {/* collapse 설정이 있을 때만 접기/펼치기 버튼 표시 */}
           {collapse && (
             <ExpandListButton
               isExpanded={isExpanded}

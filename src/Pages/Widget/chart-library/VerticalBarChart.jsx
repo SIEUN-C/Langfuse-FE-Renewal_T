@@ -123,9 +123,9 @@ const VerticalBarChart = ({
           data={data}
           margin={{ 
             top: 20,     // 상단 여백
-            right: 30,   // 우측 여백
-            left: 20,    // 좌측 여백
-            bottom: 60   // 하단 여백 (회전된 라벨을 위한 충분한 공간)
+            right: 10,   // 우측 여백
+            left: 10,    // 좌측 여백
+            bottom: 10   // 하단 여백 
           }}
         >
           {/* ===== X축 설정 (카테고리 축) ===== */}
@@ -136,10 +136,7 @@ const VerticalBarChart = ({
             tickLine={false}              // 눈금선 숨김 (깔끔한 디자인)
             axisLine={false}              // 축선 숨김 (미니멀 디자인)
             stroke="#6b7280"              // 텍스트 색상 (중간 회색)
-            angle={-45}                   // 라벨 45도 반시계방향 회전 (겹침 방지)
-            textAnchor="end"              // 회전된 텍스트의 앵커 포인트 (끝점 기준)
-            height={60}                   // X축 영역 높이 (회전된 라벨 공간 확보)
-            interval={0}                  // 모든 라벨 표시 (생략하지 않음)
+            textAnchor="middle"              // 텍스트의 앵커 포인트 (끝점 기준)
           />
           
           {/* ===== Y축 설정 (수치 축) ===== */}

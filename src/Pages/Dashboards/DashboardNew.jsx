@@ -1,8 +1,14 @@
+// src/Pages/Dashboards/DashboardNew.jsx
+
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { dashboardAPI } from './services/dashboardApi.js';
 import styles from './DashboardNew.module.css';
 
+/**
+ * 새 대시보드 생성 페이지
+ * 대시보드 이름과 설명을 입력받아 새로운 대시보드를 생성
+ */
 const DashboardNew = () => {
   const { projectId } = useParams();
   const navigate = useNavigate();
@@ -18,19 +24,15 @@ const DashboardNew = () => {
 
     setLoading(true);
     try {
-      console.log('대시보드 생성 요청:', { projectId, name, description });
       const result = await dashboardAPI.createDashboard(projectId, name.trim(), description.trim());
       
       if (result.success) {
-        console.log('대시보드 생성 성공:', result.data);
-        // 생성된 대시보드의 상세 페이지로 이동
+        // 생성 후 대시보드 상세 페이지로 이동
         navigate(`/project/${projectId}/dashboards/${result.data.id}`);
       } else {
-        console.error('대시보드 생성 실패:', result.error);
         alert(`Failed to create dashboard: ${result.error}`);
       }
     } catch (error) {
-      console.error('대시보드 생성 중 오류:', error);
       alert(`Failed to create dashboard: ${error.message}`);
     } finally {
       setLoading(false);

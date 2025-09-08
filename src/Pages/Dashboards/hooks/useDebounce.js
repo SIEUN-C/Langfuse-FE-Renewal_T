@@ -1,11 +1,11 @@
+// hooks/useDebounce.js
 import { useLayoutEffect, useMemo, useRef } from "react";
 
 /**
- * 함수 호출을 지연시키는 debounce 유틸리티
+ * 디바운스 유틸리티 함수
  * @param {Function} func - 디바운스할 함수
  * @param {number} timeout - 지연 시간 (ms)
- * @param {boolean} executeFirstCall - 첫 번째 호출을 즉시 실행할지 여부
- * @returns {Function} 디바운스된 함수
+ * @param {boolean} executeFirstCall - 첫 번째 호출 즉시 실행 여부
  */
 function debounce(func, timeout, executeFirstCall = false) {
   let timer = null;
@@ -33,22 +33,22 @@ function debounce(func, timeout, executeFirstCall = false) {
 
 /**
  * 함수를 디바운스하는 React 훅
+ * 검색, 자동저장 등 연속 호출을 제한할 때 사용
+ * 
  * @param {Function} callback - 디바운스할 콜백 함수
  * @param {number} delay - 디바운스 지연 시간 (기본: 600ms)
- * @param {boolean} executeFirstCall - 첫 번째 호출을 즉시 실행할지 여부 (기본: true)
+ * @param {boolean} executeFirstCall - 첫 번째 호출 즉시 실행 여부 (기본: true)
  * @returns {Function} 디바운스된 콜백 함수
  * 
  * @example
- * const debouncedSave = useDebounce((data) => {
- *   saveToAPI(data);
+ * const debouncedSearch = useDebounce((query) => {
+ *   searchAPI(query);
  * }, 500);
- * 
- * // 사용법
- * debouncedSave(newData); // 500ms 후에 실행됨
  */
 export function useDebounce(callback, delay = 600, executeFirstCall = true) {
   const callbackRef = useRef(callback);
   
+  // 최신 콜백 함수를 ref에 저장 (클로저 문제 해결)
   useLayoutEffect(() => {
     callbackRef.current = callback;
   }, [callback]);

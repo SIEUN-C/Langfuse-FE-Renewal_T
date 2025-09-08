@@ -1,4 +1,4 @@
-// Dashboard API - 단일 파일 버전
+// src/Pages/Dashboards/services/dashboardApi.js
 
 // ============================================
 // tRPC 유틸리티 함수
@@ -39,22 +39,22 @@ async function trpcPost(path, bodyObj) {
 // ============================================
 // Dashboard API 서비스
 // ============================================
+
+/**
+ * 대시보드 관련 API 서비스
+ * Langfuse tRPC API를 래핑하여 일관된 인터페이스 제공
+ */
 export const dashboardAPI = {
   /**
-   * ✅ 추가: Trace 필터 옵션 조회 함수
+   * Trace 필터 옵션 조회
    * @param {string} projectId - 프로젝트 ID
    * @returns {Promise<Object>} { success: boolean, data: { name: [], tags: [] } }
    */
   async getTraceFilterOptions(projectId) {
     try {
-      console.log("Trace 필터 옵션 조회:", { projectId });
-      
-      // tRPC API 호출
       const data = await trpcGet('traces.filterOptions', { projectId });
       
-      console.log("Trace 필터 옵션 응답:", data);
-      
-      // API 응답 구조에 맞춰 데이터 변환
+      // API 응답을 UI에서 사용하기 쉬운 형태로 변환
       const processedData = {
         name: data?.name?.map(item => item.value || item) || [],
         tags: data?.tags?.map(item => item.value || item) || []
@@ -76,20 +76,14 @@ export const dashboardAPI = {
   },
 
   /**
-   * ✅ 추가: Environment 필터 옵션 조회 함수  
+   * Environment 필터 옵션 조회
    * @param {string} projectId - 프로젝트 ID
    * @returns {Promise<Object>} { success: boolean, data: [] }
    */
   async getEnvironmentFilterOptions(projectId) {
     try {
-      console.log("Environment 필터 옵션 조회:", { projectId });
-      
-      // tRPC API 호출
       const data = await trpcGet('projects.environmentFilterOptions', { projectId });
       
-      console.log("Environment 필터 옵션 응답:", data);
-      
-      // API 응답 구조에 맞춰 데이터 변환
       const environments = Array.isArray(data) 
         ? data.map(item => item.environment || item) 
         : [];
@@ -114,16 +108,12 @@ export const dashboardAPI = {
    */
   async getAllDashboards(projectId, page = 0, limit = 50) {
     try {
-      console.log("대시보드 목록 조회:", { projectId, page, limit });
-
       const data = await trpcGet("dashboard.allDashboards", {
         projectId,
         page,
         limit,
         orderBy: { column: "updatedAt", order: "DESC" },
       });
-
-      console.log("대시보드 목록 응답:", data);
 
       return {
         success: true,
@@ -146,8 +136,6 @@ export const dashboardAPI = {
    */
   async getDashboard(projectId, dashboardId) {
     try {
-      console.log("대시보드 조회:", { projectId, dashboardId });
-
       const data = await trpcGet("dashboard.getDashboard", {
         projectId,
         dashboardId,
@@ -173,15 +161,11 @@ export const dashboardAPI = {
    */
   async createDashboard(projectId, name, description = "") {
     try {
-      console.log("대시보드 생성:", { projectId, name, description });
-
       const data = await trpcPost("dashboard.createDashboard", {
         projectId,
         name: name.trim(),
         description: description.trim(),
       });
-
-      console.log("대시보드 생성 완료:", data);
 
       return {
         success: true,
@@ -202,12 +186,6 @@ export const dashboardAPI = {
    */
   async updateDashboardMetadata(projectId, dashboardId, metadata) {
     try {
-      console.log("대시보드 메타데이터 수정:", {
-        projectId,
-        dashboardId,
-        metadata,
-      });
-
       const data = await trpcPost("dashboard.updateDashboardMetadata", {
         projectId,
         dashboardId,
@@ -229,43 +207,35 @@ export const dashboardAPI = {
     }
   },
 
-  async updateDashboard(projectId, dashboardId, name, description = "") {
-    try {
-      console.log("대시보드 수정:", {
-        projectId,
-        dashboardId,
-        name,
-        description,
-      });
+  // 중복 메서드 - updateDashboardMetadata와 동일한 기능
+  // async updateDashboard(projectId, dashboardId, name, description = "") {
+  //   try {
+  //     const data = await trpcPost("dashboard.updateDashboardMetadata", {
+  //       projectId,
+  //       dashboardId,
+  //       name: name.trim(),
+  //       description: description.trim(),
+  //     });
 
-      const data = await trpcPost("dashboard.updateDashboardMetadata", {
-        projectId,
-        dashboardId,
-        name: name.trim(),
-        description: description.trim(),
-      });
+  //     return {
+  //       success: true,
+  //       data,
+  //     };
+  //   } catch (error) {
+  //     console.error("대시보드 수정 실패:", error);
 
-      return {
-        success: true,
-        data,
-      };
-    } catch (error) {
-      console.error("대시보드 수정 실패:", error);
-
-      return {
-        success: false,
-        error: error.message,
-      };
-    }
-  },
+  //     return {
+  //       success: false,
+  //       error: error.message,
+  //     };
+  //   }
+  // },
 
   /**
    * 대시보드 복제
    */
   async cloneDashboard(projectId, dashboardId) {
     try {
-      console.log("대시보드 복제:", { projectId, dashboardId });
-
       const data = await trpcPost("dashboard.cloneDashboard", {
         projectId,
         dashboardId,
@@ -290,8 +260,6 @@ export const dashboardAPI = {
    */
   async deleteDashboard(projectId, dashboardId) {
     try {
-      console.log("대시보드 삭제:", { projectId, dashboardId });
-
       await trpcPost("dashboard.delete", {
         projectId,
         dashboardId,
@@ -316,12 +284,6 @@ export const dashboardAPI = {
    */
   async updateDashboardDefinition(projectId, dashboardId, definition) {
     try {
-      console.log("대시보드 정의 업데이트:", {
-        projectId,
-        dashboardId,
-        definition,
-      });
-
       const data = await trpcPost("dashboard.updateDashboardDefinition", {
         projectId,
         dashboardId,
@@ -346,14 +308,16 @@ export const dashboardAPI = {
 // ============================================
 // Widget API 서비스
 // ============================================
+
+/**
+ * 위젯 관련 API 서비스
+ */
 export const widgetAPI = {
   /**
    * 개별 위젯 조회 (DashboardWidget에서 사용)
    */
   async getWidget(projectId, widgetId) {
     try {
-      console.log("개별 위젯 조회:", { projectId, widgetId });
-
       const data = await trpcGet("dashboardWidgets.get", {
         widgetId,
         projectId,
@@ -379,8 +343,6 @@ export const widgetAPI = {
    */
   async executeQuery(projectId, query) {
     try {
-      console.log("쿼리 실행:", { projectId, query });
-
       const data = await trpcGet("dashboard.executeQuery", {
         projectId,
         query,
@@ -406,8 +368,6 @@ export const widgetAPI = {
    */
   async getAllWidgets(projectId, orderBy = { column: "updatedAt", order: "DESC" }) {
     try {
-      console.log("위젯 목록 조회:", { projectId, orderBy });
-
       const data = await trpcGet("dashboardWidgets.all", {
         projectId,
         orderBy,
@@ -433,8 +393,6 @@ export const widgetAPI = {
    */
   async createWidget(projectId, widgetData) {
     try {
-      console.log("위젯 생성:", { projectId, widgetData });
-
       const data = await trpcPost("dashboardWidgets.create", {
         projectId,
         ...widgetData,
@@ -459,8 +417,6 @@ export const widgetAPI = {
    */
   async copyWidgetToProject(projectId, widgetId, dashboardId, placementId) {
     try {
-      console.log("위젯 복사:", { projectId, widgetId, dashboardId, placementId });
-
       const data = await trpcPost("dashboardWidgets.copyToProject", {
         projectId,
         widgetId,
@@ -487,8 +443,6 @@ export const widgetAPI = {
    */
   async updateWidget(projectId, widgetId, widgetData) {
     try {
-      console.log("위젯 수정:", { projectId, widgetId, widgetData });
-
       const data = await trpcPost("dashboardWidgets.update", {
         projectId,
         widgetId,
@@ -514,8 +468,6 @@ export const widgetAPI = {
    */
   async deleteWidget(projectId, widgetId) {
     try {
-      console.log("위젯 삭제:", { projectId, widgetId });
-
       await trpcPost("dashboardWidgets.delete", {
         projectId,
         widgetId,
@@ -540,8 +492,6 @@ export const widgetAPI = {
    */
   async getChartData(projectId, queryName, filter = {}) {
     try {
-      console.log("차트 데이터 조회:", { projectId, queryName, filter });
-
       const data = await trpcGet("dashboard.chart", {
         projectId,
         queryName,
@@ -568,8 +518,6 @@ export const widgetAPI = {
    */
   async getScoreHistogram(projectId, filter = {}) {
     try {
-      console.log("스코어 히스토그램 조회:", { projectId, filter });
-
       const data = await trpcGet("dashboard.scoreHistogram", {
         projectId,
         filter,
@@ -594,6 +542,10 @@ export const widgetAPI = {
 // ============================================
 // 유틸리티 함수
 // ============================================
+
+/**
+ * 대시보드 관련 유틸리티 함수들
+ */
 export const dashboardUtils = {
   /**
    * 날짜 포맷 함수

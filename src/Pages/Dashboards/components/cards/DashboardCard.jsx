@@ -1,20 +1,21 @@
+// src/Pages/Dashboards/components/cards/DashboardCard.jsx
+
 import { Loader } from 'lucide-react';
-import styles from './DashboardCard.module.css'; // 이렇게 변경!
+import styles from './DashboardCard.module.css';
 
 /**
  * DashboardCard 컴포넌트
- * 기본 대시보드의 카드 래퍼 컴포넌트
+ * 위젯을 감싸는 카드 컨테이너. 헤더(제목/설명/액션버튼)와 본문 영역 제공
  * 
- * @param {Object} props
- * @param {string} [props.className] - 추가 CSS 클래스
- * @param {React.ReactNode} props.title - 카드 제목
- * @param {React.ReactNode} [props.description] - 카드 설명
- * @param {boolean} props.isLoading - 로딩 상태
- * @param {React.ReactNode} [props.children] - 카드 내용
- * @param {React.ReactNode} [props.headerChildren] - 헤더 추가 내용
- * @param {string} [props.cardContentClassName] - 내용 영역 CSS 클래스
- * @param {string} [props.headerClassName] - 헤더 영역 CSS 클래스
- * @param {React.ReactNode} [props.headerRight] - 헤더 오른쪽 영역
+ * @param {string} className - 추가 CSS 클래스
+ * @param {React.ReactNode} title - 카드 제목 (필수)
+ * @param {React.ReactNode} description - 카드 설명
+ * @param {boolean} isLoading - 로딩 시 헤더에 스피너 표시
+ * @param {React.ReactNode} children - 카드 본문 내용
+ * @param {React.ReactNode} headerChildren - 헤더 하단 추가 요소 (필터 등)
+ * @param {string} cardContentClassName - 본문 영역 추가 CSS 클래스
+ * @param {string} headerClassName - 헤더 영역 추가 CSS 클래스
+ * @param {React.ReactNode} headerRight - 헤더 우측 요소 (버튼 등)
  */
 export const DashboardCard = ({
   className = '',
@@ -33,6 +34,7 @@ export const DashboardCard = ({
 
   return (
     <div className={cardClasses}>
+      {/* 헤더 영역 */}
       <div className={headerClasses}>
         <div className={styles.dashboardCardHeaderTop}>
           <div className={styles.dashboardCardHeaderLeft}>
@@ -61,6 +63,7 @@ export const DashboardCard = ({
         )}
       </div>
       
+      {/* 본문 영역 */}
       <div className={contentClasses}>
         {children}
       </div>

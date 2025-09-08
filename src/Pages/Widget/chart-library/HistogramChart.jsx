@@ -1,3 +1,6 @@
+// src/Pages/Widget/chart-library/HistogramChart.jsx
+// 히스토그램/막대 차트 컴포넌트 - ClickHouse 및 일반 데이터 포맷 지원
+
 import React from "react";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
 import { compactSmallNumberFormatter } from "../utils/number-utils.js";
@@ -5,7 +8,8 @@ import ChartContainer from "./ChartContainer.jsx";
 import styles from './chart-library.module.css';
 
 /**
- * HistogramChart 컴포넌트 - 히스토그램/막대 차트로 데이터를 표시
+ * HistogramChart - 히스토그램/막대 차트로 데이터를 표시하는 컴포넌트
+ * 원본 Langfuse의 HistogramChart와 동일한 기능 제공
  * 
  * 주요 기능:
  * 1. ClickHouse 히스토그램 포맷 지원 ([(lower, upper, height), ...])
@@ -33,19 +37,17 @@ const HistogramChart = ({ data, config, accessibilityLayer }) => {
    *          변환된 히스토그램 데이터
    */
   const transformHistogramData = (data) => {
-    // ===== 데이터 유효성 검사 =====
+    // 데이터 유효성 검사
     if (!Array.isArray(data) || data.length === 0) {
       return [];
     }
 
-    // ===== 첫 번째 데이터 포인트 검사 =====
+    // 첫 번째 데이터 포인트 검사
     const firstDataPoint = data[0];
     
-    // ===== ClickHouse 히스토그램 포맷 처리 =====
+    // ClickHouse 히스토그램 포맷 처리
     // 형식: { metric: [[lower, upper, height], [lower, upper, height], ...] }
     if (firstDataPoint?.metric && Array.isArray(firstDataPoint.metric)) {
-      console.log("ClickHouse 히스토그램 포맷 감지됨:", firstDataPoint.metric);
-      
       return firstDataPoint.metric
         .filter(item => Array.isArray(item) && item.length >= 3) // 안전성 검사: 3개 요소 확인
         .map(([lower, upper, height], index) => {
@@ -65,10 +67,8 @@ const HistogramChart = ({ data, config, accessibilityLayer }) => {
         });
     }
 
-    // ===== 일반 데이터 포인트 포맷 처리 =====
+    // 일반 데이터 포인트 포맷 처리
     // 형식: [{ dimension: string, metric: number }, ...]
-    console.log("일반 데이터 포인트 포맷으로 처리:", data);
-    
     return data
       .filter(item => item && typeof item === 'object') // null/undefined 필터링
       .map((item, index) => {
@@ -90,7 +90,7 @@ const HistogramChart = ({ data, config, accessibilityLayer }) => {
       .filter(item => item.count >= 0); // 유효한 값만 유지
   };
 
-  // ===== 히스토그램 데이터 변환 =====
+  // 히스토그램 데이터 변환
   const histogramData = transformHistogramData(data);
   
   /**
@@ -127,10 +127,8 @@ const HistogramChart = ({ data, config, accessibilityLayer }) => {
     );
   };
 
-  // ===== 빈 데이터 상태 처리 =====
+  // 빈 데이터 상태 처리
   if (!histogramData || histogramData.length === 0) {
-    console.warn("히스토그램 데이터가 비어있음:", { originalData: data, transformedData: histogramData });
-    
     return (
       <ChartContainer config={config}>
         <div className={styles.empty}>
@@ -140,14 +138,7 @@ const HistogramChart = ({ data, config, accessibilityLayer }) => {
     );
   }
 
-  // ===== 성공적인 데이터 변환 로그 =====
-  console.log("히스토그램 렌더링:", {
-    inputDataLength: data?.length || 0,
-    outputDataLength: histogramData.length,
-    sampleData: histogramData.slice(0, 3) // 처음 3개 항목만 로그
-  });
-
-  // ===== 메인 차트 렌더링 =====
+  // 메인 차트 렌더링
   return (
     <ChartContainer config={config}>
       <ResponsiveContainer width="100%" height="100%">
@@ -157,24 +148,23 @@ const HistogramChart = ({ data, config, accessibilityLayer }) => {
             top: 20,    // 상단 여백
             right: 30,  // 우측 여백  
             left: 20,   // 좌측 여백
-            bottom: 90  // 하단 여백 (라벨 회전으로 인한 추가 공간)
+            bottom: 20  // 하단 여백 (라벨 회전으로 인한 추가 공간)
           }}
         >
-          {/* ===== X축 설정 ===== */}
+          {/* X축 설정 - 구간 라벨 표시 */}
           <XAxis
             dataKey="binLabel"           // 구간 라벨을 X축 값으로 사용
             fontSize={12}                // 글꼴 크기
             tickLine={false}             // 눈금선 숨김
             axisLine={false}             // 축선 숨김
-            angle={-45}                  // 라벨 45도 회전 (겹침 방지)
-            textAnchor="end"             // 회전된 텍스트의 앵커 포인트
-            height={90}                  // X축 영역 높이 (회전된 라벨 공간 확보)
-            interval={0}                 // 모든 라벨 표시 (생략하지 않음)
+            textAnchor="middle"          // 앵커 포인트
+            interval="preserveStartEnd"   
+            minTickGap={60}            
             stroke="#6b7280"             // 텍스트 색상 (회색)
             tick={{ fontSize: 11 }}      // 개별 눈금 텍스트 스타일
           />
           
-          {/* ===== Y축 설정 ===== */}
+          {/* Y축 설정 - 개수 값 표시 */}
           <YAxis
             fontSize={12}                          // 글꼴 크기
             tickLine={false}                       // 눈금선 숨김
@@ -184,15 +174,14 @@ const HistogramChart = ({ data, config, accessibilityLayer }) => {
             tickFormatter={compactSmallNumberFormatter} // 큰 숫자 압축 표시 (1000 -> 1K)
           />
           
-          {/* ===== 막대 차트 설정 ===== */}
+          {/* 막대 차트 설정 */}
           <Bar
             dataKey="count"              // Y축 데이터 필드
             fill="#3b82f6"               // 막대 색상 (파란색)
             radius={[2, 2, 0, 0]}        // 막대 모서리 둥글게 (상단만)
-            maxBarSize={60}              // 막대 최대 너비 제한 (과도하게 넓어지는 것 방지)
           />
           
-          {/* ===== 툴팁 설정 ===== */}
+          {/* 커스텀 툴팁 설정 */}
           <Tooltip 
             content={<CustomTooltip />}                    // 커스텀 툴팁 컴포넌트 사용
             cursor={{ fill: 'rgba(59, 130, 246, 0.1)' }}  // 호버 시 배경 하이라이트

@@ -1,3 +1,6 @@
+// src/Pages/Widget/chart-library/LineChartTimeSeries.jsx
+// 시계열 데이터를 선 그래프로 표시하는 컴포넌트
+
 import React, { useMemo } from "react";
 import { Line, LineChart, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
 import { getUniqueDimensions, groupDataByTimeDimension } from "./utils.js";
@@ -5,7 +8,8 @@ import ChartContainer from "./ChartContainer.jsx";
 import styles from './chart-library.module.css';
 
 /**
- * LineChartTimeSeries 컴포넌트 - 시계열 데이터를 선 그래프로 표시
+ * LineChartTimeSeries - 시계열 데이터를 선 그래프로 표시하는 컴포넌트
+ * 원본 Langfuse의 LineChartTimeSeries와 동일한 기능 제공
  * 
  * 주요 기능:
  * 1. 시간 축(time_dimension)을 기준으로 한 시계열 데이터 시각화
@@ -33,7 +37,7 @@ import styles from './chart-library.module.css';
 const LineChartTimeSeries = ({
   data,
   config = {
-    // ===== 기본 테마 설정 =====
+    // 기본 테마 설정
     metric: {
       theme: {
         light: "#3b82f6", // 라이트 모드: 파란색 (주요 선 색상)
@@ -63,18 +67,7 @@ const LineChartTimeSeries = ({
    * ]
    */
   const groupedData = useMemo(() => {
-    console.log("LineChartTimeSeries: 데이터 그룹핑 시작", { 
-      inputLength: data?.length || 0 
-    });
-    
-    const result = groupDataByTimeDimension(data);
-    
-    console.log("LineChartTimeSeries: 데이터 그룹핑 완료", {
-      outputLength: result.length,
-      sampleOutput: result.slice(0, 2) // 처음 2개 시간 포인트만 로그
-    });
-    
-    return result;
+    return groupDataByTimeDimension(data);
   }, [data]);
 
   /**
@@ -84,17 +77,10 @@ const LineChartTimeSeries = ({
    * 차원은 보통 카테고리나 그룹을 나타냅니다 (예: 지역, 제품군, 사용자 타입).
    */
   const dimensions = useMemo(() => {
-    const result = getUniqueDimensions(data);
-    
-    console.log("LineChartTimeSeries: 고유 차원 추출", {
-      dimensionCount: result.length,
-      dimensions: result
-    });
-    
-    return result;
+    return getUniqueDimensions(data);
   }, [data]);
 
-  // ===== 다중 선을 위한 색상 팔레트 =====
+  // 다중 선을 위한 색상 팔레트
   // 8가지 구분되는 색상으로 최대 8개 선까지 지원
   // 색상은 접근성을 고려하여 충분한 대비를 가지도록 선택
   const colors = [
@@ -125,7 +111,7 @@ const LineChartTimeSeries = ({
    * @returns {React.ReactElement|null} 툴팁 컴포넌트 또는 null
    */
   const CustomTooltip = ({ active, payload, label }) => {
-    // ===== 툴팁 표시 조건 검사 =====
+    // 툴팁 표시 조건 검사
     if (!active || !payload || !payload.length) {
       return null;
     }
@@ -141,7 +127,7 @@ const LineChartTimeSeries = ({
       return null;
     }
 
-    // ===== 툴팁 렌더링 =====
+    // 툴팁 렌더링
     return (
       <div className={styles.tooltip}>
         {/* 시간 축 라벨 (X축 값) */}
@@ -165,10 +151,8 @@ const LineChartTimeSeries = ({
     );
   };
 
-  // ===== 빈 데이터 상태 처리 =====
+  // 빈 데이터 상태 처리
   if (!Array.isArray(data) || data.length === 0) {
-    console.warn("LineChartTimeSeries: 데이터가 비어있음", data);
-    
     return (
       <ChartContainer config={config}>
         <div className={styles.empty}>
@@ -178,27 +162,7 @@ const LineChartTimeSeries = ({
     );
   }
 
-  // ===== 데이터 검증 및 경고 =====
-  // 시계열 차트에 필요한 time_dimension 필드 존재 여부 확인
-  const hasTimeData = data.some(item => item.time_dimension);
-  if (!hasTimeData) {
-    console.warn("LineChartTimeSeries: time_dimension 필드가 없는 데이터 감지", {
-      sampleData: data.slice(0, 3)
-    });
-  }
-
-  // ===== 성능 및 디버깅 정보 로깅 =====
-  console.log("LineChartTimeSeries 렌더링:", {
-    originalDataLength: data.length,
-    groupedDataLength: groupedData.length,
-    dimensionCount: dimensions.length,
-    timeRange: groupedData.length > 0 ? {
-      start: groupedData[0]?.time_dimension,
-      end: groupedData[groupedData.length - 1]?.time_dimension
-    } : null
-  });
-
-  // ===== 메인 차트 렌더링 =====
+  // 메인 차트 렌더링
   return (
     <ChartContainer config={config}>
       <ResponsiveContainer width="100%" height="100%">
@@ -211,7 +175,7 @@ const LineChartTimeSeries = ({
             bottom: 20   // 하단 여백
           }}
         >
-          {/* ===== X축 설정 (시간 축) ===== */}
+          {/* X축 설정 (시간 축) */}
           <XAxis
             dataKey="time_dimension"     // 시간 차원을 X축으로 사용
             fontSize={12}                // 글꼴 크기 (가독성)
@@ -219,9 +183,11 @@ const LineChartTimeSeries = ({
             axisLine={false}             // 축선 숨김 (미니멀 디자인)
             stroke="#6b7280"             // 텍스트 색상 (중간 회색)
             tick={{ fontSize: 11 }}      // 개별 눈금 스타일
+            interval="preserveStartEnd"   
+            minTickGap={60}            
           />
           
-          {/* ===== Y축 설정 (수치 축) ===== */}
+          {/* Y축 설정 (수치 축) */}
           <YAxis
             type="number"                // 수치형 축
             fontSize={12}                // 글꼴 크기
@@ -231,8 +197,7 @@ const LineChartTimeSeries = ({
             tick={{ fontSize: 11 }}      // 개별 눈금 스타일
           />
           
-          {/* ===== 동적 선 생성 ===== */}
-          {/* 각 차원에 대해 별도의 선을 생성 */}
+          {/* 동적 선 생성 - 각 차원에 대해 별도의 선을 생성 */}
           {dimensions.map((dimension, index) => (
             <Line
               key={dimension}                           // React key (차원명 사용)
@@ -249,7 +214,7 @@ const LineChartTimeSeries = ({
             />
           ))}
           
-          {/* ===== 툴팁 설정 ===== */}
+          {/* 툴팁 설정 */}
           <Tooltip 
             content={<CustomTooltip />}               // 커스텀 툴팁 사용
             cursor={{                                 // 수직 커서 라인 설정

@@ -1,3 +1,5 @@
+// src/Pages/Dashboards/DashboardsView.jsx
+
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useParams } from "react-router-dom";
 import { DataTable } from "../../components/DataTable/DataTable.jsx";
@@ -14,15 +16,18 @@ import styles from "./Dashboards.module.css";
 import { dashboardAPI, dashboardUtils } from "./services/dashboardApi.js";
 import { EditDashboardDialog } from "./components/EditDashboardDialog";
 
-// 액션 드롭다운 컴포넌트 (조건부 버튼)
+/**
+ * 액션 드롭다운 컴포넌트
+ * 대시보드별 편집/복제/삭제 액션을 제공
+ * LANGFUSE 소유 대시보드는 편집/삭제 불가
+ */
 const ActionDropdown = ({ row, onEdit, onClone, onDelete }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  // owner가 LANGFUSE인지 확인
   const isLangfuseOwned = row.owner === "LANGFUSE";
 
-  // 외부 클릭 감지
+  // 드롭다운 외부 클릭 시 닫기
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -55,7 +60,7 @@ const ActionDropdown = ({ row, onEdit, onClone, onDelete }) => {
 
       {isOpen && (
         <div className={styles.dropdownMenu}>
-          {/* Edit 버튼: Project owner만 표시 */}
+          {/* Edit: 프로젝트 소유 대시보드만 */}
           {!isLangfuseOwned && (
             <button
               className={styles.dropdownItem}
@@ -69,7 +74,7 @@ const ActionDropdown = ({ row, onEdit, onClone, onDelete }) => {
             </button>
           )}
           
-          {/* Clone 버튼: 모든 대시보드에 표시 */}
+          {/* Clone: 모든 대시보드 */}
           <button
             className={styles.dropdownItem}
             onClick={(e) => {
@@ -81,7 +86,7 @@ const ActionDropdown = ({ row, onEdit, onClone, onDelete }) => {
             Clone
           </button>
           
-          {/* Delete 버튼: Project owner만 표시 */}
+          {/* Delete: 프로젝트 소유 대시보드만 */}
           {!isLangfuseOwned && (
             <button
               className={`${styles.dropdownItem} ${styles.deleteItem}`}
@@ -100,6 +105,10 @@ const ActionDropdown = ({ row, onEdit, onClone, onDelete }) => {
   );
 };
 
+/**
+ * 대시보드 목록 뷰 컴포넌트
+ * 대시보드 CRUD 기능과 정렬 기능 제공
+ */
 export const DashboardsView = () => {
   const { projectId } = useParams();
   const [dashboards, setDashboards] = useState([]);
@@ -134,7 +143,6 @@ export const DashboardsView = () => {
     }
   };
 
-  // 정렬 함수
   const handleSort = (key) => {
     let direction = "asc";
     if (sortConfig.key === key && sortConfig.direction === "asc") {
@@ -143,7 +151,7 @@ export const DashboardsView = () => {
     setSortConfig({ key, direction });
   };
 
-  // 데이터 정렬
+  // 정렬된 대시보드 목록
   const sortedDashboards = React.useMemo(() => {
     const sortableItems = [...dashboards];
     if (sortConfig.key) {
@@ -151,7 +159,7 @@ export const DashboardsView = () => {
         let aValue = a[sortConfig.key];
         let bValue = b[sortConfig.key];
 
-        // 날짜 정렬의 경우
+        // 날짜 필드 정렬
         if (sortConfig.key === "updatedAt" || sortConfig.key === "createdAt") {
           aValue = new Date(aValue);
           bValue = new Date(bValue);
@@ -169,7 +177,6 @@ export const DashboardsView = () => {
     return sortableItems;
   }, [dashboards, sortConfig]);
 
-  // 정렬 아이콘 렌더링
   const getSortIcon = (columnKey) => {
     if (sortConfig.key !== columnKey) {
       return <ChevronDown size={14} className={styles.sortIcon} />;
@@ -181,18 +188,15 @@ export const DashboardsView = () => {
     );
   };
 
-  // 편집 액션 핸들러 (다이얼로그 열기)
   const handleEdit = (dashboard) => {
-    console.log("Edit dashboard:", dashboard);
     setEditDialog({
       open: true,
       dashboard,
     });
   };
 
-  // 편집 성공 시 콜백
+  // 편집 성공 시 목록 업데이트
   const handleEditSuccess = (updatedDashboard) => {
-    // 대시보드 목록에서 업데이트된 항목 반영
     setDashboards((prev) =>
       prev.map((dashboard) =>
         dashboard.id === updatedDashboard.id
@@ -200,23 +204,16 @@ export const DashboardsView = () => {
           : dashboard
       )
     );
-    
-    console.log("Dashboard list updated after edit");
   };
 
   const handleClone = async (dashboard) => {
     try {
-      console.log("Clone dashboard:", dashboard);
-
       const result = await dashboardAPI.cloneDashboard(projectId, dashboard.id);
 
       if (result.success) {
-        // 성공 시 목록 새로고침
         await loadDashboards();
-        console.log("Dashboard cloned successfully");
         // TODO: 성공 토스트 메시지 표시
       } else {
-        console.error("Failed to clone dashboard:", result.error);
         alert(`Failed to clone dashboard: ${result.error}`);
       }
     } catch (error) {
@@ -226,12 +223,6 @@ export const DashboardsView = () => {
   };
 
   const handleDelete = async (dashboard) => {
-    console.log('=== handleDelete 디버깅 ===');
-    console.log('URL에서 가져온 projectId:', projectId);
-    console.log('dashboard 객체:', dashboard);
-    console.log('dashboard.id:', dashboard.id);
-    console.log('실제 전달할 값들:', { projectId, dashboardId: dashboard.id });
-    
     if (
       !window.confirm(`Are you sure you want to delete "${dashboard.name}"?`)
     ) {
@@ -239,17 +230,12 @@ export const DashboardsView = () => {
     }
 
     try {
-      console.log("Delete dashboard:", dashboard);
-
       const result = await dashboardAPI.deleteDashboard(projectId, dashboard.id);
 
       if (result.success) {
-        // 성공 시 목록에서 제거
         await loadDashboards();
-        console.log("Dashboard deleted successfully");
         // TODO: 성공 토스트 메시지 표시
       } else {
-        console.error("Failed to delete dashboard:", result.error);
         alert(`Failed to delete dashboard: ${result.error}`);
       }
     } catch (error) {

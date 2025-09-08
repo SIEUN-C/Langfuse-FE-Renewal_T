@@ -1,3 +1,5 @@
+// src/Pages/Widget/component/DashboardGrid.jsx
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { Responsive, WidthProvider } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
@@ -7,7 +9,11 @@ import styles from './DashboardGrid.module.css';
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
-// Hook to detect screen size
+/**
+ * 화면 크기 감지 훅
+ * @param {string} query - CSS 미디어 쿼리 문자열
+ * @returns {boolean} 미디어 쿼리와 매치되는지 여부
+ */
 function useMediaQuery(query) {
   const [matches, setMatches] = useState(false);
 
@@ -24,6 +30,21 @@ function useMediaQuery(query) {
   return matches;
 }
 
+/**
+ * 대시보드 위젯 그리드 컴포넌트
+ * 반응형 그리드 레이아웃으로 위젯들을 배치하고 드래그 앤 드롭 지원
+ * 작은 화면에서는 플렉스 레이아웃으로 전환
+ * 
+ * @param {Array} widgets - 위젯 배치 정보 배열
+ * @param {Function} onChange - 레이아웃 변경 시 콜백
+ * @param {boolean} canEdit - 편집 가능 여부
+ * @param {string} dashboardId - 대시보드 ID
+ * @param {string} projectId - 프로젝트 ID
+ * @param {Object} dateRange - 날짜 범위
+ * @param {Array} filterState - 필터 상태
+ * @param {Function} onDeleteWidget - 위젯 삭제 콜백
+ * @param {string} dashboardOwner - 대시보드 소유자
+ */
 const DashboardGrid = ({
   widgets,
   onChange,
@@ -35,17 +56,17 @@ const DashboardGrid = ({
   onDeleteWidget,
   dashboardOwner,
 }) => {
-  // 위젯 높이를 더 컴팩트하게 설정
-  const [rowHeight, setRowHeight] = useState(100); // 150 → 100으로 변경
+  const [rowHeight, setRowHeight] = useState(100);
 
-  // Detect if screen is medium or smaller (1024px and below)
+  // 1024px 이하에서는 모바일 레이아웃 사용
   const isSmallScreen = useMediaQuery("(max-width: 1024px)");
 
+  // 컨테이너 너비에 따른 동적 행 높이 계산
   const handleWidthChange = useCallback(
     (containerWidth) => {
       const calculatedRowHeight = ((containerWidth / 12) * 9) / 16;
-      // 최대 높이 제한을 추가하여 너무 큰 위젯 방지
-      const finalRowHeight = Math.min(calculatedRowHeight, 200); // 최대 120px로 제한
+      // 최대 높이 제한으로 너무 큰 위젯 방지
+      const finalRowHeight = Math.min(calculatedRowHeight, 200);
       if (finalRowHeight !== rowHeight) {
         setRowHeight(finalRowHeight);
       }
@@ -53,7 +74,7 @@ const DashboardGrid = ({
     [rowHeight],
   );
 
-  // Convert widget format to react-grid-layout format
+  // 위젯 데이터를 react-grid-layout 형식으로 변환
   const layout = widgets.map((w) => ({
     i: w.id,
     x: w.x,
@@ -62,16 +83,16 @@ const DashboardGrid = ({
     h: w.y_size,
     isDraggable: canEdit && !isSmallScreen,
     minW: 2,
-    minH: 2, // 최소 높이 유지
+    minH: 2,
   }));
 
   const handleLayoutChange = (newLayout) => {
-    // Safety checks: prevent layout changes on small screens and when editing is disabled
+    // 작은 화면이거나 편집 불가능한 경우 변경 방지
     if (!canEdit || isSmallScreen) return;
     
     if (!newLayout || newLayout.length === 0) return;
 
-    // Update widget positions based on the new layout
+    // 새 레이아웃에 따라 위젯 위치 업데이트
     const updatedWidgets = widgets.map((w) => {
       const layoutItem = newLayout.find((item) => item.i === w.id);
       if (!layoutItem) return w;
@@ -88,7 +109,7 @@ const DashboardGrid = ({
     onChange(updatedWidgets);
   };
 
-  // Render flex layout for small screens
+  // 모바일 화면: 세로 나열 레이아웃
   if (isSmallScreen) {
     return (
       <div className={styles.mobileLayout}>
@@ -98,7 +119,7 @@ const DashboardGrid = ({
             <div
               key={widget.id}
               className={styles.mobileWidget}
-              style={{ height: "400px" }} // 300px → 250px로 줄임
+              style={{ height: "400px" }}
             >
               <DashboardWidget
                 dashboardId={dashboardId}
@@ -115,7 +136,7 @@ const DashboardGrid = ({
     );
   }
 
-  // Render grid layout for larger screens
+  // 데스크톱 화면: 그리드 레이아웃
   return (
     <div className={styles.gridContainer}>
       <ResponsiveGridLayout
@@ -123,7 +144,7 @@ const DashboardGrid = ({
         layouts={{ lg: layout }}
         cols={{ lg: 12, md: 12, sm: 12, xs: 12, xxs: 12 }}
         margin={[16, 16]}
-        rowHeight={rowHeight} // 동적으로 계산된 더 작은 높이 사용
+        rowHeight={rowHeight}
         isDraggable={canEdit}
         isResizable={canEdit}
         onDragStop={handleLayoutChange}

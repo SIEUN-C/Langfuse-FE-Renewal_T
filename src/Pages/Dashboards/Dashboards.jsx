@@ -1,3 +1,5 @@
+// src/Pages/Dashboards/Dashboards.jsx
+
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import styles from './Dashboards.module.css';
@@ -5,14 +7,19 @@ import { Info, Plus } from 'lucide-react';
 import { DashboardsView } from './DashboardsView';
 import { WidgetsView } from '../Widget/pages/WidgetsView';
 
+/**
+ * 대시보드 메인 페이지
+ * Dashboards와 Widgets 탭을 제공하는 상위 컨테이너
+ */
 const Dashboards = () => {
-  const { projectId } = useParams(); // URL에서 projectId 추출
+  const { projectId } = useParams();
   const [activeTab, setActiveTab] = useState('Dashboards');
   const navigate = useNavigate();
 
+  // 활성 탭에 따른 헤더 텍스트 결정
   const { title, buttonText } = activeTab === 'Dashboards'
-  ? { title: 'Dashboards', buttonText: 'New dashboard' }
-  : { title: 'Widgets', buttonText: 'New widget' };
+    ? { title: 'Dashboards', buttonText: 'New dashboard' }
+    : { title: 'Widgets', buttonText: 'New widget' };
 
   const handleNewButtonClick = () => {
     if (activeTab === 'Dashboards') {
@@ -24,7 +31,7 @@ const Dashboards = () => {
 
   return (
     <div className={styles.container}>
-      {/* 1. 페이지 헤더 (동적) */}
+      {/* 페이지 헤더 */}
       <div className={styles.header}>
         <div className={styles.title}>
           <h1>{title}</h1>
@@ -35,7 +42,7 @@ const Dashboards = () => {
         </button>
       </div>
 
-      {/* 2. 탭 */}
+      {/* 탭 네비게이션 */}
       <div className={styles.tabs}>
         <button
           className={`${styles.tabButton} ${activeTab === 'Dashboards' ? styles.active : ''}`}
@@ -51,7 +58,7 @@ const Dashboards = () => {
         </button>
       </div>
 
-      {/* 3. 탭에 따른 컨텐츠 렌더링 */}
+      {/* 탭 컨텐츠 */}
       <div className={styles.contentArea}>
         {activeTab === 'Dashboards' ? <DashboardsView /> : <WidgetsView />}
       </div>

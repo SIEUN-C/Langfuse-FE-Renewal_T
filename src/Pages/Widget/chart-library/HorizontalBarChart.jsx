@@ -1,3 +1,6 @@
+// src/Pages/Widget/chart-library/HorizontalBarChart.jsx
+// 수평 막대 차트 컴포넌트 - 카테고리별 비교 데이터 시각화
+
 import React from "react";
 import { Bar, BarChart, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
 import { formatAxisLabel } from "./utils.js";
@@ -5,7 +8,8 @@ import ChartContainer from "./ChartContainer.jsx";
 import styles from './chart-library.module.css';
 
 /**
- * HorizontalBarChart 컴포넌트 - 데이터를 수평 막대 차트로 표시
+ * HorizontalBarChart - 데이터를 수평 막대 차트로 표시하는 컴포넌트
+ * 원본 Langfuse의 HorizontalBarChart와 동일한 기능 제공
  * 
  * 주요 기능:
  * 1. 차원(dimension)별 메트릭 값을 수평 막대로 시각화
@@ -32,7 +36,7 @@ import styles from './chart-library.module.css';
 const HorizontalBarChart = ({
   data,
   config = {
-    // ===== 기본 테마 설정 =====
+    // 기본 테마 설정
     metric: {
       theme: {
         light: "#3b82f6", // 라이트 모드: 파란색 (blue-500)
@@ -59,7 +63,7 @@ const HorizontalBarChart = ({
    * @returns {React.ReactElement|null} 툴팁 컴포넌트 또는 null
    */
   const CustomTooltip = ({ active, payload, label }) => {
-    // ===== 툴팁 표시 조건 검사 =====
+    // 툴팁 표시 조건 검사
     // 마우스가 막대 위에 있고, 데이터가 존재할 때만 툴팁 표시
     if (!active || !payload || !payload.length || payload[0]?.value === undefined) {
       return null;
@@ -67,7 +71,7 @@ const HorizontalBarChart = ({
 
     const value = payload[0].value;
     
-    // ===== 툴팁 렌더링 =====
+    // 툴팁 렌더링
     return (
       <div className={styles.tooltip}>
         {/* 차원명 (카테고리) 표시 */}
@@ -86,11 +90,9 @@ const HorizontalBarChart = ({
     );
   };
 
-  // ===== 빈 데이터 상태 처리 =====
+  // 빈 데이터 상태 처리
   // 데이터가 없거나 빈 배열인 경우 안내 메시지 표시
   if (!Array.isArray(data) || data.length === 0) {
-    console.warn("HorizontalBarChart: 데이터가 비어있음 또는 유효하지 않음", data);
-    
     return (
       <ChartContainer config={config}>
         <div className={styles.empty}>
@@ -100,21 +102,7 @@ const HorizontalBarChart = ({
     );
   }
 
-  // ===== 데이터 유효성 검사 및 로깅 =====
-  const validDataCount = data.filter(item => 
-    item && 
-    typeof item === 'object' && 
-    (item.dimension !== undefined) && 
-    (typeof item.metric === 'number' || !isNaN(Number(item.metric)))
-  ).length;
-  
-  console.log("HorizontalBarChart 렌더링:", {
-    totalItems: data.length,
-    validItems: validDataCount,
-    sampleData: data.slice(0, 3) // 처음 3개 항목만 로그
-  });
-
-  // ===== 메인 차트 렌더링 =====
+  // 메인 차트 렌더링
   return (
     <ChartContainer config={config}>
       <ResponsiveContainer width="100%" height="100%">
@@ -122,22 +110,24 @@ const HorizontalBarChart = ({
           data={data}
           layout="vertical"              // 수평 막대 차트 설정
           margin={{ 
-            top: 20,     // 상단 여백
-            right: 30,   // 우측 여백 (값 표시 공간)
-            left: 90,    // 좌측 여백 (긴 라벨을 위한 충분한 공간)
-            bottom: 20   // 하단 여백
+            top: 10,     // 상단 여백
+            right: 20,   // 우측 여백 (값 표시 공간)
+            left: 20,    // 좌측 여백 (긴 라벨을 위한 충분한 공간)
+            bottom: 10   // 하단 여백
           }}
         >
-          {/* ===== X축 설정 (수치 축) ===== */}
+          {/* X축 설정 (수치 축) */}
           <XAxis
             type="number"                 // 수치형 축으로 설정
             fontSize={12}                 // 글꼴 크기 (가독성을 위해 작게)
             tickLine={false}              // 눈금선 숨김 (깔끔한 디자인)
             axisLine={false}              // 축선 숨김 (미니멀 디자인)
             stroke="#6b7280"              // 텍스트 색상 (중간 회색)
+            interval="preserveStartEnd"    
+            minTickGap={60}              
           />
           
-          {/* ===== Y축 설정 (카테고리 축) ===== */}
+          {/* Y축 설정 (카테고리 축) */}
           <YAxis
             type="category"               // 카테고리형 축으로 설정
             dataKey="dimension"           // 차원 필드를 Y축 라벨로 사용
@@ -149,7 +139,7 @@ const HorizontalBarChart = ({
             stroke="#6b7280"              // 텍스트 색상 (중간 회색)
           />
           
-          {/* ===== 막대 설정 ===== */}
+          {/* 막대 설정 */}
           <Bar
             dataKey="metric"              // 메트릭 필드를 막대 길이로 사용
             radius={[0, 4, 4, 0]}         // 막대 모서리 둥글게 (우측만)
@@ -157,7 +147,7 @@ const HorizontalBarChart = ({
             fill="#3b82f6"                // 막대 색상 (파란색)
           />
           
-          {/* ===== 툴팁 설정 ===== */}
+          {/* 툴팁 설정 */}
           <Tooltip 
             content={<CustomTooltip />}  // 커스텀 툴팁 컴포넌트 사용
             cursor={{                    // 호버 시 배경 하이라이트 설정

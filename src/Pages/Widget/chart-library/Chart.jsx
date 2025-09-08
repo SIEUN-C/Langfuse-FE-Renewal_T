@@ -1,3 +1,5 @@
+//src/Pages/Widget/chart-library/Chart.jsx
+
 import React, { useState, useMemo } from "react";
 import { AlertCircle } from "lucide-react";
 import LineChartTimeSeries from "./LineChartTimeSeries.jsx";
@@ -11,23 +13,16 @@ import PivotTable from "./PivotTable.jsx";
 import styles from './chart-library.module.css';
 
 /**
- * Main Chart component that routes to specific chart types
+ * 메인 차트 컴포넌트
+ * chartType에 따라 적절한 차트 컴포넌트로 라우팅
  * 
- * @param {Object} props - Component props
- * @param {string} props.chartType - Type of chart to render
- * @param {import('./chart-props.js').DataPoint[]} props.data - Chart data
- * @param {number} props.rowLimit - Maximum number of rows to display
- * @param {Object} [props.chartConfig] - Chart configuration
- * @param {string} [props.chartConfig.type] - Chart type
- * @param {number} [props.chartConfig.row_limit] - Row limit from config
- * @param {number} [props.chartConfig.bins] - Number of bins for histogram
- * @param {string[]} [props.chartConfig.dimensions] - Dimension fields
- * @param {string[]} [props.chartConfig.metrics] - Metric fields
- * @param {Object} [props.chartConfig.defaultSort] - Default sort configuration
- * @param {Object} [props.sortState] - Current sort state
- * @param {Function} [props.onSortChange] - Sort change handler
- * @param {boolean} [props.isLoading] - Loading state
- * @returns {React.ReactElement} Rendered chart component
+ * @param {string} chartType - 차트 타입
+ * @param {Array} data - 차트 데이터
+ * @param {number} rowLimit - 최대 표시 행 수
+ * @param {Object} chartConfig - 차트 설정
+ * @param {Object} sortState - 정렬 상태 (PIVOT_TABLE용)
+ * @param {Function} onSortChange - 정렬 변경 핸들러
+ * @param {boolean} isLoading - 로딩 상태
  */
 export const Chart = ({
   chartType,
@@ -39,8 +34,11 @@ export const Chart = ({
   isLoading = false,
 }) => {
   const [forceRender, setForceRender] = useState(false);
+  
+  // 대용량 데이터 경고 (2000개 이상)
   const shouldWarn = data.length > 2000 && !forceRender;
 
+  // 시간 차원 데이터 포맷팅
   const renderedData = useMemo(() => {
     return data.map((item) => {
       return {
@@ -58,6 +56,7 @@ export const Chart = ({
     });
   }, [data]);
 
+  // 차트 타입별 컴포넌트 렌더링
   const renderChart = () => {
     switch (chartType) {
       case "LINE_TIME_SERIES":
@@ -72,14 +71,12 @@ export const Chart = ({
         return <PieChart data={renderedData.slice(0, rowLimit)} />;
       case "HISTOGRAM":
         return <HistogramChart data={renderedData} />;
-      case "NUMBER": {
+      case "NUMBER":
         return <BigNumber data={renderedData} />;
-      }
       case "PIVOT_TABLE": {
-        // Extract pivot table configuration from chartConfig
         const pivotConfig = {
           dimensions: chartConfig?.dimensions ?? [],
-          metrics: chartConfig?.metrics ?? ["metric"], // Use metrics from chartConfig
+          metrics: chartConfig?.metrics ?? ["metric"],
           rowLimit: chartConfig?.row_limit ?? rowLimit,
           defaultSort: chartConfig?.defaultSort,
         };
@@ -98,6 +95,7 @@ export const Chart = ({
     }
   };
 
+  // 대용량 데이터 경고 메시지
   const renderWarning = () => (
     <div className={styles.warningContainer}>
       <AlertCircle className={styles.warningIcon} />

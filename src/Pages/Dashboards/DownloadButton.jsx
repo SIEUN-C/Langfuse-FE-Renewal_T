@@ -1,8 +1,16 @@
-//src/Pages/Dashboards/DownloadButtion.jsx
+//src/Pages/Dashboards/DownloadButton.jsx
 
 import React from 'react';
 import { DownloadIcon } from 'lucide-react';
 
+/**
+ * 차트 데이터 CSV 다운로드 버튼
+ * 배열 형태의 데이터를 CSV 파일로 다운로드
+ * 
+ * @param {Array} data - 다운로드할 데이터 배열
+ * @param {string} fileName - 다운로드 파일명 (기본: "chart-data")
+ * @param {string} className - 추가 CSS 클래스
+ */
 const DownloadButton = ({ 
   data = [], 
   fileName = "chart-data", 
@@ -16,14 +24,14 @@ const DownloadButton = ({
     }
 
     try {
-      // CSV 헤더 생성
+      // 첫 번째 객체의 키를 헤더로 사용
       const headers = Object.keys(data[0]);
       const csvContent = [
         headers.join(','), // 헤더 행
         ...data.map(row => 
           headers.map(header => {
             const value = row[header];
-            // 값이 문자열이고 쉼표나 따옴표가 포함된 경우 따옴표로 감싸기
+            // CSV 이스케이프 처리: 쉼표나 따옴표가 포함된 경우
             if (typeof value === 'string' && (value.includes(',') || value.includes('"'))) {
               return `"${value.replace(/"/g, '""')}"`;
             }
@@ -32,7 +40,7 @@ const DownloadButton = ({
         )
       ].join('\n');
 
-      // Blob 생성 및 다운로드
+      // 브라우저 다운로드 처리
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       
@@ -44,7 +52,7 @@ const DownloadButton = ({
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        URL.revokeObjectURL(url);
+        URL.revokeObjectURL(url); // 메모리 정리
       }
     } catch (error) {
       console.error('Error downloading CSV:', error);
