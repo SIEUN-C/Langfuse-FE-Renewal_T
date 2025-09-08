@@ -44,6 +44,11 @@ const EvaluatorLibrary = () => {
     return <div style={{ color: 'red' }}>{error}</div>;
   }
 
+  // 목록 클릭시 template Id로 이동
+  const handleRowClick = (row) => {
+    navigate(`templates/${row.id}`);
+  }
+
   return (
     // className을 지정할 필요가 없으므로 div도 삭제 가능합니다.
     <DataTable
@@ -52,6 +57,7 @@ const EvaluatorLibrary = () => {
       keyField="id"
       showCheckbox={false}
       showFavorite={false}
+      onRowClick={handleRowClick}
     />
   );
 };

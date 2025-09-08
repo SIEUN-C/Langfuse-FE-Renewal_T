@@ -1,189 +1,63 @@
-/* 기본 스타일 및 색상 변수 정의 */
-:root {
-    --bg-color: #0d1117;
-    --main-content-bg: #161b22;
-    --sidebar-bg: #010409;
-    --border-color: #30363d;
-    --text-color: #c9d1d9;
-    --text-secondary-color: #8b949e;
-    --accent-color: #58a6ff;
-    --green-color: #238636;
+/* Templates.module.css */
+
+/* Loading and Error states */
+.message, .errorMessage {
+  padding: 20px;
+  text-align: center;
+  font-size: 1.2em;
+  color: #c9d1d9;
+}
+.errorMessage {
+  color: #f87171;
 }
 
-body {
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
-    margin: 0;
-    font-size: 14px;
+/* 읽기 전용 필드 (Name, Model 등) */
+.readOnlyField {
+  background-color: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 0.9em;
+  color: #c9d1d9;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-.container {
-    display: grid;
-    grid-template-columns: 220px 1fr 280px;
-    height: 100vh;
+/* 읽기 전용 텍스트 영역 (Score prompts 등) */
+.readOnlyTextarea {
+  background-color: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  padding: 12px;
+  min-height: 40px;
+  font-size: 0.9em;
+  color: #c9d1d9;
+  line-height: 1.5;
+  white-space: pre-wrap; /* 줄바꿈 유지 */
 }
 
-/* 사이드바 공통 스타일 */
-.sidebarLeft, .sidebarRight {
-    background-color: var(--sidebar-bg);
-    border-right: 1px solid var(--border-color);
-    padding: 20px;
-}
-.sidebarRight {
-    border-right: none;
-    border-left: 1px solid var(--border-color);
-}
-
-/* 메인 콘텐츠 스타일 */
-.mainContent {
-    background-color: var(--main-content-bg);
-    padding: 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    overflow-y: auto; /* 콘텐츠가 길어질 경우 스크롤 */
-}
-
-.mainContent header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.mainContent h1, .mainContent h2 {
-    margin: 0;
-}
-
-.viewOnlyBadge {
-    border: 1px solid var(--border-color);
-    padding: 4px 8px;
-    border-radius: 20px;
-    font-size: 12px;
-}
-
-/* 모델 설정 섹션 */
-.modelSettings {
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    padding: 16px;
-}
-.toggleSwitch {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 8px;
-}
-.modelInfo {
-    color: var(--text-secondary-color);
-    font-size: 12px;
-}
-
-/* 프롬프트 섹션 */
-.promptSection h2 {
-    margin-bottom: 4px;
-}
-.promptSection .description {
-    color: var(--text-secondary-color);
-    margin: 0 0 12px 0;
-}
-.promptEditor {
-    display: flex;
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    background-color: var(--sidebar-bg);
-    min-height: 250px;
-}
-.lineNumbers {
-    padding: 10px 8px;
-    text-align: right;
-    color: var(--text-secondary-color);
-    border-right: 1px solid var(--border-color);
-    font-family: monospace;
-    user-select: none;
-    display: flex;
-    flex-direction: column;
-}
-
-.lineNumbers span {
-    line-height: 1.5;
-}
-
-.promptEditor textarea {
-    flex-grow: 1;
-    background: none;
-    border: none;
-    color: var(--text-color);
-    padding: 10px;
-    font-family: monospace;
-    resize: none;
-    line-height: 1.5;
-}
-.promptEditor textarea:focus {
-    outline: none;
-}
-
-/* 변수 섹션 */
-.variablesSection h3 {
-    font-size: 14px;
-    font-weight: normal;
-    color: var(--text-secondary-color);
-}
+/* 변수 태그 컨테이너 */
 .variablesContainer {
-    display: flex;
-    gap: 8px;
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
+
+/* "VARIABLES:" 라벨 */
+.variablesLabel {
+  font-size: 12px;
+  font-weight: 500;
+  color: #94a3b8;
+}
+
+/* 개별 변수 태그 */
 .variableTag {
-    background-color: #21262d;
-    border: 1px solid var(--border-color);
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-family: monospace;
-    font-size: 12px;
+  background-color: #1e293b;
+  color: #cbd5e1;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: 'D2Coding', monospace;
 }
-
-/* 오른쪽 사이드바 */
-.sidebarRight header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-}
-.historyList {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-.historyList li {
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    padding: 12px;
-}
-.historyItemContent {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-.historyStatus {
-    color: var(--green-color);
-    background-color: rgba(35, 134, 54, 0.15);
-    padding: 2px 8px;
-    border-radius: 20px;
-    font-weight: bold;
-    font-size: 12px;
-}
-.historyDate {
-    color: var(--text-secondary-color);
-    font-size: 12px;
-}
-
-/* 스위치 토글 CSS */
-.switch { position: relative; display: inline-block; width: 34px; height: 20px; }
-.switch input { opacity: 0; width: 0; height: 0; }
-.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #30363d; transition: .4s; }
-.slider:before { position: absolute; content: ""; height: 12px; width: 12px; left: 4px; bottom: 4px; background-color: white; transition: .4s; }
-input:checked + .slider { background-color: var(--green-color); }
-input:focus + .slider { box-shadow: 0 0 1px var(--green-color); }
-input:checked + .slider:before { transform: translateX(14px); }
-.slider.round { border-radius: 34px; }
-.slider.round:before { border-radius: 50%; }

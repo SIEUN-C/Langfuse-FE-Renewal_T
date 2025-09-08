@@ -1,39 +1,144 @@
-import React from "react";
-import styles from "./Templates.module.css"; // CSS 모듈도 새로 만듭니다.
+import React, { useState, useEffect } from "react";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { Book } from 'lucide-react';
+import useProjectId from 'hooks/useProjectId';
+import { getTemplateById } from "./services/libraryApi";
+import styles from "./Templates.module.css";
+import FormPageLayout from "../../../components/Layouts/FormPageLayout.jsx";
+import FormGroup from "../../../components/Form/FormGroup.jsx";
+import CodeBlock from "../../../components/CodeBlock/CodeBlock.jsx";
 
-// selectedTemplate: 선택된 행의 데이터
-// onClose: 패널을 닫기 위해 부모로부터 전달받는 함수
-const Templates = ({ selectedTemplate, onClose }) => {
-  // selectedTemplate 데이터가 없으면 아무것도 렌더링하지 않습니다.
-  if (!selectedTemplate) {
-    return null;
+const Templates = () => {
+  const { templateId } = useParams();
+  const { projectId } = useProjectId();
+  const navigate = useNavigate();
+
+  const [templateData, setTemplateData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [variables, setVariables] = useState([]);
+
+  useEffect(() => {
+    if (!projectId || !templateId) {
+      setLoading(false);
+      return;
+    }
+
+    const fetchTemplateDetails = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await getTemplateById(projectId, templateId);
+        setTemplateData(data);
+
+        if (data && data.prompt) {
+          const extractVariables = (text) => {
+            const regex = /{{\s*(\w+)\s*}}/g;
+            const matches = text.match(regex) || [];
+            return [...new Set(matches.map(match => match.replace(/[{}]/g, '').trim()))];
+          };
+          setVariables(extractVariables(data.prompt));
+        }
+
+      } catch (err) {
+        setError("Failed to load template details.");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTemplateDetails();
+  }, [projectId, templateId]);
+
+  if (loading) {
+    return <div className={styles.message}>Loading template...</div>;
   }
 
+  if (error) {
+    return <div className={styles.errorMessage}>{error}</div>;
+  }
+
+  if (!templateData) {
+    return <div className={styles.message}>Template not found.</div>;
+  }
+
+  // Breadcrumbs UI 구성
+  const breadcrumbs = (
+    <>
+      <Book size={16} />
+      {/* 'Evaluators' 또는 'Templates' 등 상위 경로로 수정해주세요. */}
+      <Link to="/llm-as-a-judge">Evaluators</Link>
+      <span>/</span>
+      <span className="active">{templateData.name}</span>
+    </>
+  );
+
   return (
-    // 패널의 배경(overlay)을 클릭해도 닫히도록 설정
-    <div className={styles.overlay} onClick={onClose}>
-      {/* 실제 패널 컨텐츠 부분. 클릭 이벤트가 부모로 전파되지 않도록 막습니다. */}
-      <div className={styles.panel} onClick={(e) => e.stopPropagation()}>
-        <div className={styles.header}>
-          <h2>Template Details</h2>
-          <button onClick={onClose} className={styles.closeButton}>
-            &times; {/* 'x' 아이콘 */}
-          </button>
+    <FormPageLayout
+      breadcrumbs={breadcrumbs}
+      // 조회 페이지이므로 저장 버튼은 없고, 뒤로가기/취소 버튼만 제공
+      onCancel={() => navigate('/evaluators')} // 이전 페이지로 이동
+      isSaveDisabled={true} // 저장 버튼 비활성화
+      hideSaveButton={true} // 저장 버튼 숨김 (FormPageLayout에 이 기능이 있다는 가정)
+    >
+      <FormGroup
+        htmlFor="evaluator-name"
+        label="Evaluator Name"
+        subLabel="Unique identifier for this evaluator template."
+      >
+        <div className={styles.readOnlyField}>{templateData.name}</div>
+      </FormGroup>
+
+      <FormGroup
+        htmlFor="model-name"
+        label="Model"
+        subLabel="The model used for this evaluation."
+      >
+        {/* API 응답에 모델명이 없으므로, 우선 하드코딩된 값으로 대체합니다. */}
+        <div className={styles.readOnlyField}>{templateData.model || 'gpt-4o-mini-2024-07-18'}</div>
+      </FormGroup>
+
+      <FormGroup
+        htmlFor="prompt-content"
+        label="Prompt"
+        subLabel="The prompt template used for the evaluation."
+      >
+        <CodeBlock
+          code={templateData.prompt}
+          readOnly={true} // 읽기 전용으로 설정
+        />
+        {variables.length > 0 && (
+          <div className={styles.variablesContainer}>
+            <span className={styles.variablesLabel}>VARIABLES:</span>
+            {variables.map((variable, index) => (
+              <span key={index} className={styles.variableTag}>{variable}</span>
+            ))}
+          </div>
+        )}
+      </FormGroup>
+
+      <FormGroup
+        htmlFor="score-reasoning"
+        label="Score reasoning prompt"
+        subLabel="Defines how the LLM should explain its evaluation."
+      >
+        <div className={styles.readOnlyTextarea}>
+          {templateData.outputSchema.reasoning}
         </div>
-        <div className={styles.content}>
-          <p>
-            <strong>Name:</strong> {selectedTemplate.name}
-          </p>
-          <p>
-            <strong>ID:</strong> {selectedTemplate.id}
-          </p>
-          <p>
-            <strong>Partner:</strong> {selectedTemplate.partner}
-          </p>
-          {/* 여기에 나중에 API로 가져온 상세 정보를 추가할 수 있습니다. */}
+      </FormGroup>
+
+      <FormGroup
+        htmlFor="score-range"
+        label="Score range prompt"
+        subLabel="Defines how the LLM should return the evaluation score."
+      >
+        <div className={styles.readOnlyTextarea}>
+          {templateData.outputSchema.score}
         </div>
-      </div>
-    </div>
+      </FormGroup>
+
+    </FormPageLayout>
   );
 };
 

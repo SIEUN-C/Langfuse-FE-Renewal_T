@@ -128,7 +128,7 @@ export default function App() {
         <Route path="llm-as-a-judge" element={<EvaluationDetail />} />
         <Route path="llm-as-a-judge/default-model" element={<DefaultEvaluationModel />} />
         <Route path="llm-as-a-judge/:evaluationId" element={<EvaluationView />} />
-        <Route path="llm-as-a-judge/:templateId" element={<Templates />} />
+        <Route path="llm-as-a-judge/templates/:templateId" element={<Templates />} />
 
         {/* Dashboards */}
         <Route path="project/:projectId/dashboards" element={<DashboardsKeyed />} />
