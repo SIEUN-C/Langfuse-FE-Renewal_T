@@ -2,6 +2,7 @@
 import { PreviewAPI } from "./preview";
 import { WidgetsAPI } from "./widgets";
 import { FiltersAPI } from "./filters";
+import { executeQuery } from "./metricsApi"; // 추가
 
 class WidgetAPI extends PreviewAPI {
   constructor(projectId = null) {
@@ -17,6 +18,26 @@ class WidgetAPI extends PreviewAPI {
     this._widgets.setProjectId(projectId);
     this._filters.setProjectId(projectId);
     console.log("WidgetAPI projectId updated:", projectId);
+  }
+
+  // executeQuery 메서드 추가
+  async executeQuery(queryParams) {
+    try {
+      console.log("[WidgetAPI] executeQuery 호출:", queryParams);
+      
+      // metricsApi의 executeQuery 함수 호출
+      const result = await executeQuery(queryParams);
+      
+      console.log("[WidgetAPI] 쿼리 실행 결과:", result);
+      return result;
+      
+    } catch (error) {
+      console.error("[WidgetAPI] executeQuery 실패:", error);
+      return {
+        success: false,
+        error: error.message || 'Failed to execute query'
+      };
+    }
   }
 
   // 목록/CRUD
@@ -170,6 +191,92 @@ class WidgetAPI extends PreviewAPI {
     } catch {
       return this.getFallbackOptions(view);
     }
+  }
+
+  // Fallback 메서드들 (기존 유지)
+  getFallbackFilterColumns(view) {
+    const commonColumns = [
+      { column: "environment", type: "string", label: "Environment" },
+      { column: "name", type: "string", label: "Name" },  
+      { column: "userId", type: "string", label: "User ID" },
+      { column: "sessionId", type: "string", label: "Session ID" },
+      { column: "release", type: "string", label: "Release" },
+      { column: "version", type: "string", label: "Version" },
+      { column: "tags", type: "arrayOptions", label: "Tags" }
+    ];
+
+    const viewSpecificColumns = {
+      traces: [
+        ...commonColumns,
+        { column: "traceName", type: "string", label: "Trace Name" }
+      ],
+      observations: [
+        ...commonColumns,
+        { column: "observationName", type: "string", label: "Observation Name" },
+        { column: "type", type: "string", label: "Type" },
+        { column: "providedModelName", type: "string", label: "Model Name" }
+      ],
+      "scores-numeric": [
+        { column: "name", type: "string", label: "Score Name" },
+        { column: "source", type: "string", label: "Source" },
+        { column: "environment", type: "string", label: "Environment" },
+        { column: "userId", type: "string", label: "User ID" },
+        { column: "sessionId", type: "string", label: "Session ID" }
+      ],
+      "scores-categorical": [
+        { column: "name", type: "string", label: "Score Name" },
+        { column: "stringValue", type: "string", label: "Value" },
+        { column: "source", type: "string", label: "Source" },
+        { column: "environment", type: "string", label: "Environment" },
+        { column: "userId", type: "string", label: "User ID" },
+        { column: "sessionId", type: "string", label: "Session ID" }
+      ]
+    };
+
+    return {
+      success: true,
+      data: viewSpecificColumns[view] || commonColumns
+    };
+  }
+
+  getFallbackOptions(view) {
+    return {
+      success: true,
+      data: {
+        dimensions: this.getFallbackFilterColumns(view).data,
+        measures: this.getAvailableMeasuresForView(view)
+      }
+    };
+  }
+
+  getAvailableMeasuresForView(view) {
+    const measuresByView = {
+      traces: [
+        { value: "count", label: "Count" },
+        { value: "observationsCount", label: "Observations Count" },
+        { value: "scoresCount", label: "Scores Count" },
+        { value: "latency", label: "Latency" },
+        { value: "totalTokens", label: "Total Tokens" },
+        { value: "totalCost", label: "Total Cost" }
+      ],
+      observations: [
+        { value: "count", label: "Count" },
+        { value: "latency", label: "Latency" },
+        { value: "totalTokens", label: "Total Tokens" },
+        { value: "totalCost", label: "Total Cost" },
+        { value: "timeToFirstToken", label: "Time To First Token" },
+        { value: "countScores", label: "Count Scores" }
+      ],
+      "scores-numeric": [
+        { value: "count", label: "Count" },
+        { value: "value", label: "Score Value" }
+      ],
+      "scores-categorical": [
+        { value: "count", label: "Count" }
+      ]
+    };
+    
+    return measuresByView[view] || measuresByView.traces;
   }
 
   // 아래 fallback/preview 유틸은 PreviewAPI에 이미 구현됨

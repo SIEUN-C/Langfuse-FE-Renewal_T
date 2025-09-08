@@ -2,6 +2,17 @@ import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate, useSearchParams, useParams } from "react-router-dom";
 import { startCase } from "lodash";
 import styles from './NewWidget.module.css';
+import { 
+  getViewOptions, 
+  getMeasureOptions, 
+  getAggregationOptions, 
+  getAvailableMeasures, 
+  getAvailableAggregations,
+  getDimensionOptions,
+  isValidViewMeasureAggregation,
+  getMeasuresForView,
+  getDefaultAggregationForMeasure
+} from '../services/viewMappings';
 
 // 차트 라이브러리 import
 import Chart from '../chart-library/Chart.jsx';
@@ -11,10 +22,15 @@ import api from '../services/index.js';
 
 // 수정: 올바른 DateRangePicker import
 import DateRangePicker from "../components/DateRangePicker";
+import { widgetFilterConfig } from '../../../components/FilterControls/filterConfig.js';
+
 
 // 공통 컴포넌트 imports
 import FiltersEditor from '../components/FiltersEditor';
 import IntegratedMetricsSelector from '../components/IntegratedMetricsSelector';
+
+import PivotControls from '../components/PivotControls';
+
 
 // 아이콘 import
 import { 
@@ -28,6 +44,23 @@ import {
   Plus,
   X
 } from "lucide-react";
+
+// 히스토그램을 포함한 집계 옵션
+const AGGREGATION_OPTIONS = [
+  { value: "count", label: "Count" },
+  { value: "sum", label: "Sum" },
+  { value: "avg", label: "Average" },
+  { value: "min", label: "Minimum" },
+  { value: "max", label: "Maximum" },
+  { value: "p50", label: "P50" },
+  { value: "p75", label: "P75" },
+  { value: "p90", label: "P90" },
+  { value: "p95", label: "P95" },
+  { value: "p99", label: "P99" },
+  { value: "histogram", label: "Histogram" }
+];
+
+
 
 // 기본 UI 컴포넌트들
 const Card = ({ children, className = "" }) => (
@@ -101,6 +134,8 @@ const Button = ({ children, onClick, className = "", disabled = false, variant =
     {children}
   </button>
 );
+
+
 
 // 차트 타입 설정
 const chartTypes = [
@@ -264,7 +299,8 @@ const buildWidgetName = ({ aggregation, measure, dimension, view, metrics, isMul
     }
   }
 
-  if (dimension && dimension !== "none") {
+  // "none" 체크 제거
+  if (dimension && dimension !== "") {
     base += ` by ${startCase(dimension)}`;
   }
   base += ` (${startCase(view)})`;
@@ -289,7 +325,8 @@ const buildWidgetDescription = ({ aggregation, measure, dimension, view, filters
     }
   }
 
-  if (dimension && dimension !== "none") {
+  // "none" 체크 제거
+  if (dimension && dimension !== "") {
     sentence += ` by ${startCase(dimension).toLowerCase()}`;
   }
 
@@ -305,19 +342,59 @@ const buildWidgetDescription = ({ aggregation, measure, dimension, view, filters
   return sentence;
 };
 
+
 // 필터 변환 함수들
 const transformFiltersToWidgetFormat = (builderFilters) => {
-  return builderFilters.map(filter => ({
-    column: filter.column,
-    operator: filter.operator === 'anyOf' ? 'in' : 
-             filter.operator === 'noneOf' ? 'not_in' :
-             filter.operator === 'contains' ? 'contains' :
-             filter.operator === 'does not contain' ? 'not_contains' :
-             filter.operator,
-    value: Array.isArray(filter.values) ? filter.values.join(',') : 
-           filter.values || '',
-    metaKey: filter.metaKey || ''
-  }));
+  return builderFilters.map(filter => {
+    const columnConfig = widgetFilterConfig.find(config => config.key === filter.column);
+    let columnType = columnConfig?.type || 'string';
+    
+    if (columnType === 'categorical') {
+      columnType = 'string';
+    }
+    
+    // 서버가 허용하는 컬럼명으로 매핑
+    let columnName = filter.column;
+    switch (filter.column) {
+      case 'session':
+        columnName = 'sessionId';
+        break;
+      case 'user':
+        columnName = 'userId';
+        break;
+      case 'traceName':
+        columnName = 'name';
+        break;
+      // 필요시 다른 매핑도 추가
+      default:
+        columnName = filter.column;
+        break;
+    }
+    
+    let operator;
+    switch (filter.operator) {
+      case 'anyOf':
+        operator = '=';
+        break;
+      case 'noneOf':
+        operator = 'does not contain';
+        break;
+      case 'contains':
+        operator = 'contains';
+        break;
+      default:
+        operator = '=';
+        break;
+    }
+    
+    return {
+      column: columnName, // 매핑된 컬럼명 사용
+      type: columnType,
+      operator: operator,
+      value: Array.isArray(filter.values) ? filter.values.join(',') : filter.values || '',
+      metaKey: filter.metaKey || ''
+    };
+  });
 };
 
 // DashboardModal 컴포넌트
@@ -705,7 +782,7 @@ export default function NewWidget() {
   const [selectedView, setSelectedView] = useState("traces");
   const [selectedMeasure, setSelectedMeasure] = useState("count");
   const [selectedAggregation, setSelectedAggregation] = useState("count");
-  const [selectedDimension, setSelectedDimension] = useState("none");
+const [selectedDimension, setSelectedDimension] = useState(""); 
 
   // 피벗 테이블 전용
   const [selectedMetrics, setSelectedMetrics] = useState([{
@@ -722,8 +799,11 @@ export default function NewWidget() {
   const [histogramBins, setHistogramBins] = useState(10);
 
   // 피벗 테이블 정렬
-  const [defaultSortColumn, setDefaultSortColumn] = useState("none");
+  const [defaultSortColumn, setDefaultSortColumn] = useState(""); // "none" → ""
   const [defaultSortOrder, setDefaultSortOrder] = useState("DESC");
+
+  const [showSubtotals, setShowSubtotals] = useState(false);
+
 
   // 필터와 날짜 - FiltersEditor 형식으로 변경
   const [userFilterState, setUserFilterState] = useState([{
@@ -740,6 +820,78 @@ export default function NewWidget() {
   const [previewData, setPreviewData] = useState([]);
   const [showDashboardModal, setShowDashboardModal] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  // 차트 타입 변경 핸들러 (히스토그램 자동감지 포함)
+  const handleChartTypeChange = (newChartType) => {
+    console.log("차트 타입 변경:", selectedChartType, "→", newChartType);
+    
+    const oldChartType = selectedChartType;
+    setSelectedChartType(newChartType);
+    
+    // 히스토그램으로 변경되는 경우 집계를 histogram으로 강제 설정
+    if (newChartType === "HISTOGRAM") {
+      console.log("히스토그램 차트로 변경됨, aggregation을 histogram으로 설정");
+      setSelectedAggregation("histogram");
+      
+      // 다중 메트릭 모드인 경우 모든 메트릭의 집계를 histogram으로 변경
+      if (selectedMetrics && selectedMetrics.length > 0) {
+        const updatedMetrics = selectedMetrics.map((metric, index) => {
+          const measureLabel = getMeasuresForView(selectedView).find(m => m.value === metric.measure)?.label || metric.measure;
+          return {
+            ...metric,
+            aggregation: "histogram",
+            id: `histogram_${metric.measure}_${index}`,
+            label: `Histogram ${measureLabel}`
+          };
+        });
+        setSelectedMetrics(updatedMetrics);
+      }
+    } else if (oldChartType === "HISTOGRAM" && newChartType !== "HISTOGRAM") {
+      // 히스토그램에서 다른 차트로 변경되는 경우 기본 집계로 복원
+      console.log("히스토그램에서 다른 차트로 변경됨, 기본 집계로 복원");
+      
+      // 단일 메트릭 모드인 경우
+      const defaultAgg = getDefaultAggregationForMeasure(selectedMeasure, selectedView, false);
+      setSelectedAggregation(defaultAgg);
+      
+      // 다중 메트릭 모드인 경우
+      if (selectedMetrics && selectedMetrics.length > 0) {
+        const updatedMetrics = selectedMetrics.map((metric, index) => {
+          const defaultAgg = getDefaultAggregationForMeasure(metric.measure, selectedView, false);
+          const measureLabel = getMeasuresForView(selectedView).find(m => m.value === metric.measure)?.label || metric.measure;
+          const aggLabel = AGGREGATION_OPTIONS.find(a => a.value === defaultAgg)?.label || defaultAgg;
+          
+          return {
+            ...metric,
+            aggregation: defaultAgg,
+            id: `${defaultAgg}_${metric.measure}_${index}`,
+            label: `${aggLabel} ${measureLabel}`
+          };
+        });
+        setSelectedMetrics(updatedMetrics);
+      }
+    }
+    
+    // 기존 피벗 테이블 로직 유지
+    if (newChartType === "PIVOT_TABLE") {
+      // 피벗 테이블로 변경되는 경우 다중 메트릭 모드로 전환
+      if (!selectedMetrics || selectedMetrics.length === 0) {
+        setSelectedMetrics([{
+          measure: selectedMeasure || "count",
+          aggregation: selectedAggregation || "count",
+          id: `${selectedAggregation || "count"}_${selectedMeasure || "count"}_0`,
+          label: `${selectedAggregation || "Count"} ${selectedMeasure || "Count"}`
+        }]);
+      }
+    } else if (oldChartType === "PIVOT_TABLE" && newChartType !== "PIVOT_TABLE") {
+      // 피벗 테이블에서 다른 차트로 변경되는 경우 단일 메트릭 모드로 전환
+      if (selectedMetrics && selectedMetrics.length > 0) {
+        const firstMetric = selectedMetrics[0];
+        setSelectedMeasure(firstMetric.measure);
+        setSelectedAggregation(firstMetric.aggregation);
+      }
+    }
+  };
 
   // API 초기화
   useEffect(() => {
@@ -761,7 +913,7 @@ export default function NewWidget() {
 
   const updatePivotDimension = (index, value) => {
     const newDimensions = [...pivotDimensions];
-    if (value && value !== "none") {
+    if (value && value !== "") { // "none" 체크 제거
       newDimensions[index] = value;
     } else {
       newDimensions.splice(index);
@@ -776,7 +928,7 @@ export default function NewWidget() {
 
     const queryDimensions = selectedChartType === "PIVOT_TABLE"
       ? pivotDimensions.map((field) => ({ field }))
-      : selectedDimension !== "none"
+      : selectedDimension !== "" // "none" → ""
         ? [{ field: selectedDimension }]
         : [];
 
@@ -870,24 +1022,15 @@ export default function NewWidget() {
     return () => clearTimeout(timer);
   }, [refreshPreview]);
 
-  // 집계 자동 수정
-  useEffect(() => {
-    if (selectedChartType === "HISTOGRAM" && selectedAggregation !== "histogram") {
-      setSelectedAggregation("histogram");
-    } else if (selectedChartType !== "HISTOGRAM" && selectedAggregation === "histogram") {
-      setSelectedAggregation(selectedMeasure === "count" ? "count" : "sum");
-    }
-  }, [selectedMeasure, selectedAggregation, selectedChartType]);
-
   // 차원 재설정
-  useEffect(() => {
-    if (
-      chartTypes.find((c) => c.value === selectedChartType)?.supportsBreakdown === false &&
-      selectedDimension !== "none"
-    ) {
-      setSelectedDimension("none");
-    }
-  }, [selectedChartType, selectedDimension]);
+    useEffect(() => {
+      if (
+        chartTypes.find((c) => c.value === selectedChartType)?.supportsBreakdown === false &&
+        selectedDimension !== "" // "none" → ""
+      ) {
+        setSelectedDimension(""); // "none" → ""
+      }
+    }, [selectedChartType, selectedDimension]);
 
   // 피벗 테이블 차원 재설정
   useEffect(() => {
@@ -993,14 +1136,14 @@ export default function NewWidget() {
           chartConfig = { type: "HISTOGRAM", bins: histogramBins };
           break;
         case "PIVOT_TABLE":
-          chartConfig = {
-            type: "PIVOT_TABLE",
-            dimensions: pivotDimensions,
-            row_limit: rowLimit,
-            defaultSort: defaultSortColumn && defaultSortColumn !== "none"
-              ? { column: defaultSortColumn, order: defaultSortOrder }
-              : undefined,
-          };
+         chartConfig = {
+          type: "PIVOT_TABLE",
+          dimensions: pivotDimensions,
+          row_limit: rowLimit,
+          defaultSort: defaultSortColumn && defaultSortColumn !== "" // "none" → ""
+            ? { column: defaultSortColumn, order: defaultSortOrder }
+            : undefined,
+        };
           break;
         case "NUMBER":
           chartConfig = { type: "NUMBER" };
@@ -1031,7 +1174,7 @@ export default function NewWidget() {
         view: selectedView,
         dimensions: selectedChartType === "PIVOT_TABLE"
           ? pivotDimensions.map((field) => ({ field }))
-          : selectedDimension !== "none"
+          : selectedDimension !== "" // "none" → ""
             ? [{ field: selectedDimension }]
             : [],
         metrics: selectedChartType === "PIVOT_TABLE"
@@ -1141,7 +1284,7 @@ export default function NewWidget() {
 
                 setSelectedMeasure("count");
                 setSelectedAggregation("count");
-                setSelectedDimension("none");
+                setSelectedDimension("");
 
                 if (selectedChartType === "PIVOT_TABLE") {
                   const validMetrics = selectedMetrics.filter(
@@ -1215,106 +1358,39 @@ export default function NewWidget() {
               <Label htmlFor="dimension-select">
                 Breakdown Dimension (Optional)
               </Label>
-              <Select value={selectedDimension} onValueChange={setSelectedDimension} id="dimension-select">
-                <SelectItem value="none">None</SelectItem>
-                {availableDimensions.map((dimension) => {
-                  const meta = viewDeclarations[selectedView]?.dimensions?.[dimension.value];
-                  return (
-                    <SelectItem key={dimension.value} value={dimension.value}>
-                      {dimension.label} {meta?.description && `- ${meta.description}`}
-                    </SelectItem>
-                  );
-                })}
-              </Select>
+          <Select value={selectedDimension} onValueChange={setSelectedDimension} id="dimension-select">
+          <SelectItem value="">None</SelectItem> {/* "none" → "" */}
+          {availableDimensions.map((dimension) => {
+            const meta = viewDeclarations[selectedView]?.dimensions?.[dimension.value];
+            return (
+              <SelectItem key={dimension.value} value={dimension.value}>
+                {dimension.label} {meta?.description && `- ${meta.description}`}
+              </SelectItem>
+            );
+          })}
+        </Select>
             </div>
           )}
 
-          {/* 피벗 테이블 차원 */}
-          {selectedChartType === "PIVOT_TABLE" && (
-            <div className={styles.section}>
-              <div>
-                <h4>Row Dimensions</h4>
-                <p className={styles.helperText}>
-                  Configure up to {MAX_PIVOT_TABLE_DIMENSIONS} dimensions for pivot table rows.
-                </p>
-              </div>
+         {selectedChartType === "PIVOT_TABLE" && (
+            <PivotControls
+            view={selectedView}
+            selectedMetrics={selectedMetrics}
+            pivotDimensions={pivotDimensions}
+            onPivotDimensionsChange={setPivotDimensions}
+            sortColumn={defaultSortColumn}
+            onSortColumnChange={setDefaultSortColumn}
+            sortOrder={defaultSortOrder}
+            onSortOrderChange={setDefaultSortOrder}
+            showSubtotals={showSubtotals}
+            onShowSubtotalsChange={setShowSubtotals}
+            rowLimit={rowLimit}
+            onRowLimitChange={setRowLimit}
+            disabled={loading}
+            maxDimensions={MAX_PIVOT_TABLE_DIMENSIONS}
+            />
+            )}
 
-              {Array.from({ length: MAX_PIVOT_TABLE_DIMENSIONS }, (_, index) => {
-                const isEnabled = index === 0 || pivotDimensions[index - 1];
-                const selectedDimensions = pivotDimensions.slice(0, index);
-                const currentValue = pivotDimensions[index] || "";
-
-                return (
-                  <div key={index} className={styles.block}>
-                    <Label htmlFor={`pivot-dimension-${index}`}>
-                      Dimension {index + 1} (Optional)
-                    </Label>
-                    <Select
-                      value={currentValue}
-                      onValueChange={(value) => updatePivotDimension(index, value)}
-                      disabled={!isEnabled}
-                      id={`pivot-dimension-${index}`}
-                    >
-                      <SelectItem value="none">
-                        {isEnabled ? "Select a dimension" : "Select previous dimension first"}
-                      </SelectItem>
-                      {availableDimensions
-                        .filter((d) => !selectedDimensions.includes(d.value))
-                        .map((dimension) => {
-                          const meta = viewDeclarations[selectedView]?.dimensions?.[dimension.value];
-                          return (
-                            <SelectItem key={dimension.value} value={dimension.value}>
-                              {dimension.label} {meta?.description && `- ${meta.description}`}
-                            </SelectItem>
-                          );
-                        })}
-                    </Select>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {/* 피벗 테이블 기본 정렬 */}
-          {selectedChartType === "PIVOT_TABLE" && (
-            <div className={styles.section}>
-              <div>
-                <h4>Default Sort Configuration</h4>
-                <p className={styles.helperText}>
-                  Configure the default sort order for the pivot table.
-                </p>
-              </div>
-
-              <div className={styles.grid2}>
-                <div className={styles.block}>
-                  <Label htmlFor="default-sort-column">Sort Column</Label>
-                  <Select value={defaultSortColumn} onValueChange={setDefaultSortColumn} id="default-sort-column">
-                    <SelectItem value="none">No default sort</SelectItem>
-                    {selectedMetrics
-                      .filter((metric) => metric.measure && metric.measure !== "")
-                      .map((metric) => (
-                        <SelectItem key={metric.id} value={metric.id}>
-                          {formatMetricName(metric.id)}
-                        </SelectItem>
-                      ))}
-                  </Select>
-                </div>
-
-                <div className={styles.block}>
-                  <Label htmlFor="default-sort-order">Sort Order</Label>
-                  <Select
-                    value={defaultSortOrder}
-                    onValueChange={setDefaultSortOrder}
-                    disabled={!defaultSortColumn || defaultSortColumn === "none"}
-                    id="default-sort-order"
-                  >
-                    <SelectItem value="ASC">Ascending (A-Z)</SelectItem>
-                    <SelectItem value="DESC">Descending (Z-A)</SelectItem>
-                  </Select>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
 
         <div className={styles.section}>
@@ -1348,10 +1424,10 @@ export default function NewWidget() {
             />
           </div>
 
-          {/* 차트 타입 선택 */}
+          {/* 차트 타입 선택 - 수정된 부분 */}
           <div className={styles.block}>
             <Label htmlFor="chart-type-select">Chart Type</Label>
-            <Select value={selectedChartType} onValueChange={setSelectedChartType} id="chart-type-select">
+            <Select value={selectedChartType} onValueChange={handleChartTypeChange} id="chart-type-select">
               <SelectGroup>
                 <SelectLabel>Time Series</SelectLabel>
                 {chartTypes
@@ -1484,7 +1560,7 @@ export default function NewWidget() {
                         .filter((m) => m.measure && m.measure !== "")
                         .map((metric) => metric.id),
                       defaultSort:
-                        defaultSortColumn && defaultSortColumn !== "none"
+                        defaultSortColumn && defaultSortColumn !== ""
                           ? { column: defaultSortColumn, order: defaultSortOrder }
                           : undefined,
                     }
@@ -1492,13 +1568,13 @@ export default function NewWidget() {
                     ? { type: selectedChartType, bins: histogramBins }
                     : { type: selectedChartType, row_limit: rowLimit }
               }
-              sortState={
-                selectedChartType === "PIVOT_TABLE" &&
-                defaultSortColumn &&
-                defaultSortColumn !== "none"
-                  ? { column: defaultSortColumn, order: defaultSortOrder }
-                  : undefined
-              }
+                sortState={
+                  selectedChartType === "PIVOT_TABLE" &&
+                  defaultSortColumn &&
+                  defaultSortColumn !== "" // "none" → ""
+                    ? { column: defaultSortColumn, order: defaultSortOrder }
+                    : undefined
+                }
               onSortChange={undefined}
               isLoading={loading}
             />

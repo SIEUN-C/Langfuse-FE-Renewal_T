@@ -290,20 +290,20 @@ export class PreviewAPI extends FiltersAPI {
       case "BAR_TIME_SERIES":
         mockData = [6, 5, 4, 3, 2, 1, 0].map((k) => ({
           x: d(k),
-          y: 0,
-          metric: 0,
+          y: Math.floor(Math.random() * 50) + 10, // 10-60 사이 랜덤 값
+          metric: Math.floor(Math.random() * 50) + 10,
           dimension: d(k),
           time_dimension: d(k),
-          value: 0
+          value: Math.floor(Math.random() * 50) + 10
         }));
         break;
       case "PIE":
       case "VERTICAL_BAR":
       case "HORIZONTAL_BAR":
         mockData = [
-          { x: "Production", y: 0 },
-          { x: "Staging", y: 0 },
-          { x: "Development", y: 0 },
+          { x: "Production", y: Math.floor(Math.random() * 100) + 50 },
+          { x: "Staging", y: Math.floor(Math.random() * 80) + 30 },
+          { x: "Development", y: Math.floor(Math.random() * 60) + 20 },
         ].map(item => ({
           ...item,
           metric: item.y,
@@ -315,17 +315,17 @@ export class PreviewAPI extends FiltersAPI {
       case "NUMBER":
         mockData = [{
           x: "Total",
-          y: 0,
-          metric: 0,
+          y: Math.floor(Math.random() * 1000) + 100,
+          metric: Math.floor(Math.random() * 1000) + 100,
           dimension: "Total",
-          value: 0
+          value: Math.floor(Math.random() * 1000) + 100
         }];
         break;
       default:
         mockData = [
-          { x: "Sample 1", y: 0 },
-          { x: "Sample 2", y: 0 },
-          { x: "Sample 3", y: 0 },
+          { x: "Sample 1", y: Math.floor(Math.random() * 30) + 10 },
+          { x: "Sample 2", y: Math.floor(Math.random() * 40) + 15 },
+          { x: "Sample 3", y: Math.floor(Math.random() * 35) + 12 },
         ].map(item => ({
           ...item,
           metric: item.y,
@@ -335,7 +335,7 @@ export class PreviewAPI extends FiltersAPI {
         }));
     }
 
-    console.log("생성된 목업 데이터 (실제 API 연결 테스트용):", mockData);
+    console.log("생성된 목업 데이터:", mockData);
     return mockData;
   }
 

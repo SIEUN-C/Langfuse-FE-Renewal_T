@@ -1,6 +1,6 @@
 // src/Pages/Widget/components/ChartTypeSelector.jsx
 import React from 'react';
-import styles from './ChartTypeSelector.module.css';
+import chartStyles from '../chart-library/chart-library.module.css';
 
 const ChartTypeSelector = ({ value, onChange }) => {
   const chartTypes = [
@@ -16,9 +16,10 @@ const ChartTypeSelector = ({ value, onChange }) => {
 
   return (
     <select 
-      className={styles.select}
+      className={`${chartStyles.button} ${chartStyles.buttonSecondary}`}
       value={value}
       onChange={(e) => onChange(e.target.value)}
+      style={{ minWidth: '200px' }}
     >
       {chartTypes.map(type => (
         <option key={type.value} value={type.value}>

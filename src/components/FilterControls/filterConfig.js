@@ -76,18 +76,18 @@ export const dashboardFilterConfig = [
   { key: "version", label: "Version", type: "string", operators: commonStringOperators },
 ];
 
-// src/components/FilterControls/filterConfig.js 파일 맨 끝에 추가할 내용
-// (기존 변수들을 재사용하므로 새로 선언하지 않음)
-
-// Widget용 필터 설정 추가
+// Widget용 필터 설정 - 위젯에서 사용되는 실제 dimension 이름들과 매핑
 export const widgetFilterConfig = [
   { key: "environment", label: "Environment", type: "categorical", operators: commonCategoricalOperators, options: [] },
   { key: "name", label: "Trace Name", type: "categorical", operators: commonCategoricalOperators, options: [] },
+  { key: "traceName", label: "Trace Name", type: "categorical", operators: commonCategoricalOperators, options: [] }, // 별칭
   { key: "observationName", label: "Observation Name", type: "string", operators: commonStringOperators },
   { key: "scoreName", label: "Score Name", type: "string", operators: commonStringOperators },
   { key: "tags", label: "Tags", type: "categorical", operators: allCategoricalOperators, options: [] },
-  { key: "userId", label: "User", type: "string", operators: commonStringOperators },
-  { key: "sessionId", label: "Session", type: "string", operators: commonStringOperators },
+  { key: "user", label: "User", type: "string", operators: commonStringOperators },
+  { key: "userId", label: "User ID", type: "string", operators: commonStringOperators },
+  { key: "session", label: "Session", type: "string", operators: commonStringOperators },
+  { key: "sessionId", label: "Session ID", type: "string", operators: commonStringOperators },
   { key: "metadata", label: "Metadata", type: "string", operators: commonStringOperators, hasMetaKey: true },
   { key: "release", label: "Release", type: "string", operators: commonStringOperators },
   { key: "version", label: "Version", type: "string", operators: commonStringOperators },
@@ -103,5 +103,37 @@ export const widgetFilterConfig = [
   { key: "latency", label: "Latency (s)", type: "number", operators: commonNumericOperators },
   { key: "scoresNumeric", label: "Scores (numeric)", type: "number", operators: commonNumericOperators, hasMetaKey: true },
   { key: "scoresCategorical", label: "Scores (categorical)", type: "categorical", operators: commonCategoricalOperators, hasMetaKey: true, options: [] },
-  { key: "timestamp", label: "Timestamp", type: "date", operators: commonNumericOperators },
+  { key: "timestamp", label: "Timestamp", type: "date", operators: dateTimeOperators },
 ];
+
+// ✅ 위젯용 연산자 매핑 함수 추가
+export const getWidgetOperatorMapping = () => {
+  return {
+    // 문자열 연산자
+    "=": "equals",
+    "contains": "contains", 
+    "does not contain": "notContains",
+    "starts with": "startsWith",
+    "ends with": "endsWith",
+    
+    // 숫자/날짜 연산자
+    ">": "greaterThan",
+    "<": "lessThan", 
+    ">=": "greaterThanOrEqual",
+    "<=": "lessThanOrEqual",
+    
+    // 카테고리컬 연산자
+    "any of": "anyOf",
+    "none of": "noneOf", 
+    "all of": "allOf"
+  };
+};
+
+// ✅ 위젯 필터 구성 가져오기 헬퍼 함수
+export const getWidgetFilterConfigForDimension = (dimensionKey) => {
+  return widgetFilterConfig.find(config => 
+    config.key === dimensionKey || 
+    config.key === dimensionKey.toLowerCase() ||
+    config.label.toLowerCase().replace(/[^a-z0-9]/g, '') === dimensionKey.toLowerCase().replace(/[^a-z0-9]/g, '')
+  );
+};

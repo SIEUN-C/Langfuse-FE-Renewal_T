@@ -318,13 +318,19 @@
   padding: 16px;
 }
 
-/* ---- FiltersEditor 스타일 (균형잡힌 레이아웃) ---- */
+/* ---- FiltersEditor 다크모드 스타일 ---- */
 .filter-container {
   margin-top: 8px;
 }
 
+/* 필터 헤더 */
 .filter-header {
-  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #1e293b;
 }
 
 .filter-title {
@@ -333,123 +339,196 @@
   color: #f8fafc;
 }
 
+.filter-count {
+  font-size: 12px;
+  color: #94a3b8;
+  background: #1e293b;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+/* 필터 행 - 동적 그리드 레이아웃 */
 .simple-filter-row {
   display: grid;
-  grid-template-columns: 60px 140px 100px 1fr 40px;
+  grid-template-columns: 50px minmax(120px, 1fr) minmax(100px, 1fr) minmax(150px, 2fr) 32px;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid #1e293b;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 8px;
+  background: #1e293b;
+  border-radius: 6px;
+  border: 1px solid #334155;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+/* 메타키가 있는 필터 행 */
+.simple-filter-row.has-meta-key {
+  grid-template-columns: 50px minmax(100px, 1fr) 80px minmax(80px, 1fr) minmax(120px, 1.5fr) 32px;
+}
+
+.simple-filter-row:hover {
+  border-color: #475569;
+  background: #0f172a;
 }
 
 .simple-filter-row:last-of-type {
-  border-bottom: none;
   margin-bottom: 8px;
-  padding-bottom: 0;
 }
 
+/* Where/And 레이블 */
 .filter-where {
-  font-size: 14px;
-  color: #64748b;
+  font-size: 12px;
   font-weight: 500;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   white-space: nowrap;
 }
 
+/* 드롭다운 스타일 */
 .simple-select {
-  padding: 8px 12px;
+  padding: 6px 8px;
   border: 1px solid #334155;
-  border-radius: 6px;
-  background: #f8fafc;
-  color: #1e293b;
-  font-size: 14px;
-  width: 100%;
+  border-radius: 4px;
+  background: #0f172a;
+  color: #e5e7eb;
+  font-size: 13px;
+  min-width: 0;
   cursor: pointer;
   transition: border-color 0.2s ease;
-  min-width: 0; /* 그리드에서 축소 허용 */
 }
 
 .simple-select:focus {
   outline: none;
   border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
 }
 
 .simple-select:disabled {
-  opacity: 0.6;
+  background: #1e293b;
+  color: #64748b;
   cursor: not-allowed;
-  background: #e2e8f0;
+  opacity: 0.6;
 }
 
+/* 입력 필드 스타일 */
 .simple-input {
-  padding: 8px 12px;
+  padding: 6px 8px;
   border: 1px solid #334155;
-  border-radius: 6px;
-  background: #f8fafc;
-  color: #1e293b;
-  font-size: 14px;
+  border-radius: 4px;
+  background: #0f172a;
+  color: #e5e7eb;
+  font-size: 13px;
   width: 100%;
+  min-width: 0;
   transition: border-color 0.2s ease;
-  min-width: 0; /* 그리드에서 축소 허용 */
 }
 
 .simple-input:focus {
   outline: none;
   border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
 }
 
 .simple-input:disabled {
-  opacity: 0.6;
+  background: #1e293b;
+  color: #64748b;
   cursor: not-allowed;
-  background: #e2e8f0;
+  opacity: 0.6;
 }
 
 .simple-input::placeholder {
-  color: #94a3b8;
+  color: #64748b;
 }
 
+/* 타입별 입력 필드 */
+.simple-input[type="number"] {
+  text-align: right;
+}
+
+.simple-input[type="datetime-local"] {
+  font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+  font-size: 12px;
+}
+
+/* 값 입력 컨테이너 */
+.values-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+}
+
+.type-indicator {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 9px;
+  color: #64748b;
+  background: #1e293b;
+  padding: 2px 4px;
+  border-radius: 3px;
+  pointer-events: none;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: 1px solid #334155;
+}
+
+/* 메타키 입력 */
+.meta-key-input {
+  max-width: 80px;
+  font-size: 12px;
+  font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+}
+
+/* 제거 버튼 */
 .simple-remove-btn {
   background: none;
   border: none;
   color: #64748b;
   cursor: pointer;
-  padding: 6px;
+  padding: 4px;
   border-radius: 4px;
-  font-size: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  transition: all 0.2s ease;
+  width: 28px;
+  height: 28px;
+  transition: all 0.2s;
   flex-shrink: 0;
 }
 
 .simple-remove-btn:hover {
+  background: #374151;
   color: #ef4444;
-  background: #fee2e2;
 }
 
+/* 추가 버튼 */
 .simple-add-btn {
-  background: transparent;
-  border: 1px dashed #94a3b8;
-  border-radius: 6px;
-  color: #64748b;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  padding: 12px 16px;
-  width: 100%;
-  transition: all 0.2s ease;
   display: flex;
   align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: transparent;
+  border: 1px dashed #475569;
+  border-radius: 6px;
+  color: #94a3b8;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
   justify-content: center;
-  gap: 8px;
+  margin-top: 8px;
 }
 
 .simple-add-btn:hover {
-  border-color: #64748b;
-  color: #374151;
-  background: #f9fafb;
+  background: #1e293b;
+  border-color: #3b82f6;
+  color: #3b82f6;
 }
 
 .add-icon {
@@ -457,35 +536,318 @@
   font-weight: 600;
 }
 
-/* 작은 화면에서 레이아웃 조정 */
-@media (max-width: 900px) {
-  .simple-filter-row {
-    grid-template-columns: 1fr;
-    gap: 8px;
-    text-align: left;
-  }
-
-  .filter-where {
-    font-size: 12px;
-    margin-bottom: 4px;
-  }
-  
-  .simple-remove-btn {
-    justify-self: end;
-    margin-top: 8px;
-  }
+/* 필터 요약 */
+.filter-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid #1e293b;
+  font-size: 12px;
 }
 
-@media (max-width: 768px) {
-  .simple-filter-row {
-    grid-template-columns: 1fr;
-    gap: 6px;
-  }
+.summary-text {
+  color: #94a3b8;
+}
 
-  .filter-where {
-    font-size: 12px;
-    margin-bottom: 4px;
-  }
+.clear-all-btn {
+  background: none;
+  border: none;
+  color: #ef4444;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.clear-all-btn:hover {
+  background: #374151;
+}
+
+/* ---- PivotControls 관련 스타일 ---- */
+.configSummary {
+  padding: 12px;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  color: #e2e8f0;
+  font-size: 13px;
+  margin-top: 12px;
+}
+
+.configSummary strong {
+  color: #f8fafc;
+}
+
+.configSummary ul {
+  margin: 8px 0 0 0;
+  padding-left: 20px;
+  color: #94a3b8;
+}
+
+.configSummary li {
+  margin-bottom: 4px;
+  line-height: 1.4;
+}
+
+.configSummary li:last-child {
+  margin-bottom: 0;
+}
+
+/* 체크박스 라벨 스타일 */
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  color: #e2e8f0;
+  font-size: 14px;
+  cursor: pointer;
+  user-select: none;
+  margin: 0;
+}
+
+.checkboxLabel input[type="checkbox"] {
+  margin: 0 8px 0 0;
+  accent-color: #3b82f6;
+  cursor: pointer;
+}
+
+.checkboxLabel input[type="checkbox"]:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* 차원 라벨 스타일 */
+.dimensionLabel {
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 500;
+  min-width: 80px;
+  text-align: left;
+  margin: 0;
+}
+
+/* 피벗 차원 행 스타일 */
+.pivotDimensionRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.pivotDimensionIndex {
+  min-width: 60px;
+  font-size: 13px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.pivotDimensionSelect {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  background: #0f172a;
+  color: #e5e7eb;
+  font-size: 14px;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.pivotDimensionSelect:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+.pivotDimensionSelect:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: #1e293b;
+}
+
+/* 추가/제거 버튼 스타일 */
+.addDimensionBtn {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.addDimensionBtn:hover:not(:disabled) {
+  background: #2563eb;
+}
+
+.addDimensionBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.removeDimensionBtn {
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  transition: background-color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.removeDimensionBtn:hover:not(:disabled) {
+  background: #dc2626;
+}
+
+.removeDimensionBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* 정렬 설정 스타일 */
+.sortConfigRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.sortColumnSelect {
+  flex: 2;
+  padding: 8px 12px;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  background: #0f172a;
+  color: #e5e7eb;
+  font-size: 14px;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.sortOrderSelect {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  background: #0f172a;
+  color: #e5e7eb;
+  font-size: 14px;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.sortColumnSelect:focus,
+.sortOrderSelect:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+.sortColumnSelect:disabled,
+.sortOrderSelect:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: #1e293b;
+}
+
+/* Display Options 스타일 */
+.displayOptions {
+  padding: 12px;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  margin-top: 8px;
+}
+
+.displayOptionsTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: #e2e8f0;
+  margin: 0 0 12px 0;
+}
+
+.optionRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.optionRow:last-child {
+  margin-bottom: 0;
+}
+
+.rowLimitInput {
+  width: 100px;
+  padding: 6px 8px;
+  border: 1px solid #334155;
+  border-radius: 4px;
+  background: #0f172a;
+  color: #e5e7eb;
+  font-size: 14px;
+  text-align: center;
+}
+
+.rowLimitInput:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+.rowLimitInput:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: #1e293b;
+}
+
+.rowLimitLabel {
+  color: #94a3b8;
+  font-size: 14px;
+  min-width: 80px;
+}
+
+.rowLimitHint {
+  color: #64748b;
+  font-size: 12px;
+}
+
+/* 설정 요약 향상 */
+.configSummaryTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: #f8fafc;
+  margin: 0 0 8px 0;
+}
+
+.configSummaryList {
+  margin: 0;
+  padding-left: 16px;
+  color: #94a3b8;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.configSummaryItem {
+  margin-bottom: 4px;
+}
+
+.configSummaryItem:last-child {
+  margin-bottom: 0;
+}
+
+.configSummaryItem strong {
+  color: #e2e8f0;
+  font-weight: 600;
 }
 
 /* ---- 반응형 디자인 ---- */
@@ -507,6 +869,7 @@
   }
 }
 
+/* 모바일 반응형 */
 @media (max-width: 768px) {
   .pageWrap {
     padding: 8px;
@@ -532,30 +895,263 @@
     margin: 16px;
   }
 
-  /* 모바일에서 필터 행 스타일 조정 */
-  .filter-row {
+  /* 필터 모바일 레이아웃 */
+  .simple-filter-row,
+  .simple-filter-row.has-meta-key {
+    grid-template-columns: 1fr;
+    gap: 6px;
+    padding: 12px;
+  }
+  
+  .filter-where {
+    justify-self: start;
+    margin-bottom: 4px;
+  }
+  
+  .type-indicator {
+    position: static;
+    transform: none;
+    align-self: flex-end;
+    margin-top: 4px;
+  }
+  
+  .values-input-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .simple-remove-btn {
+    justify-self: end;
+    margin-top: 8px;
+  }
+
+  .pivotDimensionRow {
     flex-direction: column;
     align-items: stretch;
     gap: 6px;
   }
 
-  .filter-label {
+  .pivotDimensionIndex {
     min-width: auto;
-    margin-bottom: 2px;
+    margin-bottom: 4px;
   }
 
-  .form-select,
-  .filter-value-input {
-    max-width: none;
-    width: 100%;
+  .sortConfigRow {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
   }
 
-  .filter-value-hint {
-    margin-left: 0;
+  .optionRow {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
   }
 
-  .remove-filter-btn {
+  .rowLimitLabel {
+    min-width: auto;
+  }
+}
+
+/* 중간 화면 크기 */
+@media (max-width: 900px) and (min-width: 769px) {
+  .simple-filter-row {
+    grid-template-columns: 40px 1fr 80px 1fr 28px;
+    gap: 6px;
+  }
+  
+  .simple-filter-row.has-meta-key {
+    grid-template-columns: 40px 1fr 60px 70px 1fr 28px;
+  }
+}
+
+/* 작은 화면에서 추가 조정 */
+@media (max-width: 400px) {
+  .filter-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  
+  .filter-count {
     align-self: flex-end;
-    margin-top: 4px;
+  }
+  
+  .simple-add-btn {
+    padding: 10px;
+    font-size: 12px;
+  }
+}
+
+/* ---- MultiSelect 드롭다운 스타일 ---- */
+.multi-select-container {
+  position: relative;
+  width: 100%;
+}
+
+.multi-select-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #334155;
+  border-radius: 4px;
+  background: #0f172a;
+  color: #e5e7eb;
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+  min-height: 28px;
+}
+
+.multi-select-trigger:hover {
+  border-color: #475569;
+}
+
+.multi-select-trigger:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.multi-select-trigger:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: #1e293b;
+}
+
+.multi-select-text {
+  flex: 1;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #e5e7eb;
+  font-size: 13px;
+}
+
+.multi-select-icon {
+  flex-shrink: 0;
+  margin-left: 4px;
+  color: #64748b;
+  transition: transform 0.2s ease;
+}
+
+.multi-select-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+  max-height: 200px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.multi-select-search {
+  width: 100%;
+  padding: 8px;
+  border: none;
+  border-bottom: 1px solid #334155;
+  background: #1e293b;
+  color: #e5e7eb;
+  font-size: 12px;
+  outline: none;
+}
+
+.multi-select-search::placeholder {
+  color: #64748b;
+}
+
+.multi-select-options {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 0;
+}
+
+.multi-select-option {
+  display: flex;
+  align-items: center;
+  padding: 6px 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  font-size: 12px;
+  color: #e5e7eb;
+  user-select: none;
+}
+
+.multi-select-option:hover {
+  background: #1e293b;
+}
+
+.multi-select-option input[type="checkbox"] {
+  margin: 0 6px 0 0;
+  accent-color: #3b82f6;
+  cursor: pointer;
+  width: 14px;
+  height: 14px;
+}
+
+.multi-select-option span {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 12px;
+}
+
+.multi-select-empty {
+  padding: 8px;
+  text-align: center;
+  color: #64748b;
+  font-size: 11px;
+  font-style: italic;
+}
+
+/* 스크롤바 스타일 */
+.multi-select-options::-webkit-scrollbar {
+  width: 4px;
+}
+
+.multi-select-options::-webkit-scrollbar-track {
+  background: #1e293b;
+}
+
+.multi-select-options::-webkit-scrollbar-thumb {
+  background: #475569;
+  border-radius: 2px;
+}
+
+.multi-select-options::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+/* MultiSelect이 values-input-container 안에 있을 때 */
+.values-input-container .multi-select-container {
+  width: 100%;
+}
+
+.values-input-container .multi-select-trigger {
+  width: 100%;
+}
+
+/* 반응형 MultiSelect */
+@media (max-width: 768px) {
+  .multi-select-dropdown {
+    max-height: 150px;
+  }
+  
+  .multi-select-option {
+    padding: 8px;
+  }
+  
+  .multi-select-search {
+    padding: 10px;
   }
 }

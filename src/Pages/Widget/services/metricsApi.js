@@ -45,25 +45,72 @@ export async function fetchMetrics(params) {
   return res.json();
 }
 
+// Langfuse 공식 API executeQuery 함수 추가
+export async function executeQuery(queryParams) {
+  try {
+    console.log("[metricsApi] Executing query:", queryParams);
+    
+    // Langfuse query 스키마에 맞게 변환
+    const langfuseQuery = {
+      view: queryParams.view || "traces",
+      dimensions: queryParams.dimensions || [],
+      metrics: queryParams.metrics || [{ measure: "count", aggregation: "count" }],
+      filters: queryParams.filters || [],
+      timeDimension: queryParams.timeDimension,
+      fromTimestamp: queryParams.fromTimestamp,
+      toTimestamp: queryParams.toTimestamp,
+      orderBy: queryParams.orderBy || null
+    };
+
+    console.log("[metricsApi] Langfuse query:", langfuseQuery);
+    
+    const response = await fetchMetrics(langfuseQuery);
+    
+    return {
+      success: true,
+      data: {
+        chartData: response.data || [],
+        metadata: response.metadata || {}
+      }
+    };
+  } catch (error) {
+    console.error("[metricsApi] Query execution failed:", error);
+    return {
+      success: false,
+      error: error.message || 'Query execution failed'
+    };
+  }
+}
+
 /** 미리보기 전용 */
 export async function fetchMetricsForPreview(opts) {
   const { viewType, metric, startDate, endDate, filters = [] } = opts;
 
-  const view = ["traces", "observations", "scores"].includes(viewType)
+  // Langfuse 공식 views에 맞게 수정
+  const view = ["traces", "observations", "scores-numeric", "scores-categorical"].includes(viewType)
     ? viewType
     : "traces";
 
+  // Langfuse 공식 measures에 맞게 수정
   const metricMap = {
-    count: { measure: "count", aggregation: "sum" },
+    count: { measure: "count", aggregation: "count" },
+    observationsCount: { measure: "observationsCount", aggregation: "count" },
+    scoresCount: { measure: "scoresCount", aggregation: "count" },
     latency: { measure: "latency", aggregation: "avg" },
-    observations_count: { measure: "count", aggregation: "sum" },
-    scores_count: { measure: "count", aggregation: "sum" },
+    totalCost: { measure: "totalCost", aggregation: "sum" },
+    totalTokens: { measure: "totalTokens", aggregation: "sum" },
+    timeToFirstToken: { measure: "timeToFirstToken", aggregation: "avg" },
+    countScores: { measure: "countScores", aggregation: "count" },
+    value: { measure: "value", aggregation: "avg" },
+    // 기존 호환성을 위한 매핑
+    observations_count: { measure: "observationsCount", aggregation: "count" },
+    scores_count: { measure: "scoresCount", aggregation: "count" },
     total_cost: { measure: "totalCost", aggregation: "sum" },
     total_tokens: { measure: "totalTokens", aggregation: "sum" },
-    duration: { measure: "duration", aggregation: "avg" },
-    cost: { measure: "cost", aggregation: "sum" },
-    input_tokens: { measure: "input_tokens", aggregation: "sum" },
-    output_tokens: { measure: "output_tokens", aggregation: "sum" },
+    duration: { measure: "latency", aggregation: "avg" },
+    cost: { measure: "totalCost", aggregation: "sum" },
+    input_tokens: { measure: "totalTokens", aggregation: "sum" },
+    output_tokens: { measure: "totalTokens", aggregation: "sum" },
   };
   const metricCfg = metricMap[metric] || metricMap.count;
 
@@ -71,16 +118,19 @@ export async function fetchMetricsForPreview(opts) {
   const toISO_ = toISO(endDate);
   const gran = autoGranularity(fromISO, toISO_);
 
+  // Langfuse singleFilter에 맞는 operator 매핑
   const OP_MAP = {
-    is: "contains",
-    "is equal to": "contains",
-    "=": "contains",
-    "is not": "not in",
-    "!=": "not in",
+    is: "=",
+    "is equal to": "=",
+    "=": "=", 
+    "is not": "!=",
+    "!=": "!=",
     contains: "contains",
-    "does not contain": "not in",
+    "does not contain": "not_contains",
     in: "in",
-    "not in": "not in",
+    "not in": "not_in",
+    anyOf: "in",
+    noneOf: "not_in",
     ">": ">",
     "<": "<",
     ">=": ">=",
@@ -88,9 +138,9 @@ export async function fetchMetricsForPreview(opts) {
   };
 
   const lfFilters = (filters || []).map((f) => {
-    const op = OP_MAP[f.operator] || "contains";
+    const op = OP_MAP[f.operator] || "=";
     let val = f.value;
-    if (typeof val === "string" && op.includes("in")) {
+    if (typeof val === "string" && (op === "in" || op === "not_in")) {
       val = val
         .split(",")
         .map((s) => s.trim())
@@ -100,7 +150,7 @@ export async function fetchMetricsForPreview(opts) {
       column: f.column,
       operator: op,
       value: val,
-      type: Array.isArray(val) ? "string" : typeof val,
+      type: Array.isArray(val) ? "arrayOptions" : typeof val,
     };
   });
 

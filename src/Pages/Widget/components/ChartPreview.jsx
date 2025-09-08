@@ -1,7 +1,7 @@
 // src/Pages/Widget/components/ChartPreview.jsx
 import React, { useMemo } from "react";
 import Chart from "../chart-library/Chart.jsx";
-import styles from './ChartPreview.module.css';
+import chartStyles from '../chart-library/chart-library.module.css'; // 공통 CSS 사용
 
 export default function ChartPreview({
   chartType = "LINE_TIME_SERIES",
@@ -104,39 +104,36 @@ export default function ChartPreview({
     return result;
   }, [data, chartType]);
 
-  // 로딩 상태 - 랭퓨즈 스타일
+  // 로딩 상태 - 공통 스타일 사용
   if (loading) {
     return (
-      <div className={styles.chartContainer}>
-        <div className={styles.loadingState}>
-          <div className={styles.spinner}></div>
+      <div className={chartStyles.chartContainer}>
+        <div className={chartStyles.loading}>
           <span>Loading chart...</span>
         </div>
       </div>
     );
   }
 
-  // 에러 상태 - 랭퓨즈 스타일
+  // 에러 상태 - 공통 스타일 사용
   if (error) {
     return (
-      <div className={styles.chartContainer}>
-        <div className={styles.errorState}>
-          <div className={styles.errorTitle}>Chart Error</div>
-          <div className={styles.errorMessage}>⚠️ {String(error)}</div>
+      <div className={chartStyles.chartContainer}>
+        <div className={chartStyles.error}>
+          <div>Chart Error</div>
+          <div>⚠️ {String(error)}</div>
         </div>
       </div>
     );
   }
 
-  // 데이터가 없는 경우 - 랭퓨즈 스타일
+  // 데이터가 없는 경우 - 공통 스타일 사용
   if (!transformedData || transformedData.length === 0) {
     return (
-      <div className={styles.chartContainer}>
-        <div className={styles.emptyState}>
+      <div className={chartStyles.chartContainer}>
+        <div className={chartStyles.empty}>
           <div>No data available</div>
-          <div className={styles.emptyHint}>
-            Execute a query to see chart data
-          </div>
+          <div>Execute a query to see chart data</div>
         </div>
       </div>
     );
@@ -144,8 +141,8 @@ export default function ChartPreview({
 
   // 팀원의 chart-library 사용
   return (
-    <div className={styles.container}>
-      <div className={styles.chartWrapper}>
+    <div className={chartStyles.container}>
+      <div className={chartStyles.chartContent}>
         <Chart
           chartType={chartType}
           data={transformedData}
