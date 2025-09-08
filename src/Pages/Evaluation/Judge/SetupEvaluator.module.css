@@ -1,85 +1,226 @@
+/* 페이지 레이아웃 */
 .pageContainer {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 16px;
+  height: 100%;
+  padding: 24px;
+  background: #0b1020;
+  /* 기존 다크보다 살짝 밝게 */
+  color: #e5edf7;
+}
+
+/* 상단 */
+.header {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  height: 100%;
-  padding: 2rem;
-  background-color: #020817;
-  color: #f1f5f9;
-}
-
-.contentWrapper {
-  overflow-y: auto;
-}
-
-.header {
-  margin-bottom: 2rem;
+  gap: 8px;
 }
 
 .title {
-  font-size: 1.875rem;
+  font-size: 20px;
+  font-weight: 700;
+  color: #e6eef9;
+}
+
+.subtle {
+  font-size: 12px;
+  color: #8aa0bd;
+}
+
+/* 카드 */
+.card {
+  border: 1px solid #23314a;
+  background: #0f1529;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* 카드 헤더(검색) */
+.cardHeader {
+  display: flex;
+  align-items: center;
+  padding: 12px 14px;
+  border-bottom: 1px solid #22314a;
+  gap: 10px;
+}
+
+.searchInput {
+  width: 100%;
+  height: 36px;
+  border: 1px solid #2a3a58;
+  background: #0c1224;
+  color: #dbe7fb;
+  border-radius: 8px;
+  padding: 0 12px;
+  outline: none;
+}
+
+.searchInput::placeholder {
+  color: #7289ab;
+}
+
+.searchInput:focus {
+  border-color: #3c5280;
+}
+
+/* 리스트 영역 */
+.list {
+  max-height: calc(100vh - 240px);
+  overflow-y: auto;
+}
+
+.sectionTitle {
+  font-size: 12px;
+  color: #95a7c2;
   font-weight: 600;
-  color: #f1f5f9;
+  padding: 12px 16px 6px;
 }
 
-.listContainer {
-  border-top: 1px solid #334155; /* 목록의 시작을 알리는 상단 선 */
-}
-
-.listItem {
-  padding: 1rem 1.5rem;
+/* 리스트 아이템 */
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 16px;
   cursor: pointer;
-  border-bottom: 1px solid #334155; /* 각 항목을 구분하는 하단 선 */
-  transition: background-color 0.2s;
+  border-top: 1px solid #16213a;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
-.listItem:hover {
-  background-color: #1e293b;
+.item:hover {
+  background: #111a33;
+  border-color: #263556;
 }
 
-.listItem.selected {
-  background-color: #334155;
-  box-shadow: inset 3px 0 0 0 #f1f5f9; /* 선택되었음을 나타내는 왼쪽의 작은 바 */
+.item.selected {
+  background: #172243;
+  border-left: 3px solid #7eb6ff;
 }
 
-.listTitle {
-  font-size: 1rem;
-  font-weight: 500;
-  color: #f1f5f9;
-  margin: 0;
+/* 왼쪽(이름/메타) */
+.left {
+  display: grid;
+  grid-template-columns: auto;
+  gap: 4px;
+  min-width: 0;
 }
 
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.flag {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  background: #0d2340;
+  border: 1px solid #2a4266;
+  display: inline-flex;
+}
+
+.name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #e6eef9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.metaRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.badge {
+  font-size: 11px;
+  color: #9ab2d6;
+  background: #0a1934;
+  border: 1px solid #263c63;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
+/* 오른쪽(액션) */
+.right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.externalLink {
+  font-size: 12px;
+  color: #9dc0ff;
+  text-decoration: none;
+  border: 1px solid #263c63;
+  background: #0a1934;
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+
+.externalLink:hover {
+  background: #0f2348;
+}
+
+/* 푸터 버튼들 */
 .footer {
   display: flex;
   justify-content: flex-end;
-  gap: 0.75rem;
-  padding-top: 2rem;
-  margin-top: 2rem;
-  border-top: 1px solid #334155;
+  gap: 10px;
+  padding-top: 16px;
 }
 
-.cancelButton,
-.continueButton {
-  padding: 0.625rem 1.25rem;
-  font-size: 0.875rem;
+.btn {
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 8px;
+  border: 1px solid #2a3a58;
+  background: #0d162d;
+  color: #dbe7fb;
   font-weight: 600;
-  border-radius: 0.375rem;
+  font-size: 13px;
   cursor: pointer;
-  border: 1px solid #334155;
-  transition: all 0.2s;
-  background-color: #1e293b;
-  color: #f1f5f9;
+  transition: background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
 }
 
-.cancelButton:hover,
-.continueButton:hover:not(:disabled) {
-  background-color: #334155;
-  border-color: #475569;
+.btn:hover {
+  background: #142041;
+  border-color: #3c5280;
 }
 
-.continueButton:disabled {
-  background-color: #0f172a;
-  color: #475569;
-  border-color: #334155;
+.primary {
+  background: #1e3a8a;
+  border-color: #2348ac;
+}
+
+.primary:hover {
+  background: #2447ad;
+}
+
+.btn:disabled {
+  opacity: 0.45;
   cursor: not-allowed;
+}
+
+/* 스텝 네비 (상단 작은 단계 표시 느낌) */
+.stepper {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 12px;
+  color: #8aa0bd;
+}
+
+.stepOn {
+  color: #e6eef9;
+  font-weight: 700;
+}
+
+.sep {
+  opacity: 0.5;
 }

@@ -1,0 +1,273 @@
+.formRoot {
+    display: grid;
+    gap: 16px;
+}
+
+.row {
+    display: grid;
+    gap: 8px;
+}
+
+.label {
+    font-size: 13px;
+    color: #96a7c2;
+    font-weight: 600;
+}
+
+.smallLabel {
+    font-size: 12px;
+    color: #96a7c2;
+    font-weight: 600;
+}
+
+.input {
+    height: 36px;
+    border: 1px solid #2a3a58;
+    background: #0d162d;
+    color: #e6eef9;
+    border-radius: 8px;
+    padding: 0 12px;
+    outline: none;
+}
+
+.input:focus {
+    border-color: #3c5280;
+}
+
+.textarea {
+    border: 1px solid #2a3a58;
+    background: #0d162d;
+    color: #e6eef9;
+    border-radius: 8px;
+    padding: 10px 12px;
+    outline: none;
+}
+
+.textarea:focus {
+    border-color: #3c5280;
+}
+
+.select {
+    height: 36px;
+    border: 1px solid #2a3a58;
+    background: #0d162d;
+    color: #e6eef9;
+    border-radius: 8px;
+    padding: 0 8px;
+}
+
+.tag {
+    display: inline-flex;
+    align-items: center;
+    height: 28px;
+    padding: 0 10px;
+    border-radius: 6px;
+    background: #0a1934;
+    border: 1px solid #263c63;
+    color: #dbe7fb;
+    font-weight: 600;
+    width: max-content;
+}
+
+/* 카드 */
+.card {
+    border: 1px solid #23314a;
+    background: #0f1529;
+    border-radius: 10px;
+    padding: 14px;
+}
+
+.cardTitle {
+    font-size: 14px;
+    font-weight: 700;
+    color: #e6eef9;
+    margin-bottom: 8px;
+}
+
+.fieldsetRow {
+    display: grid;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.radioGroup {
+    display: flex;
+    gap: 16px;
+}
+
+.radio {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #dbe7fb;
+}
+
+.checkboxGroup {
+    display: flex;
+    gap: 20px;
+}
+
+.checkbox {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #dbe7fb;
+}
+
+.helpText {
+    font-size: 12px;
+    color: #8aa0bd;
+}
+
+/* Slider */
+.sliderRow {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 10px;
+}
+
+.range {
+    width: 100%;
+}
+
+.sliderVal {
+    width: 56px;
+    text-align: right;
+    color: #cfe0ff;
+    font-weight: 700;
+}
+
+/* Variable mapping */
+.mappingHeader {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr 1fr 1.2fr 40px;
+    gap: 10px;
+    padding: 8px 0;
+    color: #96a7c2;
+    font-size: 12px;
+    border-bottom: 1px solid #1a2540;
+}
+
+.mappingRow {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr 1fr 1.2fr 40px;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px dashed #17243f;
+}
+
+.mappingActions {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 10px;
+}
+
+.ghostBtn {
+    height: 36px;
+    border: 1px solid #2a3a58;
+    background: transparent;
+    color: #9ab2d6;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.secondaryBtn {
+    height: 36px;
+    border: 1px solid #2a3a58;
+    background: #0d162d;
+    color: #dbe7fb;
+    border-radius: 8px;
+    padding: 0 12px;
+    cursor: pointer;
+}
+
+.secondaryBtn:hover {
+    background: #142041;
+    border-color: #3c5280;
+}
+
+.footer {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.primaryBtn {
+    height: 40px;
+    padding: 0 16px;
+    border-radius: 8px;
+    border: 1px solid #2348ac;
+    background: #1e3a8a;
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.primaryBtn:hover {
+    background: #2447ad;
+}
+
+.error {
+    color: #ffb4b4;
+    font-size: 13px;
+}
+
+.previewHeader {
+    margin: 16px 0 8px;
+    font-weight: 600;
+    color: #cbd5e1;
+}
+
+.previewNote {
+    color: #9ab2d6;
+    padding: 8px 0;
+}
+
+.previewTable {
+    border: 1px solid #334155;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.previewHead,
+.previewRow {
+    display: grid;
+    grid-template-columns: 160px 200px 1fr 1fr 150px 100px;
+    gap: 8px;
+    align-items: center;
+}
+
+.previewHead {
+    background: #0b1220;
+    border-bottom: 1px solid #334155;
+    padding: 10px 12px;
+    font-size: 12px;
+    color: #94a3b8;
+    text-transform: uppercase;
+}
+
+.previewRow {
+    padding: 10px 12px;
+    border-bottom: 1px solid #1e293b;
+}
+
+.previewRow:last-child {
+    border-bottom: none;
+}
+
+.cellMono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.cellEllip {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.previewEmpty {
+    padding: 12px;
+    color: #94a3b8;
+}
