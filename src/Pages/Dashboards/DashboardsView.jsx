@@ -304,14 +304,22 @@ export const DashboardsView = () => {
 
   return (
     <>
+      {/* 대시보드 테이블 - 페이지네이션 포함 */}
       <DataTable
         columns={columns}
-        data={sortedDashboards}
+        data={sortedDashboards} // 전체 데이터 전달, 페이징은 내부에서 처리
         keyField="id"
         showActions={false}
         showFavorite={false}
         showCheckbox={false}
         renderEmptyState={() => <div>No dashboards found.</div>}
+        // 페이지네이션 활성화 및 페이지 하단 고정
+        pagination={{
+          enabled: true,
+          pageSize: 50,
+          pageSizeOptions: [10, 20, 30, 50],
+          position: "fixed-bottom"
+        }}
       />
 
       {/* 편집 다이얼로그 */}

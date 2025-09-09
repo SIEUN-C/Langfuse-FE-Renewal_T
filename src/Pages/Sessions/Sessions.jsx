@@ -130,6 +130,12 @@ const Sessions = () => {
                 showFavorite={true}
                 favoriteState={favoriteState}
                 onFavoriteClick={toggleFavorite}
+                pagination={{
+                    enabled: true,
+                    pageSize: 50,
+                    pageSizeOptions: [10, 20, 30, 50],
+                    position: "fixed-bottom"
+                  }}
             />
         );
     };

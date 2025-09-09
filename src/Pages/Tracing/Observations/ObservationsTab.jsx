@@ -200,6 +200,12 @@ export default function ObservationsTab({
                 showCheckbox={false}
                 showFavorite={false}
                 showDelete={false}
+                pagination={{
+                    enabled: true,
+                    pageSize: 50,
+                    pageSizeOptions: [10, 20, 30, 50],
+                    position: "fixed-bottom"
+                  }}
             />
         </>
     );

@@ -189,6 +189,12 @@ export const WidgetsView = () => {
       data={sortedWidgets}
       keyField="id"
       renderEmptyState={() => <div>위젯이 없습니다.</div>}
+      pagination={{
+        enabled: true,
+        pageSize: 50,
+        pageSizeOptions: [10, 20, 30, 50],
+        position: "fixed-bottom"
+      }}
     />
   );
 };

@@ -1,13 +1,46 @@
-/* 테이블 컨테이너 */
+/* src/components/DataTable/DataTable.module.css - 전체 너비 페이지네이션 */
+
+/* CSS 변수 정의 */
+:root {
+  --pagination-height: 60px;
+  --header-height: 120px;
+  --sidebar-width: 200px;
+  --sidebar-collapsed-width: 60px;
+}
+
+/* 기본 테이블 컨테이너 */
 .tableContainer {
-  border: 1px solid #1e293b;
-  border-radius: 8px;
+  border: none;
+  border-radius: 0;
   overflow-x: auto;
+  width: 100%;
+}
+
+/* sticky-bottom 모드 */
+.stickyBottomContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* fixed-bottom 모드 */
+.fixedBottomContainer {
+  height: calc(100vh - var(--header-height) - var(--pagination-height));
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.tableWrapper {
+  flex: 1;
+  overflow: auto;
+  min-height: 0;
 }
 
 .table {
   width: 100%;
   border-collapse: collapse;
+  background-color: #020817;
 }
 
 .table th,
@@ -16,7 +49,6 @@
   text-align: left;
   font-size: 13px;
   border-bottom: 1px solid #1e293b;
-  /* white-space: nowrap; */
 }
 
 .table td {
@@ -27,6 +59,7 @@
   color: #94a3b8;
   font-weight: 500;
   background-color: #020817;
+  border-bottom: 1px solid #1e293b;
 }
 
 .table th:first-child,
@@ -62,12 +95,13 @@
   background-color: #334155;
   color: white;
 }
+
 .iconButton:disabled {
   color: #475569;
   cursor: not-allowed;
 }
 
-/* 페이지네이션 */
+/* 기본 페이지네이션 스타일 */
 .pagination {
   display: flex;
   justify-content: flex-end;
@@ -77,6 +111,31 @@
   color: #94a3b8;
   gap: 24px;
   border-top: 1px solid #1e293b;
+  background-color: #020817;
+  flex-shrink: 0;
+  height: var(--pagination-height);
+  box-sizing: border-box;
+}
+
+/* fixed-bottom 페이지네이션 - 전체 너비 사용, 사이드바 뒤로 */
+.fixedBottomPagination {
+  position: fixed;
+  bottom: 0;
+  left: 0; /* 화면 전체 시작점 */
+  right: 0; /* 화면 전체 끝점 */
+  z-index: 50; /* 사이드바(z-index 더 높음)보다 뒤로 */
+  border-top: 1px solid #1e293b;
+  border-radius: 0;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  padding-left: var(--sidebar-width); /* 사이드바 너비만큼 왼쪽 패딩 */
+  padding-right: 20px; /* 오른쪽 여백 */
+  margin-right: 20px;
+  transition: padding-left 0.3s ease; /* 부드러운 전환 */
+}
+
+/* 사이드바가 접혔을 때 */
+.fixedBottomPagination.sidebarCollapsed {
+  padding-left: var(--sidebar-collapsed-width); /* 60px */
 }
 
 .rowsPerPage {
@@ -93,33 +152,55 @@
   padding: 4px 8px;
 }
 
+.pageInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pageInput {
+  background-color: #1e293b;
+  color: white;
+  border: 1px solid #334155;
+  border-radius: 4px;
+  padding: 4px 8px;
+  text-align: center;
+  width: 50px;
+  font-size: 13px;
+}
+
+.pageInput:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
 .pageControls {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-/* ▼▼▼ 즐겨찾기 아이콘 스타일 추가 ▼▼▼ */
+/* 즐겨찾기 아이콘 스타일 */
 .starIcon {
   color: #64748b;
   cursor: pointer;
 }
+
 .favorited {
   color: #facc15;
   fill: #facc15;
 }
 
 .clickableRow {
- cursor: pointer;
- border-top: 1px solid transparent;
+  cursor: pointer;
+  border-top: 1px solid transparent;
 }
 
-/* 🔽 마우스를 올렸을 때의 스타일 수정 */
 .clickableRow:hover {
- background-color: #f1f4f86a !important;
+  background-color: #f1f4f86a !important;
 }
 
-/* 선택된 행 스타일 - selectedRowKey prop이 전달된 경우에만 적용됨 */
+/* 선택된 행 스타일 */
 .selectedRow {
   background-color: #1e40af !important;
   border-left: 3px solid #3b82f6;
@@ -133,7 +214,6 @@
   background-color: #1d4ed8 !important;
 }
 
-/* 선택된 행의 아이콘 색상도 조정 */
 .selectedRow .starIcon,
 .selectedRow .iconButton {
   color: #ffffff !important;
@@ -141,4 +221,39 @@
 
 .selectedRow .iconButton:hover {
   background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* 반응형 대응 */
+@media (max-width: 768px) {
+  :root {
+    --header-height: 100px;
+  }
+  
+  .fixedBottomPagination {
+    padding-left: 0; /* 모바일에서는 사이드바 없으므로 패딩 제거 */
+    padding-right: 0px;
+  }
+  
+  .pagination {
+    padding: 6px 12px;
+    gap: 16px;
+  }
+  
+  .rowsPerPage span {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --header-height: 90px;
+  }
+  
+  .pagination {
+    gap: 12px;
+  }
+  
+  .pageControls {
+    gap: 4px;
+  }
 }
