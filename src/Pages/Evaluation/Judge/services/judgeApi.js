@@ -48,3 +48,21 @@ export const getEvaluationJobs = ({ projectId, evalConfigId }) => {
   });
 };
 // --------------------------------------------------------------------
+
+// --- ✨ 추가: ID로 특정 Evaluator의 상세 설정을 가져오는 API 함수 ---
+/**
+ * ID를 사용하여 단일 Evaluator 설정의 상세 정보를 조회합니다.
+ * View 페이지의 헤더에 Evaluator 이름을 표시하기 위해 사용됩니다.
+ * @param {object} params
+ * @param {string} params.projectId - 프로젝트 ID
+ * @param {string} params.id - Evaluator 설정 ID
+ * @returns {Promise<any>}
+ */
+export const getEvaluatorConfigById = ({ projectId, id }) => {
+  // 주석: API 목록 13번 'evals.configById'를 호출합니다.
+  return trpcQuery("evals.configById", {
+    projectId,
+    id,
+  });
+};
+// --------------------------------------------------------------------

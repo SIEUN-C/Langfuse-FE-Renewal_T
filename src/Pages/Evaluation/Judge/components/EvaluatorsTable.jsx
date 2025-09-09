@@ -34,6 +34,12 @@ export default function EvaluatorsTable({ data, onRowClick, isLoading, datasetMa
       renderEmptyState={() => <div className={styles.emptyState}>No evaluators found.</div>}
       showCheckbox={false}
       showFavorite={false}
+      pagination={{
+      enabled: true,
+      pageSize: 50,
+      pageSizeOptions: [10, 20, 30, 50],
+      position: "fixed-bottom"
+      }}
     />
   );
 }
