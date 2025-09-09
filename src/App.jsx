@@ -9,6 +9,8 @@ import SelectProjectPage from "./Pages/Settings/SelectProjectPage";
 import Home from "./Pages/Home/Home";
 
 import Tracing from "./Pages/Tracing/Tracing";
+// ✨ 1. 새로 만든 페이지 import 하기
+import TraceDetailPage from "./Pages/Tracing/TraceDetailPage"; 
 import Sessions from "./Pages/Sessions/Sessions";
 import SessionDetail from "./Pages/Sessions/SessionDetail";
 
@@ -115,6 +117,9 @@ export default function App() {
 
         {/* Tracing */}
         <Route path="trace" element={<Tracing />} />
+         {/* ✨ 2. 새로운 경로 규칙 추가하기 */}
+        <Route path="project/:projectId/traces/:traceId" element={<TraceDetailPage />} />
+        {/* ----------------------------------------------------------- */}
         <Route path="sessions" element={<Sessions />} />
         <Route path="sessions/:sessionId" element={<SessionDetail />} />
 

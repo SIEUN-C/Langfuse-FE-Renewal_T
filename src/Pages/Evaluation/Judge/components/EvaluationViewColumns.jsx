@@ -105,33 +105,35 @@ export const getEvaluationViewColumns = (projectId) => {
       header: 'Error',
       accessor: (row) => row.error || '-',
     },
-    // --- ✨ 수정: Trace 컬럼에 버튼 스타일과 ID 단축을 적용합니다 ---
+    // --- ✨ 수정: Trace 컬럼을 페이지 이동을 위한 Link로 되돌립니다 ---
     {
       header: 'Trace',
       accessor: (row) => {
         const traceId = row.jobInputTraceId;
-        // 주석: traceId가 있을 때만 버튼 형태로 된 링크를 보여줍니다.
+        // 주석: traceId가 있을 때만 버튼 스타일의 링크를 보여줍니다.
         return traceId ? (
+          // 주석: 클릭 시 projectId와 traceId를 이용해 상세 페이지로 이동합니다.
           <Link to={`/project/${projectId}/traces/${traceId}`} className={styles.cellButton}>
-            {/* 주석: shortenId 함수로 ID를 짧게 만듭니다. */}
             {shortenId(traceId)}
           </Link>
         ) : '-';
       },
     },
-    // --- ✨ 수정: Template 컬럼에 버튼 스타일과 ID 단축을 적용합니다 ---
+    // --- ✨ 수정: Template 컬럼을 클릭하면 해당 템플릿 상세 페이지로 이동하도록 Link를 추가합니다 ---
     {
       header: 'Template',
       accessor: (row) => {
         const templateId = row.jobTemplateId;
-        // 주석: templateId가 있을 때만 버튼 형태로 텍스트를 보여줍니다.
-        // 이 버튼은 현재 클릭 기능이 없습니다.
+        // 주석: templateId가 있을 때만 버튼 형태로 된 링크를 보여줍니다.
         return templateId ? (
-          <span className={styles.cellButton}>
+          // 주석: 클릭 시 templateId를 가지고 templates 상세 페이지로 이동합니다.
+          //       경로는 요청하신 대로 `/llm-as-a-judge/templates/${templateId}` 형식으로 설정합니다.
+          <Link to={`/llm-as-a-judge/templates/${templateId}`} className={styles.cellButton}>
             {shortenId(templateId)}
-          </span>
+          </Link>
         ) : '-';
       },
     },
+    // ------------------------------------------------------------------------------------
   ];
 };
