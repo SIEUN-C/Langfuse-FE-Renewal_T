@@ -1,0 +1,17 @@
+.container {
+    padding: 16px;
+}
+
+.header {
+    margin-bottom: 12px;
+}
+
+.pageMessage {
+    padding: 24px;
+    opacity: .8;
+}
+
+.pageError {
+    padding: 24px;
+    color: #f66;
+}

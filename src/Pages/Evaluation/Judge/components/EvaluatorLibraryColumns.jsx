@@ -1,13 +1,8 @@
 import React from 'react';
-import styles from './EvaluatorsTable.module.css'; // 메인 테이블 스타일 재활용
+import styles from './EvaluatorsTable.module.css';
 
-// 컬럼 정의를 반환하는 함수
-export const getEvaluatorLibraryColumns = () => {
-  const handleSetUpClick = (e, row) => {
-    e.stopPropagation();
-    console.log(`Setting up: ${row.name}`);
-    alert(`"${row.name}" setup process initiated.`);
-  };
+// onUse 콜백을 주입받아 네비게이션/동작을 부모로 위임
+export const getEvaluatorLibraryColumns = ({ onUse } = {}) => {
 
   return [
     {
@@ -16,7 +11,7 @@ export const getEvaluatorLibraryColumns = () => {
     },
     {
       header: 'Maintainer',
-      accessor: (row) => row.maintainer,
+      accessor: (row) => row.partner ?? 'N/A',
     },
     {
       header: 'Last Edit',
@@ -38,7 +33,13 @@ export const getEvaluatorLibraryColumns = () => {
       header: 'Actions', // Actions 컬럼 헤더는 비워둠
       accessor: (row) => (
         <div className={styles.rowActions}>
-          <button onClick={(e) => handleSetUpClick(e, row)} className={styles.viewButton}>
+          <button
+            className={styles.viewButton}
+            onClick={(e) => {
+              e.stopPropagation();      // 행 클릭과 분리
+              onUse?.(row);             // ← 부모에게 위임 (라우팅 등)
+            }}
+          >
             Use Evaluator
           </button>
         </div>

@@ -20,9 +20,22 @@ export default function EvaluationForm({
 
     const [filterText, setFilterText] = useState("[]");  // JSON 배열 원문 (문자열)
     const [mappingRows, setMappingRows] = useState([
-        { templateVar: "query", object: "trace", objectVariable: "input", jsonPath: "" },
-        { templateVar: "generation", object: "trace", objectVariable: "output", jsonPath: "" },
     ]);
+
+    useEffect(() => {
+        // 템플릿 변수명에 맞춰 기본 매핑 설정
+        const vars = Array.isArray(template?.vars) ? template.vars : [];
+        if (vars.length) {
+            const defaults = vars.map((v, idx) => ({
+                templateVar: v,
+                object: "trace",
+                objectVariable: idx === 0 ? "input" : "output", // 1번째는 input, 2번째부터 output 기본
+                jsonPath: "",
+            }));
+            setMappingRows(defaults);
+        }
+    }, [template]);
+
 
     const [error, setError] = useState("");
 
@@ -141,6 +154,7 @@ export default function EvaluationForm({
         onSubmit({
             projectId,
             evalTemplateId: template?.latestId ?? template?.id,
+            template,               // ← 추가: vars 검증/로깅 용
             scoreName: scoreName?.trim(),
 
             // 내부 표현은 'live' | 'dataset' 로 통일 (payload 빌더가 trace/dataset으로 변환)

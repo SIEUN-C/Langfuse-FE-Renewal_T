@@ -29,6 +29,7 @@ import DefaultEvaluationModel from "Pages/Evaluation/Judge/DefaultEvaluationMode
 import EvaluationView from "Pages/Evaluation/Judge/EvaluationView";
 import Templates from "Pages/Evaluation/Judge/Templates";
 import CustomEvaluator from "Pages/Evaluation/Judge/CustomEvaluator";
+import EvaluationForm from "Pages/Evaluation/Judge/components/EvaluationForm";
 // import EvaluatorLibrary from "./Pages/Evaluation/Judge/components/EvaluatorLibrary";
 
 // 대시보드
@@ -49,6 +50,7 @@ import Models from "./Pages/Settings/Models";
 import Members from "./Pages/Settings/Members";
 import Scores from "./Pages/Settings/Scores";
 import TraceProjectRedirect from "./Pages/Settings/test/TraceProjectRedirect";
+import UseEvaluator from "Pages/Evaluation/Judge/UseEvaluator";
 
 
 /** 🔑 projectId 변경 시 컴포넌트를 강제 리마운트하는 래퍼 */
@@ -123,13 +125,15 @@ export default function App() {
 
         {/* Judge / Datasets */}
         <Route path="llm-as-a-judge" element={<JudgePage />} />
-            {/* <Route path="library" element={<EvaluatorLibrary />} /> */}
+        {/* <Route path="library" element={<EvaluatorLibrary />} /> */}
         <Route path="datasets" element={<Dataset />} />
         <Route path="llm-as-a-judge/setup" element={<SetupEvaluator />} />
-        <Route path="llm-as-a-judge" element={<EvaluationDetail />} />
+        {/* llm-as-a-judge 경로 추가 가능성 */}
+        {/* <Route path="llm-as-a-judge" element={<EvaluationDetail />} /> */}
         <Route path="llm-as-a-judge/default-model" element={<DefaultEvaluationModel />} />
         <Route path="llm-as-a-judge/:evaluationId" element={<EvaluationView />} />
         <Route path="llm-as-a-judge/templates/:templateId" element={<Templates />} />
+        <Route path="llm-as-a-judge/evals/new/:templateId" element={<UseEvaluator />} />
         <Route path="llm-as-a-judge/custom" element={<CustomEvaluator />} />
 
         {/* Dashboards */}
