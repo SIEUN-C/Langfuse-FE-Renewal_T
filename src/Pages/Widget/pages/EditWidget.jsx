@@ -15,8 +15,10 @@ import {
   getDefaultAggregationForMeasure
 } from '../services/viewMappings';
 
-// 차트 라이브러리 import
-import Chart from '../chart-library/Chart.jsx';
+// ✅ ChartPreview 컴포넌트 import 추가
+import ChartPreview from '../components/ChartPreview.jsx';
+// ✅ useWidgetPreview 훅 import 추가
+import useWidgetPreview from '../hooks/useWidgetPreview.js';
 
 // API 서비스 import
 import api from '../services/index.js';
@@ -479,10 +481,7 @@ export default function EditWidget() {
   const [startDate, setStartDate] = useState(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000));
   const [endDate, setEndDate] = useState(new Date());
 
-  // 로딩과 저장
-  const [loading, setLoading] = useState(false);
-  const [previewError, setPreviewError] = useState("");
-  const [previewData, setPreviewData] = useState([]);
+  // 저장 상태
   const [saving, setSaving] = useState(false);
 
   // API 초기화
@@ -491,6 +490,45 @@ export default function EditWidget() {
       api.setProjectId(projectId);
     }
   }, [projectId]);
+
+  // ✅ 위젯 설정을 기반으로 프리뷰 설정 생성
+  const previewConfig = useMemo(() => {
+    const activeFilters = userFilterState.filter(f => 
+      f.column && (f.values && f.values.length > 0)
+    );
+
+    return {
+      view: selectedView,
+      dimensions: selectedChartType === "PIVOT_TABLE"
+        ? pivotDimensions.map((field) => ({ field }))
+        : selectedDimension !== ""
+          ? [{ field: selectedDimension }]
+          : [],
+      metrics: selectedChartType === "PIVOT_TABLE"
+        ? selectedMetrics
+            .filter((metric) => metric.measure && metric.measure !== "")
+            .map((metric) => ({
+              measure: metric.measure,
+              aggregation: metric.aggregation,
+            }))
+        : [{ measure: selectedMeasure, aggregation: selectedAggregation }],
+      filters: activeFilters,
+      dateRange: {
+        from: startDate,
+        to: endDate
+      },
+      chartType: selectedChartType
+    };
+  }, [
+    selectedView, selectedDimension, selectedAggregation, selectedMeasure, selectedMetrics,
+    userFilterState, startDate, endDate, selectedChartType, pivotDimensions
+  ]);
+
+  // ✅ useWidgetPreview 훅 사용
+  const { loading: previewLoading, previewData } = useWidgetPreview(previewConfig);
+
+  // ✅ 프리뷰 에러 상태 계산
+  const previewError = previewData.formattedChartData.length === 0 && !previewLoading ? "No data available" : "";
 
   // 위젯 데이터 로딩
   useEffect(() => {
@@ -671,105 +709,7 @@ export default function EditWidget() {
     setPivotDimensions(newDimensions);
   };
 
-  // 쿼리 빌드 (NewWidget과 동일)
-  const query = useMemo(() => {
-    const fromTimestamp = startDate;
-    const toTimestamp = endDate;
-
-    const queryDimensions = selectedChartType === "PIVOT_TABLE"
-      ? pivotDimensions.map((field) => ({ field }))
-      : selectedDimension !== ""
-        ? [{ field: selectedDimension }]
-        : [];
-
-    const queryMetrics = selectedChartType === "PIVOT_TABLE"
-      ? selectedMetrics
-          .filter((metric) => metric.measure && metric.measure !== "")
-          .map((metric) => ({
-            measure: metric.measure,
-            aggregation: metric.aggregation,
-          }))
-      : [{ measure: selectedMeasure, aggregation: selectedAggregation }];
-
-    const transformedFilters = transformFiltersToWidgetFormat(userFilterState.filter(f => 
-      f.column && (f.values && f.values.length > 0)
-    ));
-
-    return {
-      view: selectedView,
-      dimensions: queryDimensions,
-      metrics: queryMetrics,
-      filters: transformedFilters,
-      timeDimension: isTimeSeriesChart(selectedChartType) ? { granularity: "auto" } : null,
-      fromTimestamp: fromTimestamp.toISOString(),
-      toTimestamp: toTimestamp.toISOString(),
-      chartType: selectedChartType,
-      chartConfig: selectedChartType === "HISTOGRAM"
-        ? { type: selectedChartType, bins: histogramBins }
-        : selectedChartType === "PIVOT_TABLE"
-          ? {
-              type: selectedChartType,
-              dimensions: pivotDimensions,
-              row_limit: rowLimit,
-              defaultSort: defaultSortColumn && defaultSortColumn !== ""
-                ? { column: defaultSortColumn, order: defaultSortOrder }
-                : undefined,
-            }
-          : { type: selectedChartType, row_limit: rowLimit },
-    };
-  }, [
-    selectedView, selectedDimension, selectedAggregation, selectedMeasure, selectedMetrics,
-    userFilterState, startDate, endDate, selectedChartType, histogramBins, pivotDimensions, rowLimit,
-    defaultSortColumn, defaultSortOrder
-  ]);
-
-  // 미리보기 데이터 가져오기 (NewWidget과 동일)
-  const refreshPreview = useCallback(async () => {
-    if (!projectId) {
-      setPreviewError("Project ID is required");
-      return;
-    }
-    
-    setLoading(true);
-    setPreviewError("");
-
-    try {
-      const response = await api.executeQuery(query);
-      if (response.success && response.data) {
-        const chartData = response.data.chartData || [];
-        
-        const transformedData = chartData.map((item, index) => ({
-          time_dimension: item.time_dimension || item.timestamp || item.date,
-          dimension: item.dimension || item.name || item[selectedDimension] || `Item ${index + 1}`,
-          metric: typeof item.metric === 'number' ? item.metric : 
-                  typeof item.value === 'number' ? item.value :
-                  Object.values(item).find(v => typeof v === 'number') || 0,
-          ...item
-        }));
-        
-        setPreviewData(transformedData);
-      } else {
-        throw new Error(response.error || 'Failed to fetch data');
-      }
-    } catch (error) {
-      console.error("Preview error:", error);
-      setPreviewError(error?.message || String(error));
-      setPreviewData([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [projectId, query, selectedDimension]);
-
-  // 미리보기 새로고침 (NewWidget과 동일)
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      refreshPreview();
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [refreshPreview]);
-
-  // 차원 재설정 (NewWidget과 동일)
+  // 차원 재설정
   useEffect(() => {
     if (
       chartTypes.find((c) => c.value === selectedChartType)?.supportsBreakdown === false &&
@@ -779,14 +719,14 @@ export default function EditWidget() {
     }
   }, [selectedChartType, selectedDimension]);
 
-  // 피벗 테이블 차원 재설정 (NewWidget과 동일)
+  // 피벗 테이블 차원 재설정
   useEffect(() => {
     if (selectedChartType !== "PIVOT_TABLE" && pivotDimensions.length > 0) {
       setPivotDimensions([]);
     }
   }, [selectedChartType, pivotDimensions.length]);
 
-  // 다중 메트릭 재설정 (NewWidget과 동일)
+  // 다중 메트릭 재설정
   useEffect(() => {
     if (selectedChartType !== "PIVOT_TABLE" && selectedMetrics.length > 1) {
       setSelectedMetrics(selectedMetrics.slice(0, 1));
@@ -794,130 +734,130 @@ export default function EditWidget() {
   }, [selectedChartType, selectedMetrics]);
 
   // 위젯 업데이트 핸들러
-// handleUpdate 함수와 handleCancel 함수 수정
-const handleUpdate = async () => {
-  if (!projectId || !widgetId) {
-    alert("Project ID and Widget ID are required");
-    return;
-  }
-  
-  setSaving(true);
-  console.log("🚀 위젯 업데이트 시작");
-  
-  try {
-    // 위젯 데이터 준비
-    const activeFilters = userFilterState.filter(f => 
-      f.column && (f.values && f.values.length > 0)
-    );
-    
-    console.log("📊 현재 선택된 차트 타입:", selectedChartType);
-    
-    // 차트 설정 강화
-    let chartConfig;
-    
-    switch(selectedChartType) {
-      case "HISTOGRAM":
-        chartConfig = { type: "HISTOGRAM", bins: histogramBins };
-        break;
-      case "PIVOT_TABLE":
-       chartConfig = {
-        type: "PIVOT_TABLE",
-        dimensions: pivotDimensions,
-        row_limit: rowLimit,
-        defaultSort: defaultSortColumn && defaultSortColumn !== ""
-          ? { column: defaultSortColumn, order: defaultSortOrder }
-          : undefined,
-      };
-        break;
-      case "NUMBER":
-        chartConfig = { type: "NUMBER" };
-        break;
-      case "PIE":
-        chartConfig = { type: "PIE", row_limit: rowLimit };
-        break;
-      case "HORIZONTAL_BAR":
-        chartConfig = { type: "HORIZONTAL_BAR", row_limit: rowLimit };
-        break;
-      case "VERTICAL_BAR":
-        chartConfig = { type: "VERTICAL_BAR", row_limit: rowLimit };
-        break;
-      case "LINE_TIME_SERIES":
-        chartConfig = { type: "LINE_TIME_SERIES", row_limit: rowLimit };
-        break;
-      case "BAR_TIME_SERIES":
-        chartConfig = { type: "BAR_TIME_SERIES", row_limit: rowLimit };
-        break;
-      default:
-        chartConfig = { type: selectedChartType, row_limit: rowLimit };
-        break;
+  const handleUpdate = async () => {
+    if (!projectId || !widgetId) {
+      alert("Project ID and Widget ID are required");
+      return;
     }
     
-    const widgetData = {
-      projectId,
-      widgetId,
-      name: widgetName,
-      description: widgetDescription,
-      view: selectedView,
-      dimensions: selectedChartType === "PIVOT_TABLE"
-        ? pivotDimensions.map((field) => ({ field }))
-        : selectedDimension !== ""
-          ? [{ field: selectedDimension }]
-          : [],
-      metrics: selectedChartType === "PIVOT_TABLE"
-        ? selectedMetrics
-            .filter((metric) => metric.measure && metric.measure !== "")
-            .map((metric) => ({
-              measure: metric.measure,
-              agg: metric.aggregation,
-            }))
-        : [{ measure: selectedMeasure, agg: selectedAggregation }],
-      filters: transformFiltersToWidgetFormat(activeFilters),
-      chartType: selectedChartType,
-      chartConfig: chartConfig,
-    };
-
-    console.log("📋 최종 위젯 업데이트 데이터:", widgetData);
-
-    // dashboardWidgets.update API 호출
-    console.log("📡 API 호출 시작... (위젯 업데이트)");
-    const response = await api.trpcPost("dashboardWidgets.update", widgetData);
+    setSaving(true);
+    console.log("🚀 위젯 업데이트 시작");
     
-    console.log("📨 API 응답:", response);
-    
-    if (response) {
-      console.log("🎉 위젯 업데이트 성공!");
-      alert("위젯이 성공적으로 업데이트되었습니다!");
+    try {
+      // 위젯 데이터 준비
+      const activeFilters = userFilterState.filter(f => 
+        f.column && (f.values && f.values.length > 0)
+      );
       
-      // 대시보드에서 온 경우 해당 대시보드로, 아니면 대시보드 메인 페이지의 Widgets 탭으로 이동
-      const dashboardId = searchParams.get("dashboardId");
-      if (dashboardId) {
-        navigate(`/project/${projectId}/dashboards/${dashboardId}`);
-      } else {
-        // 대시보드 메인 페이지로 이동 (Widgets 탭이 기본으로 열림)
-        navigate(`/project/${projectId}/dashboards`);
+      console.log("📊 현재 선택된 차트 타입:", selectedChartType);
+      
+      // 차트 설정 강화
+      let chartConfig;
+      
+      switch(selectedChartType) {
+        case "HISTOGRAM":
+          chartConfig = { type: "HISTOGRAM", bins: histogramBins };
+          break;
+        case "PIVOT_TABLE":
+         chartConfig = {
+          type: "PIVOT_TABLE",
+          dimensions: pivotDimensions,
+          row_limit: rowLimit,
+          defaultSort: defaultSortColumn && defaultSortColumn !== ""
+            ? { column: defaultSortColumn, order: defaultSortOrder }
+            : undefined,
+        };
+          break;
+        case "NUMBER":
+          chartConfig = { type: "NUMBER" };
+          break;
+        case "PIE":
+          chartConfig = { type: "PIE", row_limit: rowLimit };
+          break;
+        case "HORIZONTAL_BAR":
+          chartConfig = { type: "HORIZONTAL_BAR", row_limit: rowLimit };
+          break;
+        case "VERTICAL_BAR":
+          chartConfig = { type: "VERTICAL_BAR", row_limit: rowLimit };
+          break;
+        case "LINE_TIME_SERIES":
+          chartConfig = { type: "LINE_TIME_SERIES", row_limit: rowLimit };
+          break;
+        case "BAR_TIME_SERIES":
+          chartConfig = { type: "BAR_TIME_SERIES", row_limit: rowLimit };
+          break;
+        default:
+          chartConfig = { type: selectedChartType, row_limit: rowLimit };
+          break;
       }
-    } else {
-      throw new Error('Failed to update widget');
-    }
-  } catch (error) {
-    console.error("💥 업데이트 에러:", error);
-    alert(`업데이트 실패:\n${error.message || error}`);
-  } finally {
-    setSaving(false);
-    console.log("🔚 업데이트 프로세스 완료");
-  }
-};
+      
+      const widgetData = {
+        projectId,
+        widgetId,
+        name: widgetName,
+        description: widgetDescription,
+        view: selectedView,
+        dimensions: selectedChartType === "PIVOT_TABLE"
+          ? pivotDimensions.map((field) => ({ field }))
+          : selectedDimension !== ""
+            ? [{ field: selectedDimension }]
+            : [],
+        metrics: selectedChartType === "PIVOT_TABLE"
+          ? selectedMetrics
+              .filter((metric) => metric.measure && metric.measure !== "")
+              .map((metric) => ({
+                measure: metric.measure,
+                agg: metric.aggregation,
+              }))
+          : [{ measure: selectedMeasure, agg: selectedAggregation }],
+        filters: transformFiltersToWidgetFormat(activeFilters),
+        chartType: selectedChartType,
+        chartConfig: chartConfig,
+      };
 
-const handleCancel = () => {
-  // 대시보드에서 온 경우 해당 대시보드로, 아니면 대시보드 메인 페이지의 Widgets 탭으로 이동
-  const dashboardId = searchParams.get("dashboardId");
-  if (dashboardId) {
-    navigate(`/project/${projectId}/dashboards/${dashboardId}`);
-  } else {
-    // 대시보드 메인 페이지로 이동 (Widgets 탭이 기본으로 열림)
-    navigate(`/project/${projectId}/dashboards`);
-  }
-};
+      console.log("📋 최종 위젯 업데이트 데이터:", widgetData);
+
+      // dashboardWidgets.update API 호출
+      console.log("📡 API 호출 시작... (위젯 업데이트)");
+      const response = await api.trpcPost("dashboardWidgets.update", widgetData);
+      
+      console.log("📨 API 응답:", response);
+      
+      if (response) {
+        console.log("🎉 위젯 업데이트 성공!");
+        alert("위젯이 성공적으로 업데이트되었습니다!");
+        
+        // 대시보드에서 온 경우 해당 대시보드로, 아니면 대시보드 메인 페이지의 Widgets 탭으로 이동
+        const dashboardId = searchParams.get("dashboardId");
+        if (dashboardId) {
+          navigate(`/project/${projectId}/dashboards/${dashboardId}`);
+        } else {
+          // 대시보드 메인 페이지로 이동 (Widgets 탭이 기본으로 열림)
+          navigate(`/project/${projectId}/dashboards`);
+        }
+      } else {
+        throw new Error('Failed to update widget');
+      }
+    } catch (error) {
+      console.error("💥 업데이트 에러:", error);
+      alert(`업데이트 실패:\n${error.message || error}`);
+    } finally {
+      setSaving(false);
+      console.log("🔚 업데이트 프로세스 완료");
+    }
+  };
+
+  const handleCancel = () => {
+    // 대시보드에서 온 경우 해당 대시보드로, 아니면 대시보드 메인 페이지의 Widgets 탭으로 이동
+    const dashboardId = searchParams.get("dashboardId");
+    if (dashboardId) {
+      navigate(`/project/${projectId}/dashboards/${dashboardId}`);
+    } else {
+      // 대시보드 메인 페이지로 이동 (Widgets 탭이 기본으로 열림)
+      navigate(`/project/${projectId}/dashboards`);
+    }
+  };
+
   // 로딩 중
   if (widgetLoading) {
     return (
@@ -1057,7 +997,7 @@ const handleCancel = () => {
             onAggregationChange={setSelectedAggregation}
             selectedMetrics={selectedMetrics}
             onMetricsChange={setSelectedMetrics}
-            disabled={loading}
+            disabled={previewLoading}
           />
 
           {/* 필터 섹션 - FiltersEditor 사용 */}
@@ -1107,7 +1047,7 @@ const handleCancel = () => {
             onShowSubtotalsChange={setShowSubtotals}
             rowLimit={rowLimit}
             onRowLimitChange={setRowLimit}
-            disabled={loading}
+            disabled={previewLoading}
             maxDimensions={2}
             />
             )}
@@ -1236,7 +1176,7 @@ const handleCancel = () => {
           </Button>
           <Button 
             onClick={handleUpdate} 
-            disabled={loading || saving}
+            disabled={previewLoading || saving}
             className={styles.primaryBtn}
             style={{ flex: 2 }}
           >
@@ -1245,74 +1185,44 @@ const handleCancel = () => {
         </div>
       </div>
 
-      {/* Right Preview Pane */}
+      {/* ✅ 오른쪽 프리뷰 패널 - ChartPreview 사용 */}
       <div className={styles.rightPane}>
         <div className={styles.previewHeader}>
           <h3 className={styles.previewTitle}>{widgetName}</h3>
           <p className={styles.previewDesc}>{widgetDescription}</p>
-          {previewData.length > 0 && (
+          {previewData.formattedChartData.length > 0 && (
             <div className={styles.helperText}>
-              Data points: {previewData.length}
+              Data points: {previewData.formattedChartData.length}
             </div>
           )}
         </div>
 
         <div className={styles.chartContainer}>
-          {loading ? (
-            <div className={styles.preview}>
-              <div>Loading preview...</div>
-            </div>
-          ) : previewError ? (
-            <div className={styles.preview}>
-              <div>
-                <strong>Preview Error</strong>
-                <p>{previewError}</p>
-                <Button 
-                  variant="secondary" 
-                  onClick={refreshPreview}
-                >
-                  Retry
-                </Button>
-              </div>
-            </div>
-          ) : previewData.length > 0 ? (
-            <Chart
-              chartType={selectedChartType}
-              data={previewData}
-              rowLimit={rowLimit}
-              chartConfig={
-                selectedChartType === "PIVOT_TABLE"
-                  ? {
-                      type: selectedChartType,
-                      dimensions: pivotDimensions,
-                      row_limit: rowLimit,
-                      metrics: selectedMetrics
-                        .filter((m) => m.measure && m.measure !== "")
-                        .map((metric) => metric.id),
-                      defaultSort:
-                        defaultSortColumn && defaultSortColumn !== ""
-                          ? { column: defaultSortColumn, order: defaultSortOrder }
-                          : undefined,
-                    }
-                  : selectedChartType === "HISTOGRAM"
-                    ? { type: selectedChartType, bins: histogramBins }
-                    : { type: selectedChartType, row_limit: rowLimit }
-              }
-                sortState={
-                  selectedChartType === "PIVOT_TABLE" &&
-                  defaultSortColumn &&
-                  defaultSortColumn !== ""
-                    ? { column: defaultSortColumn, order: defaultSortOrder }
-                    : undefined
-                }
-              onSortChange={undefined}
-              isLoading={loading}
-            />
-          ) : (
-            <div className={styles.preview}>
-              <p>No data to display</p>
-            </div>
-          )}
+          <ChartPreview
+            chartType={selectedChartType}
+            data={previewData.formattedChartData}
+            chartConfig={
+              selectedChartType === "PIVOT_TABLE"
+                ? {
+                    type: selectedChartType,
+                    dimensions: pivotDimensions,
+                    row_limit: rowLimit,
+                    metrics: selectedMetrics
+                      .filter((m) => m.measure && m.measure !== "")
+                      .map((metric) => metric.id),
+                    defaultSort:
+                      defaultSortColumn && defaultSortColumn !== ""
+                        ? { column: defaultSortColumn, order: defaultSortOrder }
+                        : undefined,
+                  }
+                : selectedChartType === "HISTOGRAM"
+                  ? { type: selectedChartType, bins: histogramBins }
+                  : { type: selectedChartType, row_limit: rowLimit }
+            }
+            loading={previewLoading}
+            error={previewError}
+            rowLimit={rowLimit}
+          />
         </div>
       </div>
     </div>
