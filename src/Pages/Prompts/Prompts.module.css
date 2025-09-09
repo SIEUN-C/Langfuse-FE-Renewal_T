@@ -3,9 +3,12 @@
   color: #f8fafc; /* 기본 텍스트 색상 */
   background-color: #020817; /* 페이지 배경색 */
   padding: 24px;
+  padding-bottom: 60px; /* 하단 페이지네이션 공간 확보 */
   display: flex;
   flex-direction: column;
   gap: 16px;
+  height: 100vh;
+  overflow: hidden;
 }
 
 /* 1. 헤더 */
@@ -13,6 +16,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .title {
@@ -66,6 +70,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-shrink: 0;
 }
 
 .searchBox {
@@ -85,11 +90,21 @@
   cursor: pointer;
 }
 
+/* 컨텐츠 영역 추가 */
+.contentArea {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  overflow: hidden;
+}
+
 /* 3. 테이블 */
 .tableContainer {
   border: 1px solid #1e293b;
   border-radius: 8px;
   overflow: hidden;
+  flex-grow: 1;
+  overflow-y: auto;
 }
 
 .table {
@@ -109,6 +124,9 @@
   color: #94a3b8;
   font-weight: 500;
   background-color: #020817; /* th 배경색 변경 */
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
 .table th:first-child,
@@ -141,7 +159,6 @@
   justify-content: center;
 }
 
-
 .tagsCell {
   display: flex;
   gap: 6px; /* 태그 사이의 간격을 추가합니다. */
@@ -160,7 +177,6 @@
   font-weight: 500; /* 글꼴 두께 */
   line-height: 1; /* 아이콘과 텍스트의 높이 정렬 */
   white-space: nowrap; /* 태그 내용이 한 줄에 표시되도록 */
-
 }
 
 .actionCell {
@@ -186,39 +202,6 @@
   color: #475569;
   cursor: not-allowed;
 }
-
-
-/* 4. 페이지네이션 */
-.pagination {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  padding: 8px 16px;
-  font-size: 13px;
-  color: #94a3b8;
-  gap: 24px;
-}
-
-.rowsPerPage {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.rowsPerPage select {
-  background-color: #1e293b;
-  color: white;
-  border: 1px solid #334155;
-  border-radius: 4px;
-  padding: 4px 8px;
-}
-
-.pageControls {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
 
 /* 상세 페이지 이동을 위한 링크 스타일 추가 */
 .promptLink {
