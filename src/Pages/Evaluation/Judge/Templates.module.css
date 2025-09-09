@@ -1,3 +1,20 @@
+/* 전체 페이지 컨테이너 */
+.templatePageContainer {
+  display: flex;
+  /* position: relative; */
+  /* width: 100%; */
+}
+
+/* 메인 콘텐츠 */
+.mainContent {
+  flex-grow: 1;
+  /* 남은 공간을 모두 차지 */
+  padding: 24px;
+  /* 내용이 너무 길어질 때 사이드바를 밀어내지 않도록 설정 */
+  min-width: 0;
+  display: flex;
+}
+
 .evaluatorFormContainer {
   background-color: #020817;
   color: #f1f5f9;
@@ -62,6 +79,7 @@ textarea {
   align-items: center;
   gap: 8px;
 }
+
 .checkboxGroup label {
   font-weight: normal;
 }
@@ -89,12 +107,16 @@ textarea {
 
 /* 이 부분을 기존 CSS 파일에 추가하세요 */
 .formSectionBox {
-  border: 1px solid #334155; /* 박스 테두리 */
-  border-radius: 8px; /* 둥근 모서리 */
-  padding: 24px; /* 내부 여백 */
+  border: 1px solid #334155;
+  /* 박스 테두리 */
+  border-radius: 8px;
+  /* 둥근 모서리 */
+  padding: 24px;
+  /* 내부 여백 */
   display: flex;
   flex-direction: column;
-  gap: 24px; /* 박스 내부 항목 간의 간격 */
+  gap: 24px;
+  /* 박스 내부 항목 간의 간격 */
 }
 
 .editButton {
@@ -102,6 +124,7 @@ textarea {
   cursor: pointer;
   border-radius: 4px;
   border: none;
+  color: #f1f5f9;
 }
 
 .variablesContainer {
@@ -114,14 +137,104 @@ textarea {
 .variablesLabel {
   font-size: 12px;
   font-weight: bold;
-  color: #888;
+  color: #f1f5f9;
 }
 
 .variableTag {
-  background-color: #374151; /* 어두운 회색 배경 */
-  color: #d1d5db; /* 밝은 회색 텍스트 */
+  background-color: #020817;
+  color: #f1f5f9;
   padding: 4px 8px;
   border-radius: 4px;
   font-size: 13px;
-  font-family: monospace; /* 고정폭 글꼴 */
+  font-family: monospace;
+  border: 1px solid #334155;
+}
+
+/* 사이드바 기본 스타일 */
+.sidebar {
+  width: 300px;
+  /* 사이드바 너비 */
+  flex-shrink: 0;
+  /* 창이 줄어들어도 너비 유지 */
+  background-color: #020817;
+  /* 사이드바 배경색 */
+  border: 1px solid #334155;
+  transition: transform 0.3s ease-in-out, width 0.3s ease-in-out;
+  /* 부드러운 애니메이션 */
+  display: flex;
+  flex-direction: column;
+}
+
+/* 사이드바가 열렸을 때 (화면 안으로) */
+.sidebar.open {
+  transform: translateX(0);
+}
+
+/* 사이드바가 닫혔을 때 (화면 밖으로) */
+.sidebar.closed {
+  width: 0;
+  /* 너비를 0으로 만들어 완전히 숨김 */
+  transform: translateX(100%);
+  padding: 0;
+  overflow: hidden;
+  /* 내용 숨기기 */
+}
+
+/* 사이드바 헤더 */
+.sidebarHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid #334155;
+}
+
+.sidebarHeader h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.toggleButton {
+  background: none;
+  border: none;
+  color: #f1f5f9;
+  cursor: pointer;
+  padding: 4px;
+  border: 1px solid #334155;
+}
+
+/* 사이드바 내용 */
+.sidebarContent {
+  padding: 16px;
+}
+
+.historyItem {
+  /* ... 히스토리 아이템 스타일 ... */
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.9rem;
+  padding: 10px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.historyItem:hover {
+  background-color: #2a2a2a;
+}
+
+.historyStatus {
+  background-color: green;
+  color: #f1f5f9;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+.statusPlaceholder {
+  visibility: hidden;
+}
+
+.activeHistory {
+  background-color: #2a2a2a;
 }

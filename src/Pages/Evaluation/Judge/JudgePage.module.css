@@ -40,11 +40,11 @@
 }
 
 .iconButton {
-  border: 1px solid #334155;
-  border-radius: 6px;
-  background-color: #1e293b;
+  border: none;
+  background-color: #020817;
   padding: 8px;
   cursor: pointer;
+  color: #f1f5f9;
 }
 
 .tabs {

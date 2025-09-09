@@ -6,6 +6,7 @@ import styles from "./CustomEvaluator.module.css";
 import FormPageLayout from "../../../components/Layouts/FormPageLayout.jsx";
 import FormGroup from "../../../components/Form/FormGroup.jsx";
 import CodeBlock from "../../../components/CodeBlock/CodeBlock.jsx";
+import { Pencil } from 'lucide-react';
 
 const CustomEvaluator = () => {
   const { projectId } = useProjectId();
@@ -92,7 +93,7 @@ const CustomEvaluator = () => {
         scoreRange,
       };
 
-      const newTemplate = await createTemplate(templateData)
+      const newTemplate = await createTemplate(templeData)
 
       alert('성공적으로 저장되었습니다.');
 
@@ -151,7 +152,7 @@ const CustomEvaluator = () => {
                 <p>Default model not found.</p>
               )}</span>
               <button onClick={handleDefaultModel} className={styles.editButton}>
-                ✏️
+                <Pencil size={16}/>
               </button>
             </div>
           </div>
@@ -161,7 +162,8 @@ const CustomEvaluator = () => {
         {/* --- Prompt Section Box START --- */}
         <div className={styles.formSectionBox}>
           <div className={styles.formGroup}>
-            <label htmlFor="evaluationPrompt">Evaluation prompt</label>
+            <label htmlFor="evaluationPrompt">Prompt</label>
+            <br /> Evaluation prompt
             <p className={styles.description}>
               Define your llm-as-a-judge evaluation template. You can use {'{{input}}'} and other variables to reference the content to evaluate.
             </p>
@@ -171,7 +173,7 @@ const CustomEvaluator = () => {
             />
             {variables.length > 0 && (
               <div className={styles.variablesContainer}>
-                <span className={styles.variablesLabel}>VARIABLES:</span>
+                <span className={styles.variablesLabel}>The following variables are available:</span>
                 {variables.map((variable, index) => (
                   <span key={index} className={styles.variableTag}>
                     {variable}
@@ -191,7 +193,7 @@ const CustomEvaluator = () => {
               id="scoreReasoningPrompt"
               value={scoreReasoning}
               onChange={(e) => setScoreReasoning(e.target.value)}
-              placeholder="One sentence reasoning for the score"
+              autocomplete='off'
             />
           </div>
 
@@ -205,7 +207,7 @@ const CustomEvaluator = () => {
               id="scoreRangePrompt"
               value={scoreRange}
               onChange={(e) => setScoreRange(e.target.value)}
-              placeholder="Score between 0 and 1. Score 0 if false or negative and 1 if true or positive."
+              autocomplete='off'
             />
           </div>
         </div>

@@ -1,5 +1,6 @@
 import React from 'react';
 import styles from './EvaluatorsTable.module.css';
+import { Pencil } from 'lucide-react';
 
 // onUse 콜백을 주입받아 네비게이션/동작을 부모로 위임
 export const getEvaluatorLibraryColumns = ({ onUse } = {}) => {
@@ -11,7 +12,7 @@ export const getEvaluatorLibraryColumns = ({ onUse } = {}) => {
     },
     {
       header: 'Maintainer',
-      accessor: (row) => row.partner ?? 'N/A',
+      accessor: (row) => row.partner,
     },
     {
       header: 'Last Edit',
@@ -41,6 +42,9 @@ export const getEvaluatorLibraryColumns = ({ onUse } = {}) => {
             }}
           >
             Use Evaluator
+          </button>
+          <button className={styles.editButton}>
+            <Pencil size={16} />
           </button>
         </div>
       ),

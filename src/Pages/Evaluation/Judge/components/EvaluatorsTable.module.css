@@ -20,7 +20,8 @@
 }
 
 .statusActive {
-  background-color: #f59e0b; /* Active 상태를 위한 주황색 예시 */
+  background-color: #f59e0b;
+  /* Active 상태를 위한 주황색 예시 */
   color: #fffbeb;
 }
 
@@ -78,10 +79,22 @@
 .filterTag {
   display: inline-block;
   padding: 4px 8px;
-  background-color: #334155; /* 어두운 배경 */
-  border: 1px solid #475569; /* 조금 더 밝은 테두리 */
-  border-radius: 4px; /* 둥근 모서리 */
+  background-color: #334155;
+  /* 어두운 배경 */
+  border: 1px solid #475569;
+  /* 조금 더 밝은 테두리 */
+  border-radius: 4px;
+  /* 둥근 모서리 */
   font-size: 12px;
   font-weight: 500;
-  color: #cbd5e1; /* 밝은 글자색 */
+  color: #cbd5e1;
+  /* 밝은 글자색 */
+}
+
+.editButton {
+  background-color: #1e293b;
+  color: #f1f5f9;
+  border: 1px solid #334155;
+  border-radius: 0.375rem;
+  cursor: pointer;
 }

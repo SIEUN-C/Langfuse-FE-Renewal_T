@@ -69,6 +69,49 @@ export const getTemplateById = async (projectId, templateId) => {
 };
 
 /**
+ * 특정 이름을 가진 모든 버전의 템플릿 목록을 가져옵니다.
+ * @param {string} projectId - 프로젝트 ID
+ * @param {string} name - 조회할 템플릿의 이름
+ */
+export const getAllTemplateVersionsByName = async (projectId, name) => {
+  if (!projectId || !name) {
+    console.error("projectId and name are required.");
+    return [];
+  }
+
+  try {
+    const params = {
+      json: {
+        projectId: projectId,
+        name: name,
+        isUserManaged: true,
+      },
+    };
+
+    const url = `/api/trpc/evals.allTemplatesForName?input=${encodeURIComponent(JSON.stringify(params))}`;
+    const response = await axios.get(url);
+    
+    const templates = response.data.result.data.json.templates;
+
+    if (!templates) {
+        return [];
+    }
+
+    return templates.map(template => ({
+      ...template, // 기존 템플릿의 모든 속성을 그대로 유지하고
+      // 날짜 관련 필드만 포맷팅하여 덮어씁니다.
+      createdAt: new Date(template.createdAt).toLocaleString(),
+      updatedAt: new Date(template.updatedAt).toLocaleString(),
+    }));
+
+  } catch (error) {
+    console.error("Failed to fetch all template versions by name via tRPC:", error);
+    throw new Error(error.response?.data?.error?.message || "Failed to fetch template versions.");
+  }
+};
+
+
+/**
  * Default Model
  * @param {string} projectId - 프로젝트 ID
  */
@@ -142,5 +185,30 @@ export const createTemplate = async (templateData) => {
   } catch (error) {
     console.error("Failed to create template via tRPC:", error);
     throw new Error(error.response?.data?.error?.message || "Failed to create template.");
+  }
+};
+
+/**
+ * 특정 프로젝트의 LLM API Key들을 조회합니다.
+ * @param {string} projectId
+ */
+export const fetchLlmApiKeys = async (projectId) => {
+  if (!projectId) {
+    throw new Error("projectId is required.");
+  }
+
+  try {
+    const url = `/api/trpc/llmApiKey.all`;
+    const payload = {
+      json: { projectId },
+    };
+
+    const response = await axios.get(url, payload);
+
+    return response.data.result.data.json;
+    
+  } catch (error) {
+    console.error("Failed to fetch LLM API keys via tRPC:", error);
+    throw new Error(error?.response?.data?.error?.message || "Failed to fetch LLM API keys.");
   }
 };

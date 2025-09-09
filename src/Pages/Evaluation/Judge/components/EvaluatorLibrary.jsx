@@ -73,6 +73,12 @@ const EvaluatorLibrary = () => {
         showCheckbox={false}
         showFavorite={false}
         onRowClick={handleRowClick}
+        pagination={{
+          enabled: true,
+          pageSize: 50,
+          pageSizeOptions: [10, 20, 30, 50],
+          position: "fixed-bottom"
+        }}
       />
       {isPanelOpen && (
         <>
@@ -80,7 +86,7 @@ const EvaluatorLibrary = () => {
           <div className={styles.sidePanelWrapper}>
             <button className={styles.expandButton} onClick={handleExpand}><Expand /></button>
             <button className={styles.closeButton} onClick={closePanel}>X</button>
-            {selectedTemplateId && <Templates templateId={selectedTemplateId} />}
+            {selectedTemplateId && <Templates templateId={selectedTemplateId} mode='panel'/>}
           </div>
         </>
       )}

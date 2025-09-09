@@ -2,7 +2,9 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./DefaultEvaluationModel.module.css";
 import useProjectId from "hooks/useProjectId";
-import { getDefaultModel } from "./services/libraryApi"
+import { getDefaultModel } from "./services/libraryApi";
+import { Check, Trash, Pencil } from 'lucide-react';
+import DefaultModelModal from "./components/DefaultModelModal";
 
 const DefaultEvaluationModel = () => {
   const navigate = useNavigate();
@@ -10,6 +12,7 @@ const DefaultEvaluationModel = () => {
 
   const [defaultModel, setDefaultModel] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     if (!projectId) return;
@@ -28,9 +31,9 @@ const DefaultEvaluationModel = () => {
   }, [projectId]);
 
   // edit
-  const handleEdit = () => {
-    navigate(-1);
-  };
+  // const handleEdit = () => {
+  //   navigate(-1);
+  // };
 
   // delete
   const handleDelete = () => {
@@ -50,15 +53,13 @@ const DefaultEvaluationModel = () => {
               {isLoading ? (
                 <p>Loading default model...</p>
               ) : defaultModel ? (
-                // 👈 핵심: defaultModel에 데이터가 있을 때만 이 부분을 렌더링합니다.
                 <p>
-                  Current default model:{" "}
+                  <Check size={16} /> Current default model:{" "}
                   <strong>
                     {defaultModel.provider} / {defaultModel.model}
                   </strong>
                 </p>
               ) : (
-                // 데이터가 없거나 API 호출에 실패한 경우
                 <p>Default model not found.</p>
               )}
             </div>
@@ -67,12 +68,20 @@ const DefaultEvaluationModel = () => {
       </div >
 
       <footer className={styles.footer}>
-        <button onClick={handleDelete} className={styles.cancelButton}>
-          Delete
+        <button onClick={handleDelete} className={styles.deleteButton}>
+          <Trash size={14} /> Delete
         </button>
-        <button onClick={handleEdit} className={styles.saveButton}>
-          Edit
+        <button onClick={() => setIsModalOpen(true)} className={styles.editButton}>
+          <Pencil size={14} /> Edit
         </button>
+        <DefaultModelModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onUpdate={() => {
+            alert('Uptated!');
+            setIsModalOpen(false);
+          }}
+        />
       </footer>
     </div >
   );

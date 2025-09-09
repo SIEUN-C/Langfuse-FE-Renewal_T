@@ -5,8 +5,10 @@ import EvaluatorLibrary from "./components/EvaluatorLibrary";
 import EvaluationDetail from "./EvaluationDetail";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import useProjectId from "hooks/useProjectId";
+import { Pencil } from 'lucide-react';
 // --- 수정: 2개의 API 함수를 import 합니다. ---
 import { getAllEvaluatorConfigs, getAllDatasetMeta } from "./services/judgeApi";
+import { getDefaultModel } from './services/libraryApi';
 // -------------------------------------------------------------
 
 
@@ -20,6 +22,7 @@ const JudgePage = () => {
   const { projectId } = useProjectId();
   const [searchParams, setSearchParams] = useSearchParams();
   const peekId = searchParams.get('peek')
+  const [defaultModel, setDefaultModel] = useState(null);
 
   useEffect(() => {
     // --- 수정: 두 API를 동시에 호출하도록 로직 변경 ---
@@ -32,9 +35,10 @@ const JudgePage = () => {
 
       try {
         // 두 API를 동시에 호출하여 성능을 높입니다.
-        const [evaluatorsResponse, datasetsResponse] = await Promise.all([
+        const [evaluatorsResponse, datasetsResponse, modelResponse] = await Promise.all([
           getAllEvaluatorConfigs({ projectId }),
-          getAllDatasetMeta({ projectId })
+          getAllDatasetMeta({ projectId }),
+          getDefaultModel(projectId),
         ]);
 
         // Evaluator 목록을 상태에 저장합니다.
@@ -46,6 +50,8 @@ const JudgePage = () => {
         const newDatasetMap = new Map();
         datasets.forEach(dataset => newDatasetMap.set(dataset.id, dataset.name));
         setDatasetMap(newDatasetMap);
+
+        setDefaultModel(modelResponse);
 
       } catch (error) {
         console.error("데이터를 가져오는 중 에러 발생:", error);
@@ -112,16 +118,16 @@ const JudgePage = () => {
           <h1 className={styles.title}>LLM-as-a-judge</h1>
 
           <div className={styles.actions}>
+            {defaultModel && (
+              <button onClick={handleOpenDefaultModel} className={styles.iconButton}>
+                {defaultModel.provider} / {defaultModel.model}  <Pencil size={16} />
+              </button>
+            )}
             <button onClick={handleCustomEvaluator} className={styles.setupButton}>
               + Custom Evaluator
             </button>
-
             <button onClick={handleSetupEvaluator} className={styles.setupButton}>
               + Set up evaluator
-            </button>
-
-            <button onClick={handleOpenDefaultModel} className={styles.iconButton}>
-              ✏️
             </button>
           </div>
         </header>

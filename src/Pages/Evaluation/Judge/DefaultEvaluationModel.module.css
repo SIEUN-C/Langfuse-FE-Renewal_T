@@ -68,8 +68,8 @@
   margin-top: 2rem;
 }
 
-.cancelButton,
-.saveButton {
+.deleteButton,
+.editButton {
   padding: 0.625rem 1.25rem; /* 10px 20px */
   font-size: 0.875rem;
   font-weight: 600;
@@ -79,12 +79,12 @@
   transition: background-color 0.2s, border-color 0.2s, color 0.2s;
 }
 
-.cancelButton {
+.deleteButton {
   background-color: #1e293b;
   color: #f1f5f9;
 }
 
-.saveButton {
+.editButton {
   background-color: #1e293b;
   color: #f1f5f9;
 }
