@@ -40,6 +40,10 @@ import DashboardDetail from "./Pages/Dashboards/DashboardDetail";
 // 위젯
 import { WidgetsView } from "./Pages/Widget/pages/WidgetsView";
 import NewWidget from "./Pages/Widget/pages/NewWidget";
+import EditWidget from "./Pages/Widget/pages/EditWidget";
+
+
+
 
 // Settings
 import SettingsPage from "./Pages/Settings/SettingsPage";
@@ -144,17 +148,17 @@ export default function App() {
           element={<DashboardDetailKeyed />}
         />
 
-        {/* Widgets */}
-        <Route path="project/:projectId/widgets" element={<WidgetsViewKeyed />} />
-        <Route path="project/:projectId/widgets/new" element={<NewWidgetKeyed />} />
-        <Route
-          path="project/:projectId/widgets/:widgetId"
-          element={<div>Widget Detail Page (구현 필요)</div>}
-        />
-        <Route
-          path="project/:projectId/widgets/:widgetId/edit"
-          element={<div>Widget Edit Page (구현 필요)</div>}
-        />
+           {/* Widgets */}
+            <Route path="project/:projectId/widgets" element={<WidgetsViewKeyed />} />
+            <Route path="project/:projectId/widgets/new" element={<NewWidgetKeyed />} />
+            <Route
+              path="project/:projectId/widgets/:widgetId/edit"
+              element={<EditWidget />}
+            />
+            <Route
+              path="project/:projectId/widgets/:widgetId"
+              element={<EditWidget />} // 또는 별도의 WidgetDetail 컴포넌트
+            />
         {/* 대시보드 내 위젯 생성 (기존 경로 유지) */}
         <Route path="project/:projectId/dashboards/widgets/new" element={<NewWidgetKeyed />} />
 

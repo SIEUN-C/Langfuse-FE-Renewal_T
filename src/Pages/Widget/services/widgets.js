@@ -106,6 +106,52 @@ export class WidgetsAPI extends ApiClient {
     }
   }
 
+  // ✅ 새로 추가: 위젯 업데이트 메서드
+  async updateWidget(projectId, payload) {
+    try {
+      if (!payload || typeof payload !== 'object') {
+        throw new Error('Invalid payload: payload must be an object');
+      }
+
+      if (!payload.widgetId) {
+        throw new Error('widgetId is required for update');
+      }
+
+      if (DEBUG) {
+        console.log("[WidgetsAPI] updateWidget 호출:", { projectId, payload });
+      }
+
+      const widgetData = {
+        projectId: projectId || this.projectId,
+        widgetId: payload.widgetId,
+        name: payload.name || "Updated Widget",
+        description: payload.description || "",
+        view: payload.view || "traces",
+        chartType: payload.chartType || "LINE_TIME_SERIES",
+        dimensions: payload.dimensions || [],
+        metrics: payload.metrics || [{ measure: "count", agg: "count" }],
+        filters: payload.filters || [],
+        chartConfig: payload.chartConfig || { type: payload.chartType || "LINE_TIME_SERIES" },
+        ...payload
+      };
+
+      if (DEBUG) {
+        console.log("[WidgetsAPI] 전송할 위젯 업데이트 데이터:", widgetData);
+      }
+
+      const result = await this.trpcPost("dashboardWidgets.update", widgetData);
+
+      if (DEBUG) {
+        console.log("[WidgetsAPI] 위젯 업데이트 결과:", result);
+      }
+
+      return { success: true, data: result };
+    } catch (error) {
+      console.error("[WidgetsAPI] 위젯 업데이트 실패:", error);
+      return { success: false, error: error.message };
+    }
+  }
+
   async createWidget(projectId, payload) {
     try {
       if (!payload || typeof payload !== 'object') {

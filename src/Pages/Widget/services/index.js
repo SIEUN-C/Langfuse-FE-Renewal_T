@@ -49,6 +49,43 @@ class WidgetAPI extends PreviewAPI {
     return this._widgets.deleteWidget(this.projectId, widgetId);
   }
 
+  // ✅ 새로 추가: 위젯 업데이트 메서드
+  async updateWidget(payload) {
+    try {
+      console.log("[WidgetAPI] updateWidget 호출:", { 
+        hasPayload: !!payload, 
+        projectId: this.projectId 
+      });
+
+      // payload에 projectId 추가
+      const widgetData = {
+        ...payload,
+        projectId: this.projectId
+      };
+
+      // 위젯 업데이트
+      const updateResult = await this._widgets.updateWidget(this.projectId, widgetData);
+      
+      if (!updateResult.success) {
+        throw new Error(updateResult.error || 'Failed to update widget');
+      }
+
+      console.log("[WidgetAPI] 위젯 업데이트 성공:", updateResult);
+
+      return {
+        success: true,
+        data: updateResult.data
+      };
+
+    } catch (error) {
+      console.error("[WidgetAPI] updateWidget 실패:", error);
+      return {
+        success: false,
+        error: error.message || 'Failed to update widget'
+      };
+    }
+  }
+
   // ✅ 위젯 생성 - 대시보드 추가 기능 포함
   async createWidget(payload, dashboardId = null) {
     try {
