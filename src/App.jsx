@@ -51,6 +51,7 @@ import General from "./Pages/Settings/General";
 import ApiKeys from "./Pages/Settings/ApiKeys";
 import LLMConnections from "./Pages/Settings/LLMConnections";
 import Models from "./Pages/Settings/Models";
+import ModelDetail from "./Pages/Settings/ModelDetail";
 import Members from "./Pages/Settings/Members";
 import Scores from "./Pages/Settings/Scores";
 import TraceProjectRedirect from "./Pages/Settings/test/TraceProjectRedirect";
@@ -175,7 +176,11 @@ export default function App() {
           <Route path="general" element={<General />} />
           <Route path="api-keys" element={<ApiKeys />} />
           <Route path="llm-connections" element={<LLMConnections />} />
-          <Route path="models" element={<Models />} />
+          
+          <Route path="models">
+          <Route index element={<Models />} />
+          <Route path=":id" element={<ModelDetail />} />
+        </Route>
           <Route path="scores" element={<Scores />} />
           <Route path="members" element={<Members />} />
         </Route>

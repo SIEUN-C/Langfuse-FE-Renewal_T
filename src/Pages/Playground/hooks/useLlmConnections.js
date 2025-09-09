@@ -1,63 +1,39 @@
+// src/Pages/Playground/hooks/useLlmConnections.js
 import { useEffect, useMemo, useState } from "react";
-import { listLlmConnections } from "../lib/llmConnections";
+import {
+  listLlmConnections,
+  listSupportedModels, // ← 서버의 지원 모델 맵
+} from "../lib/llmConnections";
 
-/* 1) 어댑터 별칭 → 표준 키 매핑 */
-const ADAPTER_ALIAS = {
-  "google-ai-studio": "vertex",
-  "google-vertex-ai": "vertex",
-  google: "vertex",
-  gai: "vertex",
-  azure: "azure-openai",          // 'azure'로만 오는 경우 대비
-  azure_openai: "azure-openai",
-  openai: "openai",
-  anthropic: "anthropic",
-  ollama: "ollama",
-  kobold: "kobold",
-};
+/** 서버와 맞춘 표준 어댑터 키로만 처리 (별칭 매핑 제거)
+ *  서버가 내려주는 키 예시:
+ *   - openai, anthropic, google-vertex-ai, google-ai-studio, azure, bedrock, ollama, kobold ...
+ *  서버 키를 그대로 쓰면 불일치 이슈가 사라짐
+ */
+const canonical = (a) => String(a || "").toLowerCase();
 
-/* 2) 표준 어댑터별 기본 모델 */
-const DEFAULT_MODELS_BY_ADAPTER = {
-  openai: ["gpt-4o-mini", "gpt-4o", "gpt-4.1-mini", "gpt-4.1"],
-  anthropic: ["claude-3-5-sonnet", "claude-3-5-haiku", "claude-3-opus"],
-  "azure-openai": ["gpt-4o", "gpt-4o-mini"],
-  vertex: [
-    "gemini-1.5-pro",
-    "gemini-1.5-flash",
-    "gemini-2.0-flash-lite-preview-02-05",
-    "gemini-2.0-flash-thinking-exp-01-21",
-    "gemini-2.5-pro-preview-05-06",
-    "gemini-2.5-flash-preview-05-20",
-  ],
-  ollama: ["llama3.1", "mistral-nemo", "qwen2.5"],
-  kobold: [],
-};
+const toArray = (v) =>
+  Array.isArray(v) ? v : typeof v === "string" ? v.split(/[, \n]+/).filter(Boolean) : [];
 
-function toArray(val) {
-  if (Array.isArray(val)) return val;
-  if (typeof val === "string") return val.split(/[, \n]+/).filter(Boolean);
-  return [];
-}
+/** row + supportedMap → 모델 병합 (기본모델은 서버에서만 수신)
+ *  - withDefaultModels === true면: 서버 기본모델 + customModels 병합
+ *  - false면: customModels만
+ */
+function normalize(row, supportedMap) {
+  const adapter = canonical(row?.adapter);
+  const wantsDefaults =
+    !!(row?.withDefaultModels ?? row?.useDefaultModels ?? row?.enableDefaultModels);
 
-function canonicalAdapter(adapter) {
-  const key = String(adapter || "").toLowerCase();
-  return ADAPTER_ALIAS[key] || key || "";
-}
-
-function normalizeConnection(row) {
-  const adapterCanon = canonicalAdapter(row?.adapter);
   const custom = toArray(row?.customModels ?? row?.models);
-  const wantsDefaults = !!(
-    row?.withDefaultModels ??
-    row?.useDefaultModels ??
-    row?.enableDefaultModels
-  );
-  const defaults = wantsDefaults ? (DEFAULT_MODELS_BY_ADAPTER[adapterCanon] || []) : [];
+  const serverDefaults = Array.isArray(supportedMap?.[adapter]) ? supportedMap[adapter] : [];
+  const defaults = wantsDefaults ? serverDefaults : [];
+
   const merged = [...new Set([...custom, ...defaults])];
 
   return {
     ...row,
-    adapter: adapterCanon,     // 표준화
-    customModels: merged,      // ★ 드롭다운은 이 배열만 씀
+    adapter,          // 표준화
+    customModels: merged, // 드롭다운은 이 배열만 사용
   };
 }
 
@@ -67,13 +43,24 @@ export default function useLlmConnections(projectId) {
   const [error, setErr] = useState(null);
 
   useEffect(() => {
-    if (!projectId) { setConnections([]); return; }
+    if (!projectId) {
+      setConnections([]);
+      return;
+    }
     const ac = new AbortController();
     (async () => {
       try {
-        setLoading(true); setErr(null);
+        setLoading(true);
+        setErr(null);
+
+        // 1) 서버의 최신 지원모델 맵 (없으면 빈 객체)
+        const supportedMap = await listSupportedModels({ abortController: ac }).catch(() => ({}));
+
+        // 2) 연결 목록
         const rows = await listLlmConnections(projectId, { abortController: ac });
-        const normalized = (rows || []).map(normalizeConnection);
+
+        // 3) 병합 정규화
+        const normalized = (rows || []).map((r) => normalize(r, supportedMap));
         setConnections(normalized);
       } catch (e) {
         if (!ac.signal.aborted) {

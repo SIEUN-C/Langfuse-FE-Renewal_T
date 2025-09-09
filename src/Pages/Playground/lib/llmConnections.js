@@ -1,3 +1,17 @@
+import { pickSessionBase } from "../../Settings/lib/sessionOrg"; // 경로 확인
+const { base: API_BASE, absolute: API_ABS } = pickSessionBase();
+const trimTrail = (s) => s.replace(/\/+$/, "");
+const toUrl = (p) => {
+  // p는 항상 "/trpc/..." 형태로만 넘긴다
+  if (!API_BASE) return p; // "" → "/trpc/..."
+  if (API_BASE.startsWith("/")) {
+    // 상대 베이스: "/api" + "/trpc/..." → "/api/trpc/..."
+    return `${trimTrail(API_BASE)}${p}`;
+  }
+  // 절대 베이스: "http://.../api" + "/trpc/..." → "http://.../api/trpc/..."
+  return `${trimTrail(API_BASE)}/api${p}`;
+};
+
 // ─────────────────────────────────────────────────────────────
 // tRPC: Query=GET, Mutation=POST
 //   GET  /api/trpc/{path}?input=<uri-encoded JSON>
@@ -6,7 +20,7 @@
 
 function buildGetUrl(path, payload) {
   const input = encodeURIComponent(JSON.stringify({ json: payload }));
-  return `/api/trpc/${path}?input=${input}`;
+  return toUrl(`/trpc/${path}?input=${input}`);
 }
 
 // Query (GET)
@@ -36,10 +50,10 @@ async function postTrpc(path, payload, { abortController } = {}) {
   });
 
   // 포맷 A
-  let res = await fetch(`/api/trpc/${path}`, body({ json: payload }));
+  let res = await fetch(toUrl(`/trpc/${path}`), body({ json: payload }));
   if (!res.ok) {
     // 호환 포맷 B
-    res = await fetch(`/api/trpc/${path}`, body({ json: { method: path, params: payload } }));
+    res = await fetch(toUrl(`/trpc/${path}`), body({ json: { method: path, params: payload } }));
   }
   if (!res.ok) {
     const text = await res.text().catch(() => "");
@@ -59,17 +73,38 @@ export async function listLlmConnections(projectId, { abortController } = {}) {
 /** 생성/수정 (Mutation → POST) */
 export async function upsertLlmConnection(data, { projectId, abortController } = {}) {
   if (!projectId) throw new Error("projectId is required");
+
+  const hasId = !!data.id;
+  const method = hasId ? "llmApiKey.update" : "llmApiKey.create";
+
+  // 값 정리: 빈 문자열/빈 객체/undefined는 보내지 않음
+  const baseURL =
+    (data.baseURL ?? data.baseUrl ?? "").trim();
+  const secretKey =
+    (data.secretKey ?? data.apiKey ?? "").trim();
+  const extraHeaders =
+    data.extraHeaders && typeof data.extraHeaders === "object"
+      ? data.extraHeaders
+      : null;
+  const customModels = Array.isArray(data.customModels) ? data.customModels : null;
+  const withDefaultModels =
+    data.withDefaultModels ?? data.useDefaultModels ?? data.enableDefaultModels;
+
   const payload = {
     projectId,
+    ...(hasId ? { id: data.id } : {}),
+    // 필수/주요 필드
     adapter: data.adapter,
     provider: data.provider,
-    baseURL: data.baseURL || data.baseUrl || undefined,
-    secretKey: data.secretKey || data.apiKey,
-    extraHeaders: data.extraHeaders || {},
-    customModels: Array.isArray(data.customModels) ? data.customModels : [],
-    withDefaultModels: !!(data.withDefaultModels ?? data.useDefaultModels ?? data.enableDefaultModels),
+    // 선택 필드: 값이 있을 때만 포함
+    ...(baseURL ? { baseURL } : {}),
+    ...(secretKey ? { secretKey } : {}),           // ★ 빈 문자열이면 미포함 → 기존 키 유지
+    ...(extraHeaders && Object.keys(extraHeaders).length ? { extraHeaders } : {}),
+    ...(customModels && customModels.length ? { customModels } : {}),
+    ...(typeof withDefaultModels === "boolean" ? { withDefaultModels } : {}),
   };
-  return postTrpc("llmApiKey.upsert", payload, { abortController });
+
+  return postTrpc(method, payload, { abortController });
 }
 
 /** 삭제 (Mutation → POST) */
@@ -77,4 +112,10 @@ export async function deleteLlmConnection(id, { projectId, abortController } = {
   if (!projectId) throw new Error("projectId is required");
   if (!id) throw new Error("id is required");
   return postTrpc("llmApiKey.delete", { projectId, id }, { abortController });
+}
+
+/** 어댑터별 지원 모델 맵 조회 (서버의 최신 목록) */
+export async function listSupportedModels({ abortController } = {}) {
+  const json = await getTrpc("llmModels.supported", {}, { abortController });
+  return json && typeof json === "object" ? json : {};
 }

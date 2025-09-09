@@ -95,3 +95,5 @@
 .icon {
     align-items: baseline;
 }
+
+.range { margin-left: 10px; opacity: .8; }

@@ -47,3 +47,115 @@
 .actions button:hover {
     color: #e0e0e0;
 }
+
+/* 공통 카드 */
+.card {
+  --bg: #0f172a;         /* slate-950 */
+  --row-fg: #e2e8f0;     /* slate-200 */
+  --head-bg: #1e293b;    /* slate-800 */
+  --head-fg: #cbd5e1;    /* slate-300 */
+  --border: #1e293b;     /* slate-800 */
+  --divider: #334155;    /* slate-700 */
+  --btn: #94a3b8;        /* slate-400 */
+  --btn-border: #334155; /* slate-700 */
+
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* 그리드 컬럼을 고정값으로 통일 → 헤더/바디 줄맞춤 */
+:root {
+  --llm-grid: 1.2fr 1fr 1.6fr 1.2fr 120px; /* Provider | Adapter | Base URL | API Key | Actions */
+}
+
+.row {
+  display: grid;
+  grid-template-columns: var(--llm-grid);
+  align-items: center;
+  gap: 0;
+  padding: 12px 16px;
+  font-size: 14px;
+  color: var(--row-fg);
+}
+
+.header {
+  background: var(--head-bg);
+  color: var(--head-fg);
+  font-weight: 600;
+  border-bottom: 1px solid var(--divider);
+}
+
+.actionsHead { text-align: right; }
+.body { display: flex; flex-direction: column; }
+.body > .row { border-top: 1px solid var(--border); }
+.row:hover { background: #0b1220; }  /* 아주 살짝 강조 */
+
+/* 액션 버튼 */
+.actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+.iconBtn {
+  background: transparent;
+  border: 1px solid var(--btn-border);
+  color: var(--btn);
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  display: inline-flex; align-items: center; justify-content: center;
+  cursor: pointer;
+}
+.iconBtn:hover { background: #1e293b; color: #f1f5f9; }
+
+/* 추가 버튼 */
+.addBtn {
+  margin-top: 14px;
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--btn-border);
+  background: #1e293b; color: #e2e8f0;
+  font-weight: 600; cursor: pointer;
+}
+.addBtn:hover { background: #334155; border-color: #475569; }
+
+/* ── 길이 긴 텍스트 가로 스크롤 처리 ───────────────────────── */
+.scrollCell {
+  overflow-x: auto;         /* 길면 스크롤바 표시 */
+  overflow-y: hidden;
+  white-space: nowrap;      /* 한 줄 유지 */
+  scrollbar-gutter: stable; /* 스크롤바 공간 안정화(줄맞춤 보정) */
+  -webkit-overflow-scrolling: touch;
+  font-variant-ligatures: none;
+}
+
+/* 다크 모드용 스크롤바 스타일 (크롬/엣지/사파리) */
+.scrollCell::-webkit-scrollbar {
+  height: 8px;
+}
+.scrollCell::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scrollCell::-webkit-scrollbar-thumb {
+  background: #475569;     /* slate-600 */
+  border-radius: 8px;
+}
+.scrollCell::-webkit-scrollbar-thumb:hover {
+  background: #64748b;     /* slate-500 */
+}
+
+/* 파이어폭스 */
+.scrollCell {
+  scrollbar-width: thin;
+  scrollbar-color: #475569 transparent;
+}
+
+/* 빈/에러 */
+.empty, .emptyError {
+  padding: 18px 0; text-align: center; font-size: 14px;
+  border-top: 1px solid var(--border);
+}
+.empty { color: #64748b; }
+.emptyError { color: #f87171; }

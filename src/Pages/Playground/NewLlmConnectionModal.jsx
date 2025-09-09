@@ -1,13 +1,14 @@
-import React, { useState } from "react";
+// src/Pages/Playground/NewLlmConnectionModal.jsx
+import React, { useState, useEffect } from "react";
 import { X, Trash2 } from "lucide-react";
 import styles from "./NewLlmConnectionModal.module.css";
 import PropTypes from "prop-types";
 import { upsertLlmConnection } from "./lib/llmConnections";
 
-function NewLlmConnectionModal({ isOpen, onClose, projectId: projectIdProp }) {
+function NewLlmConnectionModal({ isOpen, onClose, projectId: projectIdProp, initial = null }) {
   if (!isOpen) return null;
 
-  // 배열 헤더 → 레코드
+  // helpers
   const headersArrayToRecord = (arr = []) =>
     arr.reduce((acc, h) => {
       const k = (h?.key || "").trim();
@@ -15,43 +16,66 @@ function NewLlmConnectionModal({ isOpen, onClose, projectId: projectIdProp }) {
       return acc;
     }, {});
 
-  // 기본 입력 상태
+  const isEdit = !!initial;
+
+  // base states
   const [adapter, setAdapter] = useState("openai");
   const [name, setName] = useState("");
-  const [apiKey, setApiKey] = useState("");
-  const [baseUrl, setBaseUrl] = useState(""); // 공백이면 default 사용
+  const [apiKey, setApiKey] = useState("");              // 실제 입력되는 새 키
+  const [baseUrl, setBaseUrl] = useState("");
   const [enableDefaultModels, setEnableDefaultModels] = useState(true);
 
-  // 고급 설정
+  // advanced
   const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
   const [extraHeaders, setExtraHeaders] = useState([]);
   const [customModels, setCustomModels] = useState([]);
 
-  // UX 상태
+  // UX
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [okMsg, setOkMsg] = useState("");
 
-  // 새로 추가된 행에 자동 포커스를 주기 위한 인덱스 저장
-  const [focusFlags, setFocusFlags] = useState({
-    headerIndex: null,
-    modelIndex: null,
-  });
+  // API Key 잠금(수정 모드에서 기본 잠금, 클릭하면 해제)
+  const [apiLocked, setApiLocked] = useState(isEdit);
+  const [apiDisplay, setApiDisplay] = useState("");      // 잠금 상태에서 보이는 마스킹 문자열
 
-  // ⚠️ env fallback 제거: 상위에서 받은 값만 사용 (상태/헤더와 반드시 일치)
   const projectId = projectIdProp;
 
-  // ─────────────────────────────────────────────────────────────
-  // 행 추가/삭제 핸들러 (+ 자동 포커스 플래그 세팅)
-  // ─────────────────────────────────────────────────────────────
-  const handleAddHeader = () => {
-    setExtraHeaders((prev) => [...prev, { key: "", value: "" }]);
-    setFocusFlags((f) => ({ ...f, headerIndex: extraHeaders.length })); // 새 인덱스
-  };
-  const handleRemoveHeader = (idx) => {
-    setExtraHeaders((prev) => prev.filter((_, i) => i !== idx));
-    setFocusFlags((f) => (f.headerIndex === idx ? { ...f, headerIndex: null } : f));
-  };
+  // 초기값 주입
+  useEffect(() => {
+    if (!initial) return;
+    setAdapter(String(initial.adapter || "openai"));
+    setName(String(initial.provider || ""));
+    setBaseUrl(String(initial.baseURL || initial.baseUrl || ""));
+    setEnableDefaultModels(
+      !!(initial.withDefaultModels ?? initial.useDefaultModels ?? initial.enableDefaultModels),
+    );
+
+    const hdrs =
+      initial.extraHeaders && typeof initial.extraHeaders === "object"
+        ? Object.entries(initial.extraHeaders).map(([key, value]) => ({ key, value }))
+        : [];
+    setExtraHeaders(hdrs);
+
+    setCustomModels(
+      Array.isArray(initial.customModels)
+        ? initial.customModels
+        : Array.isArray(initial.models)
+        ? initial.models
+        : [],
+    );
+
+    // API Key: 잠금 + 마스킹 표시
+    setApiLocked(true);
+    setApiKey(""); // 실제 전송값은 비워둠(입력 없으면 서버에서 기존키 유지)
+    setApiDisplay(String(initial.displaySecretKey || "••••••"));
+    setShowAdvancedSettings(!!(hdrs.length || initial.baseURL || initial.baseUrl || (initial.customModels && initial.customModels.length)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initial]);
+
+  // 행 편집 핸들러들
+  const handleAddHeader = () => setExtraHeaders((prev) => [...prev, { key: "", value: "" }]);
+  const handleRemoveHeader = (idx) => setExtraHeaders((prev) => prev.filter((_, i) => i !== idx));
   const handleHeaderChange = (idx, field, value) =>
     setExtraHeaders((prev) => {
       const next = [...prev];
@@ -59,14 +83,8 @@ function NewLlmConnectionModal({ isOpen, onClose, projectId: projectIdProp }) {
       return next;
     });
 
-  const handleAddCustomModel = () => {
-    setCustomModels((prev) => [...prev, ""]);
-    setFocusFlags((f) => ({ ...f, modelIndex: customModels.length })); // 새 인덱스
-  };
-  const handleRemoveCustomModel = (idx) => {
-    setCustomModels((prev) => prev.filter((_, i) => i !== idx));
-    setFocusFlags((f) => (f.modelIndex === idx ? { ...f, modelIndex: null } : f));
-  };
+  const handleAddCustomModel = () => setCustomModels((prev) => [...prev, ""]);
+  const handleRemoveCustomModel = (idx) => setCustomModels((prev) => prev.filter((_, i) => i !== idx));
   const handleCustomModelChange = (idx, value) =>
     setCustomModels((prev) => {
       const next = [...prev];
@@ -74,68 +92,49 @@ function NewLlmConnectionModal({ isOpen, onClose, projectId: projectIdProp }) {
       return next;
     });
 
-  // Enter: 다음 행 추가 / Ctrl+Enter: 저장
-  const onRowKeyDown = (e, type) => {
-    if (e.key === "Enter" && !e.ctrlKey && !e.metaKey) {
-      e.preventDefault();
-      if (type === "header") handleAddHeader();
-      if (type === "model") handleAddCustomModel();
-    }
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "enter") {
-      e.preventDefault();
-      handleCreateConnection();
-    }
-  };
-
-  // ─────────────────────────────────────────────────────────────
   // 저장
-  // ─────────────────────────────────────────────────────────────
-  const handleCreateConnection = async () => {
+  const handleSave = async () => {
     setErrorMsg("");
     setOkMsg("");
 
-    if (!projectId) {
-      setErrorMsg("projectId가 누락되었습니다. 프로젝트 선택을 확인해 주세요.");
-      return;
-    }
-    if (!name.trim()) {
-      setErrorMsg("이름(name)을 입력해 주세요.");
-      return;
-    }
-    if (!apiKey.trim()) {
-      setErrorMsg("API Key를 입력해 주세요.");
-      return;
-    }
+    if (!projectId) return setErrorMsg("projectId가 누락되었습니다.");
+    if (!name.trim()) return setErrorMsg("Provider name을 입력해 주세요.");
+    if (!isEdit && !apiKey.trim()) return setErrorMsg("API Key를 입력해 주세요.");
 
-    // 중복 헤더키 가드(선택)
+    // header 키 중복 방지
     const keys = extraHeaders.map((h) => (h.key || "").trim()).filter(Boolean);
     const dup = keys.find((k, i) => keys.indexOf(k) !== i);
-    if (dup) {
-      setErrorMsg(`Duplicate header key: "${dup}"`);
-      return;
-    }
+    if (dup) return setErrorMsg(`Duplicate header key: "${dup}"`);
 
     setSubmitting(true);
     try {
-      const frontPayload = {
-        // 🔑 핵심: adapter 키로 맞춘다 (schema 금지)
+      const payload = {
         adapter,
         provider: name.trim(),
         baseURL: baseUrl.trim() || undefined,
-        secretKey: apiKey.trim(),
+        // 수정 모드에서 입력 칸이 잠겨 있거나(= 변경 안 함) 입력을 비웠으면 secretKey 전달하지 않음 → 서버에서 기존 값 유지
+        ...(apiLocked || !apiKey.trim() ? {} : { secretKey: apiKey.trim() }),
         extraHeaders: headersArrayToRecord(extraHeaders),
         customModels: customModels.filter(Boolean),
-        enableDefaultModels: !!enableDefaultModels, // 이름도 맞춰서 보냄
+        enableDefaultModels: !!enableDefaultModels,
+        ...(initial?.id ? { id: initial.id } : {}),
       };
 
-      await upsertLlmConnection(frontPayload, { projectId });
+      await upsertLlmConnection(payload, { projectId });
       setOkMsg("연결이 저장되었습니다.");
-      setTimeout(() => onClose(), 600);
+      setTimeout(() => onClose(), 500);
     } catch (e) {
       setErrorMsg(String(e?.message || e));
     } finally {
       setSubmitting(false);
     }
+  };
+
+  // API Key 입력칸 클릭 시: 잠금 해제 + 값 비우고 포커스 유지
+  const unlockApiKeyOnFocus = () => {
+    if (!apiLocked) return;
+    setApiLocked(false);
+    setApiKey("");
   };
 
   return (
@@ -150,11 +149,11 @@ function NewLlmConnectionModal({ isOpen, onClose, projectId: projectIdProp }) {
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
-        aria-labelledby="new-llm-connection-title"
+        aria-labelledby="llm-connection-title"
       >
         <div className={styles.modalHeader}>
-          <h2 id="new-llm-connection-title" className={styles.modalTitle}>
-            New LLM Connection
+          <h2 id="llm-connection-title" className={styles.modalTitle}>
+            {isEdit ? "Update LLM Connection" : "New LLM Connection"}
           </h2>
           <button
             type="button"
@@ -171,7 +170,7 @@ function NewLlmConnectionModal({ isOpen, onClose, projectId: projectIdProp }) {
           {errorMsg && <div className={styles.errorBox}>{errorMsg}</div>}
           {okMsg && <div className={styles.okBox}>{okMsg}</div>}
 
-          {/* 스샷 순서: LLM adapter → Provider name → API Key */}
+          {/* LLM adapter (수정 모드 잠금) */}
           <div className={styles.formGroup}>
             <label htmlFor="llm-adapter">LLM adapter</label>
             <p>Schema that is accepted at that provider endpoint.</p>
@@ -179,6 +178,9 @@ function NewLlmConnectionModal({ isOpen, onClose, projectId: projectIdProp }) {
               id="llm-adapter"
               value={adapter}
               onChange={(e) => setAdapter(e.target.value)}
+              disabled={isEdit}
+              aria-disabled={isEdit}
+              className={isEdit ? styles.inputDisabled : undefined}
             >
               <option value="openai">OpenAI</option>
               <option value="anthropic">Anthropic</option>
@@ -189,6 +191,7 @@ function NewLlmConnectionModal({ isOpen, onClose, projectId: projectIdProp }) {
             </select>
           </div>
 
+          {/* Provider name (수정 모드 잠금) */}
           <div className={styles.formGroup}>
             <label htmlFor="provider-name">Provider name</label>
             <p>Key to identify the connection within Langfuse.</p>
@@ -198,22 +201,36 @@ function NewLlmConnectionModal({ isOpen, onClose, projectId: projectIdProp }) {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. openai"
-              autoFocus
+              readOnly={isEdit}
+              aria-readonly={isEdit}
+              className={isEdit ? styles.inputDisabled : undefined}
+              autoFocus={!isEdit}
             />
           </div>
 
+          {/* API Key (수정 모드: 잠금 → 클릭 시 해제/새 값 입력) */}
           <div className={styles.formGroup}>
             <label htmlFor="api-key">API Key</label>
             <p>Your API keys are stored encrypted in your database.</p>
             <input
               id="api-key"
               type="password"
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              placeholder="sk-..."
+              value={apiLocked ? apiDisplay : apiKey}
+              onChange={(e) => (!apiLocked ? setApiKey(e.target.value) : void 0)}
+              onFocus={unlockApiKeyOnFocus}
+              readOnly={apiLocked}
+              aria-readonly={apiLocked}
+              placeholder={isEdit ? "(click to change)" : "sk-..."}
+              className={apiLocked ? styles.inputReadonly : undefined}
             />
+            {isEdit && (
+              <small className={styles.helpText}>
+                Click the field to replace the existing key. Leave it as-is to keep the current key.
+              </small>
+            )}
           </div>
 
+          {/* 고급 설정 토글 */}
           {!showAdvancedSettings ? (
             <button
               type="button"
@@ -233,10 +250,12 @@ function NewLlmConnectionModal({ isOpen, onClose, projectId: projectIdProp }) {
               </button>
 
               <div className={styles.advancedSettings}>
+                {/* Base URL */}
                 <div className={styles.formGroup}>
                   <label htmlFor="api-base-url">API Base URL</label>
                   <p>
-                    Leave blank to use the default base URL for the given LLM adapter. OpenAI default: https://api.openai.com/v1
+                    Leave blank to use the default base URL for the given LLM adapter. OpenAI
+                    default: https://api.openai.com/v1
                   </p>
                   <input
                     id="api-base-url"
@@ -247,12 +266,12 @@ function NewLlmConnectionModal({ isOpen, onClose, projectId: projectIdProp }) {
                   />
                 </div>
 
+                {/* Extra headers */}
                 <div className={styles.formGroup}>
                   <label>Extra Headers</label>
                   <p>
-                    Optional additional HTTP headers to include with requests
-                    towards LLM provider. All header values stored encrypted in
-                    your database.
+                    Optional additional HTTP headers to include with requests towards LLM provider.
+                    All header values stored encrypted in your database.
                   </p>
 
                   {extraHeaders.map((header, index) => (
@@ -262,15 +281,12 @@ function NewLlmConnectionModal({ isOpen, onClose, projectId: projectIdProp }) {
                         value={header.key}
                         onChange={(e) => handleHeaderChange(index, "key", e.target.value)}
                         placeholder="Header name"
-                        autoFocus={!!focusFlags && focusFlags.headerIndex === index}
-                        onKeyDown={(e) => onRowKeyDown(e, "header")}
                       />
                       <input
                         type="text"
                         value={header.value}
                         onChange={(e) => handleHeaderChange(index, "value", e.target.value)}
                         placeholder="Header value"
-                        onKeyDown={(e) => onRowKeyDown(e, "header")}
                       />
                       <button
                         type="button"
@@ -284,15 +300,12 @@ function NewLlmConnectionModal({ isOpen, onClose, projectId: projectIdProp }) {
                     </div>
                   ))}
 
-                  <button
-                    type="button"
-                    className={styles.addMore}
-                    onClick={handleAddHeader}
-                  >
+                  <button type="button" className={styles.addMore} onClick={handleAddHeader}>
                     + Add Header
                   </button>
                 </div>
 
+                {/* Enable default models */}
                 <div className={styles.formGroup}>
                   <label className={styles.switchRow}>
                     <span>Enable default models</span>
@@ -305,12 +318,10 @@ function NewLlmConnectionModal({ isOpen, onClose, projectId: projectIdProp }) {
                       <span className={`${styles.slider} ${styles.round}`}></span>
                     </span>
                   </label>
-                  <p>
-                    Default models for the selected adapter will be available in
-                    Langfuse features.
-                  </p>
+                  <p>Default models for the selected adapter will be available in Langfuse features.</p>
                 </div>
 
+                {/* Custom models */}
                 <div className={styles.formGroup}>
                   <label>Custom models</label>
                   <p>Custom model names accepted by given endpoint.</p>
@@ -322,8 +333,6 @@ function NewLlmConnectionModal({ isOpen, onClose, projectId: projectIdProp }) {
                         value={model}
                         onChange={(e) => handleCustomModelChange(index, e.target.value)}
                         placeholder={`Custom model name ${index + 1}`}
-                        autoFocus={!!focusFlags && focusFlags.modelIndex === index}
-                        onKeyDown={(e) => onRowKeyDown(e, "model")}
                       />
                       <button
                         type="button"
@@ -337,11 +346,7 @@ function NewLlmConnectionModal({ isOpen, onClose, projectId: projectIdProp }) {
                     </div>
                   ))}
 
-                  <button
-                    type="button"
-                    className={styles.addMore}
-                    onClick={handleAddCustomModel}
-                  >
+                  <button type="button" className={styles.addMore} onClick={handleAddCustomModel}>
                     + Add custom model name
                   </button>
                 </div>
@@ -356,11 +361,11 @@ function NewLlmConnectionModal({ isOpen, onClose, projectId: projectIdProp }) {
             className={styles.createButton}
             onClick={(e) => {
               e.stopPropagation();
-              handleCreateConnection();
+              handleSave();
             }}
-            disabled={submitting || !name.trim() || !apiKey.trim()}
+            disabled={submitting || !name.trim() || (!isEdit && !apiKey.trim())}
           >
-            {submitting ? "Saving..." : "Create connection"}
+            {submitting ? "Saving..." : isEdit ? "Save changes" : "Create connection"}
           </button>
         </div>
       </div>
@@ -371,7 +376,8 @@ function NewLlmConnectionModal({ isOpen, onClose, projectId: projectIdProp }) {
 NewLlmConnectionModal.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
-  projectId: PropTypes.string, // ⚠️ 상위에서 꼭 넘겨줄 것
+  projectId: PropTypes.string,
+  initial: PropTypes.object, // 수정 모드일 때 기존 값
 };
 
 export default NewLlmConnectionModal;

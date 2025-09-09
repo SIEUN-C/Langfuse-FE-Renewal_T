@@ -85,11 +85,13 @@ export async function cancelInvite(projectId, inviteId) {
   // 환경에 따라 가능한 절차명 후보를 순차 시도
   return trpcTryManyMutation(
     [
-      "members.cancelInvite",               // 공통(커스텀)
-      "organizationMembers.cancelInvite",   // 조직 스코프
-      "projectMembers.cancelInvite",        // 프로젝트 스코프
-      "organizationInvites.cancel",         // 일부 구현
-      "projectInvites.cancel",              // 일부 구현
+      "members.deleteInvite",
+      
+      "members.cancelInvite",
+      "organizationMembers.cancelInvite",
+      "projectMembers.cancelInvite",
+      "organizationInvites.cancel",
+      "projectInvites.cancel",
     ],
     payload
   );

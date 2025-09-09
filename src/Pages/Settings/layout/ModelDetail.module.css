@@ -1,0 +1,177 @@
+.page {
+  padding: 16px;
+  color: #e2e8f0;
+  background: #0b1220; /* 다크 */
+}
+
+.headerRow {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.breadcrumb {
+  opacity: .8;
+  cursor: pointer;
+}
+.title {
+  font-size: 18px;
+  font-weight: 700;
+}
+.headerActions {
+  display: flex;
+  gap: 8px;
+}
+.secondaryBtn {
+  background: #0f172a;
+  border: 1px solid #2f415d;
+  color: #e2e8f0;
+  border-radius: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+.secondaryBtn:hover { background: #132036; }
+
+.cards {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.card {
+  background: #0f172a;
+  border: 1px solid #2f415d;
+  border-radius: 10px;
+  padding: 14px;
+}
+.cardTitle {
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.confItem { margin-bottom: 10px; }
+.label { font-size: 12px; opacity: .75; margin-bottom: 4px; }
+.value { font-size: 14px; }
+.valueMono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
+
+.jsonBox {
+  background: #0b1220;
+  border: 1px solid #2f415d;
+  border-radius: 8px;
+  padding: 8px;
+  font-size: 12px;
+  max-height: 140px;
+  overflow: auto;
+}
+
+.priceRow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  padding: 8px 0;
+  border-bottom: 1px dashed #23324a;
+}
+.priceRow:last-child { border-bottom: none; }
+.priceLabel { opacity: .85; }
+.priceValue { font-weight: 700; }
+
+.tableCard {
+  background: #0f172a;
+  border: 1px solid #2f415d;
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.tableHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.linkBtn {
+  background: transparent;
+  color: #8ab4ff;
+  border: none;
+  cursor: pointer;
+}
+
+.toolbar {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.searchBox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #0b1220;
+  border: 1px solid #2f415d;
+  border-radius: 8px;
+  padding: 6px 8px;
+}
+.searchBox input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #e2e8f0;
+  width: 100%;
+  font-size: 13px;
+}
+
+.splitGroup { display: flex; align-items: center; gap: 8px; }
+.pillBtn {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: #0b1220; border: 1px solid #2f415d; color: #e2e8f0;
+  border-radius: 999px; padding: 6px 10px; font-size: 12px; cursor: pointer;
+}
+.selectWrap select {
+  background: #0b1220; color: #e2e8f0;
+  border: 1px solid #2f415d; border-radius: 8px; padding: 6px 8px; font-size: 12px;
+}
+.envLabel { margin-right: 6px; opacity: .75; font-size: 12px; }
+
+.filterChip {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: #0b1220; border: 1px solid #2f415d; color: #e2e8f0;
+  border-radius: 999px; padding: 6px 10px; font-size: 12px;
+}
+.badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 18px; height: 18px; padding: 0 6px;
+  background: #1d4ed8; color: #fff; border-radius: 999px; font-size: 11px;
+}
+
+.rightGroup { display: flex; align-items: center; gap: 8px; }
+.dropdownBtn {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: #0b1220; border: 1px solid #2f415d; color: #e2e8f0;
+  border-radius: 8px; padding: 6px 10px; font-size: 12px; cursor: default;
+}
+.iconBtn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px;
+  background: #1e293b; border: 1px solid #2f415d; color: #e2e8f0;
+  border-radius: 8px; cursor: pointer;
+}
+.iconBtn:hover { background: #24324a; }
+
+.gridWrap {
+  border: 1px solid #2f415d;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* AG Grid 다크 톤 살짝 */
+.ag-theme-alpine {
+  --ag-background-color: #0f172a;
+  --ag-odd-row-background-color: #0e1627;
+  --ag-foreground-color: #e2e8f0;
+  --ag-border-color: #22324a;
+  --ag-header-background-color: #0b1220;
+  --ag-header-foreground-color: #cbd5e1;
+  --ag-selected-row-background-color: #1a2540;
+}
+
+.paginationWrap { margin-top: 8px; }

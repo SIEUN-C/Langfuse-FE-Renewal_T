@@ -12,7 +12,7 @@ export async function listOrgMembers(orgId, { page = 1, limit = 10, search = "" 
       id: m.id,
       name: m.user?.name ?? "",
       email: m.user?.email ?? "",
-      organizationRole: m.role ?? m.organizationRole ?? "Member",
+      organizationRole: String(m.role ?? m.organizationRole ?? "MEMBER").toUpperCase(),
       projectRole: m.projectRole ?? null,
       memberSince: m.createdAt,
     })),

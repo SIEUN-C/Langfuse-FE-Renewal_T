@@ -1,9 +1,13 @@
 // src/Pages/Settings/lib/sessionOrg.js
 
-function pickSessionBase() {
+export function pickSessionBase() {
   const base = import.meta.env.VITE_API_BASE || window.__API_BASE__;
   if (!base) return { base: "", absolute: false };
   try {
+    // 상대경로('/api' 같은)면 그대로 사용하되 absolute=false
+   if (base.startsWith("/")) {
+     return { base, absolute: false };
+   }
     const t = new URL(base);
     const here = window.location;
     const same =

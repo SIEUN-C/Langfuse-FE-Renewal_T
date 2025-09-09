@@ -1,9 +1,10 @@
 import React, {useState, useCallback, useRef, useMemo, useEffect} from 'react';
+import { useNavigate } from "react-router-dom";
+import { useOutletContext } from "react-router-dom";
 import {AgGridReact} from 'ag-grid-react';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
 import {Plus, GitCommitHorizontal, ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight} from 'lucide-react';
-import {useNavigate} from 'react-router-dom';
 
 import commonStyles from './layout/SettingsCommon.module.css';
 import gridStyles from './layout/SettingsGrid.module.css';
@@ -14,12 +15,7 @@ import ColumnMenu from '../../layouts/ColumnMenu';
 import SidePanel from '../../components/SidePanel/SidePanel.jsx'
 import NewModelForm from './form/NewModelForm';
 
-import {
-    listAllModels,
-    getModel,
-    createModel,
-    deleteModel,
-} from 'api/Settings/ModelsApi';
+import { listModelsPaged, getModel, createModel, deleteModel } from "./lib/ModelsApi.trpc";
 
 // ──────────────────────────────────────
 // Cell Renderers
@@ -110,12 +106,16 @@ const COLUMN_DEFINITIONS = [
 
 const Models = () => {
     const navigate = useNavigate();
+    const { projectId } = useOutletContext();
 
     const gridRef = useRef(null);
-    // ✅ gridApi: 한 번만 선언
+    // gridApi: 한 번만 선언
     const [gridApi, setGridApi] = useState(null);
+    const pageSizes = useMemo(() => [10, 20, 50, 100], []);
 
-    const pageSizes = useMemo(() => [10, 20, 30, 40, 50], []);
+    const [pageSize, setPageSize] = useState(50);
+    const [pageIndex, setPageIndex] = useState(0); // 0-based
+    const [total, setTotal] = useState(0);
 
     const [isColumnMenuOpen, setIsColumnMenuOpen] = useState(false);
     const columnButtonRef = useRef(null);
@@ -136,32 +136,37 @@ const Models = () => {
 
     // 목록 로드
     useEffect(() => {
-        let mounted = true;
-        (async () => {
-            try {
-                const models = await listAllModels(200);
-                const rows = models.map((m) => ({
-                    id: m.id,
-                    modelName: m.modelName,
-                    maintainer: m.isLangfuseManaged ? 'Langfuse' : 'Custom',
-                    matchPattern: m.matchPattern,
-                    inputPrice: (m.inputPrice ?? m.prices?.input?.price) ?? null,
-                    outputPrice: (m.outputPrice ?? m.prices?.output?.price) ?? null,
-                    tokenizer: m.tokenizerId ?? '',
-                    tokenizerConfig: m.tokenizerConfig ?? {},
-                    lastUsed: '',
-                    isLangfuseManaged: m.isLangfuseManaged,
-                }));
-                if (mounted) setRowData(rows);
-            } catch (e) {
-                console.error('[Models] fetch error', e);
-                if (mounted) setRowData([]);
+    let mounted = true;
+    const ac = new AbortController();
+    (async () => {
+        try {
+        const pid = localStorage.getItem("projectId"); // 또는 useParams() 등
+        const { models, totalCount } = await listModelsPaged(pageIndex, pageSize, pid);    // ★ page size 50 (서버 예시와 동일)
+        const rows = (models || []).map((m) => ({
+            id: m.id,
+            modelName: m.modelName,
+            maintainer: m.isLangfuseManaged ? "Langfuse" : "Custom",
+            matchPattern: m.matchPattern,
+            inputPrice: (m.inputPrice ?? m.prices?.input) ?? null,
+            outputPrice: (m.outputPrice ?? m.prices?.output) ?? null,
+            tokenizer: m.tokenizerId ?? "",
+            tokenizerConfig: m.tokenizerConfig ?? {},
+            lastUsed: m.lastUsed ?? "",
+            isLangfuseManaged: m.isLangfuseManaged,
+        }));
+        if (mounted) {
+            setRowData(rows);
+            setTotal(Number(totalCount) || rows.length);
             }
-        })();
-        return () => {
-            mounted = false;
-        };
-    }, []);
+        } catch (e) {
+        console.error("[Models] fetch error", e);
+        if (mounted) setRowData([]);
+        }
+    })();
+    return () => {
+        mounted = false;
+        ac.abort();};
+    }, [pageIndex, pageSize]);
 
     // 새로 만들기 버튼 핸들러 (실제 사용)
     const openCreate = useCallback(() => setIsCreateOpen(true), []);
@@ -188,8 +193,8 @@ const Models = () => {
                 modelName: created.modelName,
                 maintainer: created.isLangfuseManaged ? 'Langfuse' : 'Custom',
                 matchPattern: created.matchPattern,
-                inputPrice: (created.inputPrice ?? created.prices?.input?.price) ?? null,
-                outputPrice: (created.outputPrice ?? created.prices?.output?.price) ?? null,
+                inputPrice: (created.inputPrice ?? created.prices?.input) ?? null,
+                outputPrice: (created.outputPrice ?? created.prices?.output) ?? null,
                 tokenizer: created.tokenizerId ?? '',
                 tokenizerConfig: created.tokenizerConfig ?? {},
                 lastUsed: '',
@@ -253,12 +258,12 @@ const Models = () => {
         void handleSaveModel(payload);
     }, [handleSaveModel]);
 
-    // ✅ 행 클릭 → 상세 페이지로 상대 이동
+    // 행 클릭 → 상세 페이지로 상대 이동
     const onRowClicked = useCallback((ev) => {
-        const id = ev.data?.id;
-        if (!id) return;
-        navigate(`/${encodeURIComponent(id)}`); // 상대 경로 이동 (/settings/models/:id)
-    }, [navigate]);
+    const id = ev.data?.id;
+    if (!id) return;
+    navigate(`${encodeURIComponent(id)}`); // ← 이건 "상대경로" 이동
+    }, [navigate, projectId]);
 
     // Column menu 파생
     const visibleColumnCount = useMemo(
@@ -330,7 +335,7 @@ const Models = () => {
                     />
                 </div>
 
-                {/* ✅ 미사용 경고 방지: 핸들러 사용 */}
+                {/* 미사용 경고 방지: 핸들러 사용 */}
                 <button onClick={openCreate} className={`${gridStyles.headerButton} ${gridStyles.addButton}`}>
                     <Plus size={16}/> Add model definition
                 </button>
@@ -342,10 +347,8 @@ const Models = () => {
                     rowData={rowData}
                     columnDefs={columnDefs}
                     defaultColDef={defaultColDef}
-                    pagination
-                    paginationPageSize={pageSizes[0]}
-                    suppressPaginationPanel
-                    // ✅ onGridReady 인라인 사용 → 미사용 경고/중복 선언 제거
+                    pagination={false}
+                    // onGridReady 인라인 사용 → 미사용 경고/중복 선언 제거
                     onGridReady={(e) => setGridApi(e.api)}
                     onRowClicked={onRowClicked}
                     rowHeight={96}
@@ -360,7 +363,16 @@ const Models = () => {
                 <NewModelForm onSave={handleSaveModelFromForm} onCancel={() => setIsCreateOpen(false)}/>
             </SidePanel>
 
-            {gridApi && <CustomPagination gridApi={gridApi} pageSizes={pageSizes}/>}
+             {gridApi && (
+            <CustomPagination
+                pageSizes={pageSizes}
+                totalRows={total}
+                pageSize={pageSize}
+                currentIndex={pageIndex}                             // ✅ prop 이름 변경
+                onPageChange={(idx) => setPageIndex(idx)}            // 0-based 그대로
+                onLimitChange={(size) => { setPageSize(size); setPageIndex(0); }} // ✅ 이름 변경
+            />
+            )}
         </div>
     );
 };

@@ -1,48 +1,47 @@
 import { trpcMutation } from "./trpc";
 
 /**
- * 멤버십 삭제를 서버 구현별로 유연하게 시도
- * 1) members.deleteMembership     { membershipId }
+ * 멤버십 삭제 (환경별 경로/스키마 호환)
+ * 1) members.deleteMembership     { orgMembershipId, orgId?, projectId? }  // 5173 요구
  * 2) organizationMembers.remove   { orgId, memberId }
  * 3) projectMembers.remove        { projectId, memberId }
  */
 export async function removeMembershipUniversal({ membershipId, orgId, projectId }) {
-  const csrfMsg = (e) => e?.message || "";
+  const msgOf = (e) => e?.message || "";
 
-  // #1 권장/표준: membershipId 단독
+  // #1: 5173 호환 — orgMembershipId + orgId(+ projectId)
   try {
-    return await trpcMutation("members.deleteMembership", { membershipId });
+    return await trpcMutation("members.deleteMembership", {
+      orgMembershipId: String(membershipId),   // 🔑 필드명 교정
+      ...(orgId ? { orgId: String(orgId) } : {}),
+      ...(projectId ? { projectId: String(projectId) } : {}),
+    });
   } catch (e) {
-    const m = csrfMsg(e);
-    const isRetry = /404|Not Found|BAD_REQUEST|-32600/i.test(m);
-    if (!isRetry) throw e;
+    const m = msgOf(e);
+    const retry = /404|Not Found|BAD_REQUEST|-32600|Invalid input/i.test(m);
+    if (!retry) throw e;
   }
 
-  // #2 조직 스코프
+  // #2: 조직 스코프 폴백
   if (orgId) {
     try {
       return await trpcMutation("organizationMembers.remove", {
-        orgId,
-        memberId: membershipId, // 일부 서버는 멤버십 id를 memberId로 받기도 함
+        orgId: String(orgId),
+        memberId: String(membershipId),
       });
     } catch (e) {
-      const m = csrfMsg(e);
-      const isRetry = /404|Not Found|BAD_REQUEST|-32600/i.test(m);
-      if (!isRetry) throw e;
+      const m = msgOf(e);
+      const retry = /404|Not Found|BAD_REQUEST|-32600/i.test(m);
+      if (!retry) throw e;
     }
   }
 
-  // #3 프로젝트 스코프
+  // #3: 프로젝트 스코프 폴백
   if (projectId) {
-    try {
-      return await trpcMutation("projectMembers.remove", {
-        projectId,
-        memberId: membershipId,
-      });
-    } catch (e) {
-      // 마지막 실패는 그대로 throw
-      throw e;
-    }
+    return await trpcMutation("projectMembers.remove", {
+      projectId: String(projectId),
+      memberId: String(membershipId),
+    });
   }
 
   throw new Error("No valid deletion route available");
