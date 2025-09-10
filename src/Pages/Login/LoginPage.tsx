@@ -60,8 +60,20 @@ const LoginPage = () => {
             });
 
             if (res.ok) {
-                console.log("로그인 성공!");
-                window.location.href = '/';
+                   try {
+                    const sessionRes = await fetch("/api/auth/session", { credentials: "include" });
+                    const sessionData = await sessionRes.json();
+                    const orgs = sessionData?.user?.organizations || [];
+                    if (orgs.length === 0) {
+                    // 조직 없으면 Setup 페이지 (조직+프로젝트 생성)
+                    window.location.href = "/setup";
+                    } else {
+                    // 조직 있으면 홈으로
+                    window.location.href = "/";
+                    }
+                } catch {
+                    window.location.href = "/";
+                }
             } else {
                 const data = await res.json();
                 setError(data.message || "이메일 또는 비밀번호가 틀렸습니다.");
