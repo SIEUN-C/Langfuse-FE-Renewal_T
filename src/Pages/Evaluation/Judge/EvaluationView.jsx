@@ -65,13 +65,27 @@ const EvaluationView = () => {
           {/* --- ✨ 수정: headerRight 부분에 UI 요소들을 추가합니다 --- */}
           <div className={styles.headerRight}>
             <span className={styles.resultCount}>✅ {jobs.length} results</span>
-            {/* 주석: evaluatorConfig.status가 'ACTIVE'일 때 초록색 뱃지를 보여줍니다. */}
-            {evaluatorConfig?.status === 'ACTIVE' && (
-              <span className={styles.activeStatusBadge}>
+             {/* ========================[수정 시작]======================== */}
+            {/*
+             * 수정 내용:
+             * 기존에는 'ACTIVE' 상태일 때만 뱃지를 표시했습니다.
+             * 이제 evaluatorConfig.status 값이 존재할 경우 항상 뱃지를 표시하도록 변경합니다.
+             * status 값에 따라 className을 동적으로 부여하여 'ACTIVE'와 'INACTIVE' 상태의 UI를 다르게 보여줍니다.
+             * 텍스트도 status 값을 소문자로 변환하여 동적으로 표시합니다.
+             */}
+            {evaluatorConfig?.status && (
+              <span
+                className={
+                  evaluatorConfig.status === "ACTIVE"
+                    ? styles.activeStatusBadge
+                    : styles.inactiveStatusBadge
+                }
+              >
                 <span className={styles.statusDot}></span>
-                active
+                {evaluatorConfig.status.toLowerCase()}
               </span>
             )}
+            {/* ========================[수정 끝]======================== */}
             <div className={styles.navButtonGroup}>
               <button className={styles.navButton}>
                 <ChevronUp size={16} /> K
