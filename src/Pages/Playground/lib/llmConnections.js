@@ -1,21 +1,23 @@
-import { pickSessionBase } from "../../Settings/lib/sessionOrg";
+import { pickSessionBase } from "../../Settings/lib/sessionOrg"; // 경로 확인
+const { base: API_BASE, absolute: API_ABS } = pickSessionBase();
+const trimTrail = (s) => s.replace(/\/+$/, "");
+const toUrl = (p) => {
+  // p는 항상 "/trpc/..." 형태로만 넘긴다
+  if (!API_BASE) return p; // "" → "/trpc/..."
+  if (API_BASE.startsWith("/")) {
+    // 상대 베이스: "/api" + "/trpc/..." → "/api/trpc/..."
+    return `${trimTrail(API_BASE)}${p}`;
+  }
+  // 절대 베이스: "http://.../api" + "/trpc/..." → "http://.../api/trpc/..."
+  return `${trimTrail(API_BASE)}/api${p}`;
+};
 
-const { base: API_BASE } = pickSessionBase();
+// ─────────────────────────────────────────────────────────────
+// tRPC: Query=GET, Mutation=POST
+//   GET  /api/trpc/{path}?input=<uri-encoded JSON>
+//   POST body: { json: payload }
+// ─────────────────────────────────────────────────────────────
 
-const API_PREFIX = "/api";   // ✅ 기본 보장
-const TRPC_PREFIX = "/trpc";
-
-const trimTrail = (s = "") => s.replace(/\/+$/, "");
-
-
-/** 항상 '/api/trpc/...' 로 떨어지게 강제 */
-function toUrl(p = "") {
-  const base = (API_BASE && API_BASE.trim()) || API_PREFIX;  // ← 핵심
-  const path = p.startsWith(TRPC_PREFIX) ? p : `${TRPC_PREFIX}${p}`;
-  return `${trimTrail(base)}${path}`;
-}
-
-/** Query(GET) URL */
 function buildGetUrl(path, payload) {
   const input = encodeURIComponent(JSON.stringify({ json: payload }));
   return toUrl(`/trpc/${path}?input=${input}`);

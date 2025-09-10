@@ -1,29 +1,23 @@
 // src/Pages/Settings/lib/sessionOrg.js
 
 export function pickSessionBase() {
-
-  const absolute = import.meta.env?.VITE_BACKEND_ORIGIN || "http://localhost:3000";
-  // 기본은 '/api' 로 고정해 프록시를 태운다
-  const base = import.meta.env?.VITE_BACKEND_BASE || "/api";
-  return { base, absolute };
-
-  // const base = import.meta.env.VITE_API_BASE || window.__API_BASE__;
-  // if (!base) return { base: "", absolute: false };
-  // try {
-  //   // 상대경로('/api' 같은)면 그대로 사용하되 absolute=false
-  //  if (base.startsWith("/")) {
-  //    return { base, absolute: false };
-  //  }
-  //   const t = new URL(base);
-  //   const here = window.location;
-  //   const same =
-  //     t.protocol === here.protocol &&
-  //     t.hostname === here.hostname &&
-  //     String(t.port || "") === String(here.port || "");
-  //   return { base, absolute: !same };
-  // } catch {
-  //   return { base: "", absolute: false };
-  // }
+  const base = import.meta.env.VITE_API_BASE || window.__API_BASE__;
+  if (!base) return { base: "", absolute: false };
+  try {
+    // 상대경로('/api' 같은)면 그대로 사용하되 absolute=false
+   if (base.startsWith("/")) {
+     return { base, absolute: false };
+   }
+    const t = new URL(base);
+    const here = window.location;
+    const same =
+      t.protocol === here.protocol &&
+      t.hostname === here.hostname &&
+      String(t.port || "") === String(here.port || "");
+    return { base, absolute: !same };
+  } catch {
+    return { base: "", absolute: false };
+  }
 }
 const { base: SESSION_BASE, absolute: SESSION_ABS } = pickSessionBase();
 const toUrl = (p) => (SESSION_ABS ? `${SESSION_BASE}${p}` : p);
