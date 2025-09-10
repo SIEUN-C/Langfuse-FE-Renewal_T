@@ -4,7 +4,8 @@ import useProjectId from "hooks/useProjectId";
 import styles from "./UseEvaluator.module.css"; // 없으면 Templates.module.css 재사용해도 됨
 import EvaluationForm from "./components/EvaluationForm.jsx";
 import { getTemplateById } from "./services/libraryApi";
-import { createJob, buildCreatePayload } from "./services/evaluatorsApi";
+import { createJob, getPreviewRows } from "./services/evaluatorsApi";
+import { toCreatePayload } from '../Judge/components/evalMapping';
 
 
 
@@ -45,8 +46,8 @@ export default function UseEvaluator() {
         if (submitting) return;
         setSubmitting(true);
         try {
-            const payload = buildCreatePayload(form);
-            console.log("[UseEvaluator] built payload:", payload);
+            const payload = toCreatePayload(form);
+            console.log("[UseEvaluator] toCreatePayload:", payload);
             await createJob(payload);
             // ✅ 성공 시 Running Evaluators 리스트로 이동
             navigate("/llm-as-a-judge");

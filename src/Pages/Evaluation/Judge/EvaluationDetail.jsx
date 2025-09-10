@@ -4,6 +4,10 @@ import { getRunningConfig, updateEvalJob } from '../Judge/services/evaluatorsApi
 import EvaluationForm from './components/EvaluationForm';
 import styles from './EvaluationDetail.module.css';
 import useProjectId from 'hooks/useProjectId';
+import { rowsFromConfigMapping, buildVarValuesFromTrace, fillPrompt } from "../Judge/components/evalMapping";
+import { toUpdateConfigFromForm } from "../Judge/components/evalMapping";
+
+
 
 
 
@@ -17,6 +21,38 @@ const EvaluationDetail = ({ onClose }) => {
   const [err, setErr] = useState('');
   const [editMode, setEditMode] = useState(false);
   const [toggling, setToggling] = useState(false);
+
+  // ⬇️ 컴포넌트 내부에 둬야 detail, projectId, peekId, setDetail 접근 가능
+  const handleUpdate = async (formState) => {
+    try {
+      const config = toUpdateConfigFromForm(
+        formState,
+        detail?.template || detail?.evalTemplate
+      );
+
+      // 🔎 타입 체크 로그
+      console.log('[UPDATE] config =', config, {
+        filterType: typeof config.filter,
+        filterIsArray: Array.isArray(config.filter),
+        vmType: typeof config.variableMapping,
+        vmIsArray: Array.isArray(config.variableMapping),
+      });
+
+
+      await updateEvalJob({
+        projectId,
+        evalConfigId: detail.id,
+        config,
+      });
+      // 저장 후 최신값 다시 로드 + edit 끄기
+      const fresh = await getRunningConfig({ projectId, id: peekId });
+      setDetail(fresh);
+      setEditMode(false);
+    } catch (e) {
+      setErr(e?.message || 'Failed to update configuration');
+    }
+  };
+
 
   // 디테일 로딩 (실제 API 사용)
   useEffect(() => {
@@ -88,6 +124,16 @@ const EvaluationDetail = ({ onClose }) => {
 
   const isActive = detail.status === 'ACTIVE';
 
+  // 현재 설정을 Form이 그대로 재현할 수 있게 preset 구성
+  const mappingPreset = rowsFromConfigMapping(detail?.variableMapping || {});
+  const filterTextPreset = JSON.stringify(detail?.filter ?? []);
+  const samplingPctPreset = Math.round((detail?.sampling ?? 1) * 100);
+  const delaySecPreset = Math.round((detail?.delay ?? 0) / 1000);
+  const runsOnNewPreset = (detail?.timeScope ?? 'BOTH') !== 'EXISTING';
+  const runsOnExistingPreset = (detail?.timeScope ?? 'BOTH') !== 'NEW';
+
+
+
   return (
     <div className={styles.container}>
       {/* 최상단 헤더 */}
@@ -135,8 +181,17 @@ const EvaluationDetail = ({ onClose }) => {
           <EvaluationForm
             mode={editMode ? 'edit' : 'view'}
             projectId={projectId}
-            initial={detail}
+            template={detail?.template || detail?.evalTemplate || null}
+            preset={{
+              mappingRows: mappingPreset,
+              filterText: filterTextPreset,
+              samplingPct: samplingPctPreset,
+              delaySec: delaySecPreset,
+              runsOnNew: runsOnNewPreset,
+              runsOnExisting: runsOnExistingPreset,
+            }}
             preventRedirect
+            onSubmit={editMode ? handleUpdate : undefined}
           />
         </div>
 
