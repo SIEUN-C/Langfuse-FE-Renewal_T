@@ -271,3 +271,66 @@
   background-color: #9ca3af; /* 회색 점 */
 }
 /* ========================[추가 끝]======================== */
+
+/* ... 기존에 있던 모든 CSS 코드는 그대로 둡니다 ... */
+
+/* ========================[추가 시작]======================== */
+/* 주석: tanstack-table의 표준 렌더링 방식을 위한 테이블 스타일입니다. */
+/* 테이블을 감싸는 컨테이너에 위쪽 여백을 주어 헤더와 분리합니다. */
+.tableWrapper {
+  border: 1px solid #475569;
+  border-radius: 8px;
+  overflow: hidden; /* 모서리를 둥글게 처리하기 위해 */
+  margin-top: 24px; /* 헤더와 테이블 사이의 간격을 만듭니다. */
+}
+
+.tableWrapper table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* 주석: 테이블의 헤더(th)와 셀(td)에 패딩과 테두리 선을 추가합니다. */
+.tableWrapper th,
+.tableWrapper td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid #475569;
+  font-size: 14px;
+  vertical-align: middle; /* 셀 내용 수직 정렬 */
+}
+
+.tableWrapper th {
+  background-color: #1e293b;
+  font-weight: 600;
+  color: #cbd5e1;
+}
+
+.tableWrapper tr:last-child td {
+  border-bottom: none;
+}
+
+/* 주석: 페이지네이션 컨트롤(Previous, Next 버튼)을 위한 스타일입니다. */
+.pagination {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 16px;
+  margin-top: 16px;
+  font-size: 14px;
+  color: #cbd5e1;
+}
+
+.pagination button {
+  background-color: #334155;
+  border: 1px solid #475569;
+  border-radius: 6px;
+  padding: 6px 12px;
+  color: #cbd5e1;
+  cursor: pointer;
+}
+
+.pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+/* ========================[추가 끝]======================== */

@@ -49,18 +49,19 @@ const shortenId = (id, start = 8, end = 4) => {
   return `${id.substring(0, start)}...${id.substring(id.length - end)}`;
 }
 
-
+// ========================[수정 시작]========================
+// 주석: accessorKey와 cell 대신, 기존 DataTable이 이해하는 accessor 함수 방식으로 되돌립니다.
+// 각 컬럼에 id와 header는 그대로 유지하여 컬럼 숨기기 기능은 정상 작동하도록 합니다.
 export const getEvaluationViewColumns = (projectId) => {
   return [
-    // --- ✨ 수정: Status 컬럼의 accessor 부분을 아래와 같이 수정합니다 ---
     {
+      id: 'status',
       header: 'Status',
       accessor: (row) => {
         const status = row.status ?? '-';
         // 주석: status 값에 따라 동적으로 CSS 클래스를 부여합니다.
-        // 현재는 'COMPLETED' 상태만 초록색으로 처리합니다.
+//         // 현재는 'COMPLETED' 상태만 초록색으로 처리합니다.
         const statusClass = status === 'COMPLETED' ? styles.statusCompleted : '';
-        
         return (
           <span className={`${styles.statusBadge} ${statusClass}`}>
             {status}
@@ -68,63 +69,69 @@ export const getEvaluationViewColumns = (projectId) => {
         );
       },
     },
-    // -------------------------------------------------------------
     {
+      id: 'startTime',
       header: 'Start Time',
       accessor: (row) => formatDateTime(row.startTime),
     },
     {
+      id: 'endTime',
       header: 'End Time',
       accessor: (row) => formatDateTime(row.endTime),
     },
     {
+      id: 'scoreName',
       header: 'Score Name',
       accessor: (row) => row.score?.name || '-',
     },
-    // --- ✨ 수정: Score Value 컬럼에 formatScoreValue 함수를 적용합니다 ---
     {
+      // --- ✨ 수정: Score Value 컬럼에 formatScoreValue 함수를 적용합니다 ---
+      id: 'scoreValue',
       header: 'Score Value',
       accessor: (row) => formatScoreValue(row.score?.value),
     },
-    // --- ✨ 수정: Score Comment 컬럼에 truncateText 함수를 적용합니다 ---
-    // --- ✨ 수정: Score Comment 컬럼에 테두리 스타일을 적용합니다 ---
     {
+      id: 'scoreComment',
       header: 'Score Comment',
+      // --- ✨ 수정: Score Comment 컬럼에 truncateText 함수를 적용합니다 ---
+//     // --- ✨ 수정: Score Comment 컬럼에 테두리 스타일을 적용합니다 ---
       accessor: (row) => {
         const comment = row.score?.comment;
-        // 주석: comment가 있을 때만 스타일이 적용된 span으로 감싸줍니다.
         return comment ? (
+           // 주석: comment가 있을 때만 스타일이 적용된 span으로 감싸줍니다.
           <span className={styles.scoreComment}>
             {truncateText(comment)}
           </span>
         ) : '-';
       },
     },
-    // -----------------------------------------------------------
     {
+      id: 'error',
       header: 'Error',
       accessor: (row) => row.error || '-',
     },
-    // --- ✨ 수정: Trace 컬럼을 페이지 이동을 위한 Link로 되돌립니다 ---
     {
+       // --- ✨ 수정: Trace 컬럼을 페이지 이동을 위한 Link로 되돌립니다 ---
+      id: 'trace',
       header: 'Trace',
       accessor: (row) => {
         const traceId = row.jobInputTraceId;
         // 주석: traceId가 있을 때만 버튼 스타일의 링크를 보여줍니다.
         return traceId ? (
-          // 주석: 클릭 시 projectId와 traceId를 이용해 상세 페이지로 이동합니다.
+           // 주석: 클릭 시 projectId와 traceId를 이용해 상세 페이지로 이동합니다.
           <Link to={`/project/${projectId}/traces/${traceId}`} className={styles.cellButton}>
             {shortenId(traceId)}
           </Link>
         ) : '-';
       },
     },
-    // --- ✨ 수정: Template 컬럼을 클릭하면 해당 템플릿 상세 페이지로 이동하도록 Link를 추가합니다 ---
     {
+       // --- ✨ 수정: Template 컬럼을 클릭하면 해당 템플릿 상세 페이지로 이동하도록 Link를 추가합니다 ---
+      id: 'template',
       header: 'Template',
       accessor: (row) => {
         const templateId = row.jobTemplateId;
-        // 주석: templateId가 있을 때만 버튼 형태로 된 링크를 보여줍니다.
+         // 주석: templateId가 있을 때만 버튼 형태로 된 링크를 보여줍니다.
         return templateId ? (
           // 주석: 클릭 시 templateId를 가지고 templates 상세 페이지로 이동합니다.
           //       경로는 요청하신 대로 `/llm-as-a-judge/templates/${templateId}` 형식으로 설정합니다.
@@ -134,6 +141,5 @@ export const getEvaluationViewColumns = (projectId) => {
         ) : '-';
       },
     },
-    // ------------------------------------------------------------------------------------
   ];
 };

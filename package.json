@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.9.0",
+    "@tanstack/react-table": "^8.21.3",
     "@types/node": "^22.8.2",
     "@vitejs/plugin-react-swc": "~3.7.1",
     "ag-grid-community": "~32.3.1",
