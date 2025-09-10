@@ -136,7 +136,7 @@ function safeParseArray(s) {
     if (!raw) return [];
     const v = JSON.parse(raw);
     if (!Array.isArray(v)) throw new Error("Filter must be an array");
-    return v;
+    return normalizeFilters(v);
 }
 
 
@@ -172,7 +172,7 @@ export function toUpdateConfigFromForm(form, template) {
         if (!raw) return [];
         const v = JSON.parse(raw);
         if (!Array.isArray(v)) throw new Error('Filter must be an array');
-        return v;
+        return normalizeFilters(v);
     })();
 
     const variableMapping = mappingArrayFromRows(mappingRows, vars);
@@ -185,4 +185,34 @@ export function toUpdateConfigFromForm(form, template) {
         sampling: Math.max(0, Math.min(1, Number((samplingPct / 100).toFixed(3)))),
         delayMs,
     };
+}
+
+// ----- filter 호환 변환: UI형(operator/type) → BE형(op) -----
+export function normalizeFilters(filters) {
+    if (!Array.isArray(filters)) return [];
+    const opMap = {
+        'any of': 'anyOf',
+        'none of': 'noneOf',
+        'is': 'is',
+        'is not': 'isNot',
+        'contains': 'contains',
+        'not contains': 'notContains',
+        'starts with': 'startsWith',
+        'ends with': 'endsWith',
+        'before': 'before',
+        'after': 'after',
+        '<': 'lt', '<=': 'lte', '>': 'gt', '>=': 'gte',
+    };
+    return filters.map((f) => {
+        if (!f || typeof f !== 'object') return f;
+        const { operator, type, values, value, ...rest } = f;
+        // op 우선, 없으면 operator를 매핑
+        const op = rest.op ?? (operator ? (opMap[operator] || operator) : undefined);
+        // value/values 단일도 배열로 보정
+        let v = value ?? values ?? null;
+        if (v != null && !Array.isArray(v)) v = [v];
+        const out = { ...rest, ...(op ? { op } : {}), ...(v != null ? { value: v } : {}) };
+        // 불필요한 필드 제거(type/operator)
+        return out;
+    });
 }

@@ -7,6 +7,7 @@ import {
     fillPrompt,
     toCreatePayload,
     extractVarNames,
+    normalizeFilters,
 
 } from "./evalMapping";
 
@@ -130,6 +131,7 @@ export default function EvaluationForm({
                 if (raw) {
                     const tmp = JSON.parse(raw);
                     if (!Array.isArray(tmp)) throw new Error("Filter must be an array");
+                    // UI형/BE형 모두 허용 → 표준화
                     parsed = tmp;
                 }
                 const rows = await getPreviewRows({ projectId, filter: parsed, limit: 10 });

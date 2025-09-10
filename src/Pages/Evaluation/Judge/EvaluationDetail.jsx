@@ -21,6 +21,14 @@ const EvaluationDetail = ({ onClose }) => {
   const [err, setErr] = useState('');
   const [editMode, setEditMode] = useState(false);
   const [toggling, setToggling] = useState(false);
+  const [toast, setToast] = useState(null); // { type: 'success'|'error', message: string }
+
+  // 작고 가벼운 토스트 유틸
+  const showToast = (message, type = 'success', ttl = 2500) => {
+    setToast({ message, type });
+    window.clearTimeout(showToast._t);
+    showToast._t = window.setTimeout(() => setToast(null), ttl);
+  };
 
   // ⬇️ 컴포넌트 내부에 둬야 detail, projectId, peekId, setDetail 접근 가능
   const handleUpdate = async (formState) => {
@@ -48,8 +56,10 @@ const EvaluationDetail = ({ onClose }) => {
       const fresh = await getRunningConfig({ projectId, id: peekId });
       setDetail(fresh);
       setEditMode(false);
+      showToast('Running evaluator updated'); // ✅ 성공 토스트
     } catch (e) {
       setErr(e?.message || 'Failed to update configuration');
+      showToast(e?.message || 'Update failed', 'error'); // ❌ 에러 토스트
     }
   };
 
@@ -96,9 +106,11 @@ const EvaluationDetail = ({ onClose }) => {
         config: { status: newStatus },
       });
       setDetail(prev => prev ? { ...prev, status: newStatus } : prev);
+      showToast(`Status set to ${newStatus.toLowerCase()}`);
     } catch (e) {
       // 백엔드 제약(예: EXISTING-only는 INACTIVE 불가) 시 에러 떨어짐
       setErr(e?.message || 'Failed to update status');
+      showToast(e?.message || 'Status update failed', 'error');
     } finally {
       setToggling(false);
     }
@@ -202,6 +214,17 @@ const EvaluationDetail = ({ onClose }) => {
           </p>
         ) : null}
       </div>
+
+      {toast && (
+        <div
+          className={`${styles.toast} ${toast.type === 'error' ? styles.toastError : styles.toastSuccess
+            }`}
+          role="status"
+          aria-live="polite"
+        >
+          {toast.message}
+        </div>
+      )}
     </div>
   );
 };
