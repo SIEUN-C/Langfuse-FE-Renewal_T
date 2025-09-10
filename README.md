@@ -6,7 +6,7 @@ $ git clone https://github.com/SIEUN-C/Langfuse-FE-Renewal_T.git
 ```
 2. 다운로드 받은 파일로 이동
 ```shell
-$ cd --react_langfuse
+$ cd Langfuse-FE-Renewal_T
 ```
 3. `.env` 파일 환경 생성 및 설정
 ```javascript
