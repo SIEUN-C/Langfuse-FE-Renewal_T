@@ -11,7 +11,7 @@ $ cd Langfuse-FE-Renewal_T
 3. `.env` 파일 환경 생성 및 설정
 ```javascript
 // 생성경로
-// C:\<폴더경로>\--React_LANGFUSE/.env
+// C:\<폴더경로>\Langfuse-FE-Renewal_T/.env
 ; 도커내부 API 게이트웨이 사용시
 VITE_INTERNAL_URL=//localhost:28099
 
