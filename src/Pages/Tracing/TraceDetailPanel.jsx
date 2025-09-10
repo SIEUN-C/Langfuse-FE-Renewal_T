@@ -6,7 +6,7 @@ import { fetchObservationDetails } from './Observations/ObservationDetailApi';
 import styles from './TraceDetailPanel.module.css';
 import TraceDetailView from './TraceDetailView';
 import TraceTimeline from './TraceTimeline';
-
+import { ChatMlArraySchema } from './utils/chatml.schema';
 
 
 // ---------- 공통 정규화 유틸 ----------
@@ -18,9 +18,7 @@ const looksLikeMessages = (arr) =>
 const pick = (...xs) => xs.find(v => v !== undefined && v !== null);
 
 const parseMaybeJSON = (v) => {
-  if (typeof v === 'string') {
-    try { return JSON.parse(v); } catch { }
-  }
+  if (typeof v === 'string') { try { return JSON.parse(v); } catch { } }
   return v;
 };
 
@@ -71,38 +69,102 @@ const sumUsageDeep = (root) => {
   return acc;
 };
 
-// Trace/Observation 공통 정규화
+
+function coerceMessages({ input, inputText, prompt, metadata, output, type, model, name }) {
+  const inParsed = parseMaybeJSON(input);
+  const inTextParsed = parseMaybeJSON(inputText);
+  const promptParsed = parseMaybeJSON(prompt);
+  const metaParsed = parseMaybeJSON(metadata);
+  const outParsed = parseMaybeJSON(output);
+
+
+  // 어떤 스텝이 LLM 생성 단계인지, 아니면 도구/파서 단계인지 대략 판단
+  const stepType = String(type || '').toUpperCase();
+  const isGeneration = stepType === 'GENERATION';
+  const isToolish =
+    stepType === 'SPAN' ||
+    /(parser|retriever|tool|workflow|chain|http|sql|db|cache|search|stroutput|jsonoutput)/i.test(
+      String(name || '')
+    );
+  const looksLLMByModel = /gpt|openai|anthropic|mistral|llama|gemini|claude|cohere|vertex|azure/i.test(
+    `${model || ''} ${name || ''}`
+  );
+  const isLikelyLLM = isGeneration || (looksLLMByModel && !isToolish);
+
+
+  const tryAsArray = (x) => ChatMlArraySchema.safeParse(x).success ? x : null;
+  const tryObjMsgs = (x) => (x && Array.isArray(x.messages) && ChatMlArraySchema.safeParse(x.messages).success) ? x.messages : null;
+
+  let inMsgs =
+    tryAsArray(inParsed) || tryObjMsgs(inParsed)
+    || tryAsArray(inTextParsed) || tryObjMsgs(inTextParsed)
+    || tryAsArray(promptParsed) || tryObjMsgs(promptParsed)
+    || tryAsArray(metaParsed) || tryObjMsgs(metaParsed)
+    || null;
+
+  // 입력에서 messages가 하나도 없을 때,
+  // - LLM 단계가 아니면(messages 모드로 강제 X) → 그대로 Input/Output로 보이게 return undefined
+  if (!inMsgs || inMsgs.length === 0) {
+    if (!isLikelyLLM) return undefined;
+  }
+
+  // LLM 단계로 판단된 경우에만 assistant 메시지를 붙여준다
+  let assistantMsg = null;
+  if (isLikelyLLM) {
+    if (outParsed && typeof outParsed === 'object' && 'completion' in outParsed && Object.keys(outParsed).length === 1) {
+      assistantMsg = { role: 'assistant', content: outParsed.completion };
+    } else if (typeof output === 'string' || output?.content) {
+      assistantMsg = { role: 'assistant', content: (output?.content ?? output) };
+    } else if (outParsed && typeof outParsed === 'string') {
+      assistantMsg = { role: 'assistant', content: outParsed };
+    }
+  }
+
+  const base = inMsgs || [];
+  const messages = assistantMsg ? [...base, assistantMsg] : base;
+
+  const ok = ChatMlArraySchema.safeParse(messages);
+
+  return ok.success && messages.length ? ok.data : undefined;
+}
+
 function normalizeForDetailView(d) {
   if (!d || typeof d !== 'object') return d;
 
+  // 메타/태그/플레이스홀더 후보 미리 파싱
+  const metaObj = parseMaybeJSON(d.metadata);
+  const tagsNormalized =
+    (Array.isArray(d.tags) ? d.tags
+      : parseMaybeJSON(d.tags))      // 문자열로 온 tags도 허용
+    ?? metaObj?.tags                 // metadata.tags에도 있을 수 있음
+    ?? null;
 
-  // 문자열일 수도 있는 후보들을 미리 파싱
-  const inputParsed = parseMaybeJSON(d.input);
-  const inputTextParsed = parseMaybeJSON(d.inputText);
-  const promptParsed = parseMaybeJSON(d.prompt);
+  // 프롬프트 템플릿 치환 변수/플레이스홀더 후보 (이름이 프로젝트마다 다를 수 있음)
+  const placeholders =
+    metaObj?.placeholders
+    ?? metaObj?.vars
+    ?? metaObj?.variables
+    ?? metaObj?.inputVariables
+    ?? metaObj?.inputs
+    ?? null;
 
+  const messages = coerceMessages({
+    input: d.input,
+    inputText: d.inputText,
+    prompt: d.prompt,
+    metadata: d.metadata,
+    output: d.output,
+    type: d.type,
+    model: d.model,
+    name: d.name,
+  });
 
-  // 1) messages 후보 추출 (여러 위치 중 첫 번째)
-  const messages =
-    (looksLikeMessages(d.messages) && d.messages)
-    || (looksLikeMessages(d.input?.messages) && d.input.messages)
-    || (looksLikeMessages(inputParsed) && inputParsed)
-    || (looksLikeMessages(inputTextParsed) && inputTextParsed)
-    || (looksLikeMessages(promptParsed) && promptParsed)
-    || null;
-
-  // 2) 사람이 읽기 쉬운 input 프리뷰 (messages가 있으면 프리뷰 문자열만)
+  // 사람이 읽기 쉬운 input 프리뷰
   const inputPreview = messages
     ? messages.map(m => `${m.role}: ${toText(m.content)}`).join('\n')
-    : pick(
-      looksLikeMessages(inputParsed) ? null : d.input,
-      looksLikeMessages(inputTextParsed) ? null : d.inputText,
-      looksLikeMessages(promptParsed) ? null : d.prompt,
-      d.metadata?.input,
-      d.usageDetails?.input
-    );
+    : pick(d.input, d.inputText, d.prompt, d.metadata?.input, d.usageDetails?.input);
 
-  // 3) output 가공
+  // output 후보 (필요시 유지)
   const output = pick(
     d.output,
     d.outputText,
@@ -112,19 +174,14 @@ function normalizeForDetailView(d) {
     d.usageDetails?.output
   );
 
-
-  // 4) usage/cost 가공
+  // usage/cost 합산(네 로직 그대로)
   const { input: inTok0, output: outTok0, total: totTok0, cost: cost0 } = readUsageFromNode(d);
-
-  // 루트에 값이 없으면 트리 합산으로 보강
   const needSum = (inTok0 + outTok0 + totTok0) === 0;
   const summed = needSum ? sumUsageDeep(d) : { input: 0, output: 0, total: 0, cost: 0 };
-
   const inTok = needSum ? summed.input : inTok0;
   const outTok = needSum ? summed.output : outTok0;
   const totTok = needSum ? summed.total : (totTok0 || (inTok0 + outTok0));
   const totalPrice = pick(cost0, needSum ? summed.cost : null, d.totalPrice, d.totalCost, d.costDetails?.total) ?? null;
-
 
   return {
     ...d,
@@ -132,8 +189,9 @@ function normalizeForDetailView(d) {
     output,
     usage: { input: inTok, output: outTok, total: totTok },
     totalPrice,
-    // ✨ 이게 핵심: TraceDetailView가 Preview( System/User/Assistant )로 렌더
-    messages: messages || undefined,
+    messages, // ← TraceDetailView가 이걸로 System/User/Assistant 렌더
+    tags: tagsNormalized,       // ← TraceDetailView에서 "Path" 카드로 사용
+    placeholders,               // ← TraceDetailView에서 "Placeholders" 카드로 사용
   };
 }
 

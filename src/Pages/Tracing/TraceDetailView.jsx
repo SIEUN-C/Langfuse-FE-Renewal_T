@@ -30,6 +30,15 @@ const extractRoleText = (messages, role) => {
     .join('\n\n');
 };
 
+// 값이 있는지 판단
+const hasContent = (v) => {
+  if (v == null) return false;
+  if (typeof v === 'string') return v.trim() !== '';
+  if (Array.isArray(v)) return v.length > 0;
+  if (typeof v === 'object') return Object.keys(v).length > 0;
+  return true;
+};
+
 // 객체를 "path -> value" 로 평탄화
 const flatten = (obj, prefix = '') => {
   const rows = [];
@@ -243,6 +252,21 @@ const TraceDetailView = ({ details, isLoading, error }) => {
   const metadataRaw = details.metadata ?? null;
   const metadata = parseMaybeJSON(metadataRaw);
   const hasMetadata = metadata && typeof metadata === 'object' && Object.keys(metadata).length > 0;
+
+  // Path 카드에 쓸 데이터(tags를 “path”처럼 보여줌)
+  const pathData = (() => {
+    if (!details?.tags) return null;
+    if (Array.isArray(details.tags)) return { tags: details.tags };
+    const t = parseMaybeJSON(details.tags);
+    if (Array.isArray(t)) return { tags: t };
+    if (t && typeof t === 'object') return t; // 이미 객체면 그대로
+    return null;
+  })();
+
+  // Placeholder 카드에 쓸 데이터
+  const placeholdersData = details?.placeholders ?? null;
+
+
   const name = details.name ?? 'N/A';
   const id = details.id;
 
@@ -447,24 +471,30 @@ const TraceDetailView = ({ details, isLoading, error }) => {
           <>
             <h3 className={styles.previewTitle}>Preview</h3>
             {/* Formatted 모드: 역할별로 사람이 읽기 좋게 */}
-            {renderContent("System", extractRoleText(details.messages, 'system'))}
-            {renderContent("User", extractRoleText(details.messages, 'user'))}
-            {renderContent(
-              "Assistant",
-              (() => {
+            {(() => {
+              const sysText = extractRoleText(details.messages, 'system');
+              const userText = extractRoleText(details.messages, 'user');
+              const asstText = (() => {
                 const fromMsgs = extractRoleText(details.messages, 'assistant');
-                if (fromMsgs) return fromMsgs;
+                if (hasContent(fromMsgs)) return fromMsgs;
                 if (typeof details.output === 'string') {
                   try {
                     const o = JSON.parse(details.output);
                     if (o && typeof o === 'object') return toText(o.content ?? o);
-                  } catch { /* plain string */ }
+                  } catch { }
                   return details.output;
                 }
                 return toText(details.output);
-              })(),
-              'output'
-            )}
+              })();
+
+              return (
+                <>
+                  {hasContent(sysText) && renderContent("System", sysText)}
+                  {hasContent(userText) && renderContent("User", userText)}
+                  {hasContent(asstText) && renderContent("Assistant", asstText, 'output')}
+                </>
+              );
+            })()}
           </>
         )
       ) : (
@@ -474,6 +504,39 @@ const TraceDetailView = ({ details, isLoading, error }) => {
           {renderContent("Output", details.output, 'output')}
         </>
       )}
+
+
+      {/* 3000처럼 Path / Placeholders 카드 추가 (값이 있을 때만) */}
+      {hasContent(pathData) && (
+        <div className={styles.contentCard}>
+          <div className={styles.cardHeader}>
+            <h3 className={styles.cardTitle}>Path</h3>
+          </div>
+          <div className={styles.cardBody}>
+            {viewFormat === 'JSON'
+              ? <pre>{JSON.stringify(pathData, null, 2)}</pre>
+              : <MetaTable data={pathData} />}
+          </div>
+        </div>
+      )}
+
+      {hasContent(placeholdersData) && (
+        <div className={styles.contentCard}>
+          <div className={styles.cardHeader}>
+            <h3 className={styles.cardTitle}>Placeholders</h3>
+          </div>
+          <div className={styles.cardBody}>
+            {viewFormat === 'JSON'
+              ? <pre>{JSON.stringify(placeholdersData, null, 2)}</pre>
+              : (typeof placeholdersData === 'object'
+                ? <FormattedTable data={placeholdersData} />
+                : <pre>{String(placeholdersData)}</pre>)}
+          </div>
+        </div>
+      )}
+
+
+
       {isObservation &&
         details.modelParameters &&
         Object.keys(details.modelParameters || {}).length > 0 &&

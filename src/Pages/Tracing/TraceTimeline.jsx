@@ -17,6 +17,14 @@ import {
 } from 'lucide-react';
 import { fetchObservationsForTrace } from './TraceTimelineApi';
 
+
+// 안전한 key 생성기: id/scoreId 우선, 없으면 name+ownerId+index
+const scoreKey = (s, ownerId, i) =>
+  s?.id ??
+  s?.scoreId ??
+  `${s?.name ?? 'score'}-${ownerId ?? 'root'}-${i}`;
+
+
 // ObservationNode 컴포넌트는 변경 없이 그대로 유지합니다.
 const ObservationNode = ({ node, allNodes, level, onSelect, selectedId }) => {
   const [isOpen, setIsOpen] = useState(true);
@@ -59,9 +67,9 @@ const ObservationNode = ({ node, allNodes, level, onSelect, selectedId }) => {
           </div>
           {node.scores && node.scores.length > 0 && (
             <div className={styles.scoreTags}>
-              {node.scores.map(score => (
-                <span key={score.name} className={styles.scoreTag}>
-                  {score.name}: {score.value.toFixed(2)} <MessageCircle size={12} />
+              {node.scores.map((score, i) => (
+                <span key={scoreKey(score, node.id, i)} className={styles.scoreTag}>
+                  {score.name}: {Number(score.value ?? 0).toFixed(2)} <MessageCircle size={12} />
                 </span>
               ))}
             </div>
@@ -198,15 +206,16 @@ const TraceTimeline = ({ details, onObservationSelect }) => {
                 {details?.latency && <span className={styles.latency}>{details.latency.toFixed(2)}s</span>}
               </div>
               {/* ▼▼▼ 이 부분 수정 ▼▼▼ */}
-              {details?.scores && details.scores.length > 0 && (
+              {details?.scores?.length > 0 && (
                 <div className={styles.scoreTags}>
-                  {details.scores.map(score => (
-                    <span key={score.name} className={styles.scoreTag}>
-                      {score.name}: {score.value.toFixed(2)} <MessageCircle size={12} />
+                  {details.scores.map((score, i) => (
+                    <span key={scoreKey(score, details.id, i)} className={styles.scoreTag}>
+                      {score.name}: {Number(score.value ?? 0).toFixed(2)} <MessageCircle size={12} />
                     </span>
                   ))}
                 </div>
               )}
+
             </div>
           </div>
           <ul className={styles.nodeChildren}>
