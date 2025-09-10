@@ -271,3 +271,172 @@
     padding: 12px;
     color: #94a3b8;
 }
+
+/* === Compact Preview Table (3000 느낌) === */
+
+.previewTable {
+    border: 1px solid #334155;
+    border-radius: 8px;
+    overflow: auto;
+    /* 스크롤 허용 */
+    max-height: 360px;
+    /* 원하는 높이로 제한 */
+    font-size: 12px;
+    /* 전체 글자 축소 */
+    line-height: 1.25;
+}
+
+/* 컬럼 레이아웃: 살짝 더 촘촘하게 */
+.previewHead,
+.previewRow {
+    display: grid;
+    grid-template-columns: 140px 180px 1fr 1fr 110px 80px;
+    gap: 6px;
+    align-items: center;
+    min-width: 900px;
+    /* 너무 좁아지는 것 방지 */
+}
+
+/* 스티키 헤더 */
+.previewHead {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: #0b1220;
+    border-bottom: 1px solid #334155;
+    padding: 6px 10px;
+    /* 간격 축소 */
+    font-size: 11px;
+    /* 헤더 글자 더 작게 */
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.previewRow {
+    padding: 6px 10px;
+    /* 간격 축소 */
+    border-bottom: 1px solid #1e293b;
+}
+
+.previewRow:last-child {
+    border-bottom: none;
+}
+
+/* 셀 기본 */
+.cellMono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11px;
+    /* 모노 글자 더 작게 */
+    color: #cbd5e1;
+}
+
+.cellEllip {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 11px;
+    /* 본문도 축소 */
+    color: #e2e8f0;
+    /* 긴 JSON 느낌 살짝 박스 처리(선택) */
+    background: rgba(148, 163, 184, 0.06);
+    border: 1px solid rgba(148, 163, 184, 0.15);
+    border-radius: 6px;
+    padding: 3px 6px;
+}
+
+/* 숫자/라벨 쪽 컬럼 살짝 옅게 */
+.previewRow>div:nth-last-child(2),
+.previewRow>div:nth-last-child(1) {
+    color: #9fb1c9;
+    font-size: 11px;
+}
+
+/* Mapping 카드 상단의 프롬프트 블럭 */
+.mappingPromptBlock {
+    margin-bottom: 12px;
+}
+
+.mappingPromptHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    color: #cbd5e1;
+    font-weight: 600;
+}
+
+.pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: #0a1934;
+    border: 1px solid #263c63;
+    color: #dbe7fb;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.input::placeholder {
+    color: #91a3bf;
+    opacity: 0.7;
+}
+
+/* prompt 블록 */
+.mappingPromptBlock {
+    border: 1px solid #23314a;
+    background: #0b1220;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 12px;
+}
+
+.mappingPromptHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-weight: 600;
+    color: #cbd5e1;
+    margin-bottom: 8px;
+}
+
+.pill {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    border: 1px solid #2a3a58;
+    color: #9ab2d6;
+}
+
+/* 변수 카드 */
+.mappingBlock {
+    border: 1px solid #23314a;
+    background: #0f1529;
+    border-radius: 10px;
+    padding: 12px;
+    margin-top: 12px;
+}
+
+.varTitle {
+    color: #7aa2ff;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.mappingGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+}
+
+.fieldLabel {
+    color: #96a7c2;
+    font-size: 12px;
+    margin-bottom: 6px;
+}
+
+.fcol {
+    display: flex;
+    flex-direction: column;
+}

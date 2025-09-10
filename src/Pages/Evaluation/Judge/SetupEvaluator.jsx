@@ -5,6 +5,8 @@ import { templateNames, templateById, createJob } from '../Judge/services/evalua
 import EvaluationForm from './components/EvaluationForm';
 import styles from './SetupEvaluator.module.css';
 
+
+
 export default function SetupEvaluator() {
   const navigate = useNavigate();
   const { projectId } = useProjectId();
@@ -146,7 +148,7 @@ export default function SetupEvaluator() {
         </section>
 
         <footer className={styles.footer}>
-          <button className={styles.btn} onClick={() => navigate(-1)}>
+          <button className={styles.btn} onClick={() => navigate('/llm-as-a-judge/custom')}>
             + Create Custom Evaluator
           </button>
           <button className={`${styles.btn} ${styles.primary}`} disabled>

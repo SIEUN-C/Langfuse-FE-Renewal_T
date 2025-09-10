@@ -82,41 +82,43 @@ export async function getPreviewRows({
     return Promise.all(ids.map((id) => getTraceDetail({ projectId, id })));
 }
 
-export function buildCreatePayload(form) {
 
-    // filter: 문자열 → 배열
-    let filterArr = [];
-    try {
-        const raw = (form.filter || "").trim();
-        if (raw) filterArr = JSON.parse(raw);
-        if (!Array.isArray(filterArr)) filterArr = [];
-    } catch { filterArr = []; }
+// ⚠️ create payload는 evalMapping.toCreatePayload만 사용 (단일 진실원칙)
+// export function buildCreatePayload(form) {
 
-
-    // ★ 서버가 요구하는 mapping 키로 변환
-    const mapping = (form.variableMappingRows || []).map(r => ({
-        // array 순서가 템플릿 vars 순서와 매칭되므로 templateVariable은 옵션처럼 취급해도 됨
-        templateVariable: r.templateVar,                      // (선택) 있어도 무해
-        langfuseObject: r.object === "dataset" ? "dataset_item" : r.object, // "trace" | "dataset_item" ...
-        selectedColumnId: r.objectVariable,                   // "input" | "output"
-        jsonSelector: r.jsonPath?.trim() || undefined,        // 선택
-    }));
+//     // filter: 문자열 → 배열
+//     let filterArr = [];
+//     try {
+//         const raw = (form.filter || "").trim();
+//         if (raw) filterArr = JSON.parse(raw);
+//         if (!Array.isArray(filterArr)) filterArr = [];
+//     } catch { filterArr = []; }
 
 
-    return {
-        projectId: form.projectId,
-        evalTemplateId: form.evalTemplateId,
-        target: form.target === "dataset" ? "dataset" : "trace", // "trace" | "dataset"
+//     // ★ 서버가 요구하는 mapping 키로 변환
+//     const mapping = (form.variableMappingRows || []).map(r => ({
+//         // array 순서가 템플릿 vars 순서와 매칭되므로 templateVariable은 옵션처럼 취급해도 됨
+//         templateVariable: r.templateVar,                      // (선택) 있어도 무해
+//         langfuseObject: r.object === "dataset" ? "dataset_item" : r.object, // "trace" | "dataset_item" ...
+//         selectedColumnId: r.objectVariable,                   // "input" | "output"
+//         jsonSelector: r.jsonPath?.trim() || undefined,        // 선택
+//     }));
 
-        // ✅ 서버가 required로 요구하는 필드들
-        scoreName: (form.scoreName?.trim() || form.template?.name || ""),
-        filter: filterArr,                         // []
-        mapping,                                   // [{ templateVariable, object, variable, jsonSelector? }, ...]
-        sampling: typeof form.sampling === "number" ? form.sampling : 1, // 0~1
 
-        // 원본 UI에 있던 값들도 같이 (대부분 optional이지만 안전)
-        delayMs: Math.round((form.delaySec ?? 30) * 1000),
-        runOnNew: !!form.runsOnNew,
-        runOnExisting: !!form.runsOnExisting,
-    };
-}
+//     return {
+//         projectId: form.projectId,
+//         evalTemplateId: form.evalTemplateId,
+//         target: form.target === "dataset" ? "dataset" : "trace", // "trace" | "dataset"
+
+//         // ✅ 서버가 required로 요구하는 필드들
+//         scoreName: (form.scoreName?.trim() || form.template?.name || ""),
+//         filter: filterArr,                         // []
+//         mapping,                                   // [{ templateVariable, object, variable, jsonSelector? }, ...]
+//         sampling: typeof form.sampling === "number" ? form.sampling : 1, // 0~1
+
+//         // 원본 UI에 있던 값들도 같이 (대부분 optional이지만 안전)
+//         delayMs: Math.round((form.delaySec ?? 30) * 1000),
+//         runOnNew: !!form.runsOnNew,
+//         runOnExisting: !!form.runsOnExisting,
+//     };
+// }
