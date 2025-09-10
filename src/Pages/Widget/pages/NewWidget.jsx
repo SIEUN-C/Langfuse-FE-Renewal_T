@@ -14,8 +14,8 @@ import {
   getDefaultAggregationForMeasure
 } from '../services/viewMappings';
 
-// 차트 라이브러리 import
-import Chart from '../chart-library/Chart.jsx';
+// ✅ Chart 컴포넌트 직접 import (EditWidget과 동일)
+import ChartPreview from '../components/ChartPreview';
 
 // API 서비스 import
 import api from '../services/index.js';
@@ -24,13 +24,10 @@ import api from '../services/index.js';
 import DateRangePicker from "../components/DateRangePicker";
 import { widgetFilterConfig } from '../../../components/FilterControls/filterConfig.js';
 
-
 // 공통 컴포넌트 imports
 import FiltersEditor from '../components/FiltersEditor';
 import IntegratedMetricsSelector from '../components/IntegratedMetricsSelector';
-
 import PivotControls from '../components/PivotControls';
-
 
 // 아이콘 import
 import { 
@@ -59,8 +56,6 @@ const AGGREGATION_OPTIONS = [
   { value: "p99", label: "P99" },
   { value: "histogram", label: "Histogram" }
 ];
-
-
 
 // 기본 UI 컴포넌트들
 const Card = ({ children, className = "" }) => (
@@ -134,8 +129,6 @@ const Button = ({ children, onClick, className = "", disabled = false, variant =
     {children}
   </button>
 );
-
-
 
 // 차트 타입 설정
 const chartTypes = [
@@ -299,7 +292,6 @@ const buildWidgetName = ({ aggregation, measure, dimension, view, metrics, isMul
     }
   }
 
-  // "none" 체크 제거
   if (dimension && dimension !== "") {
     base += ` by ${startCase(dimension)}`;
   }
@@ -325,7 +317,6 @@ const buildWidgetDescription = ({ aggregation, measure, dimension, view, filters
     }
   }
 
-  // "none" 체크 제거
   if (dimension && dimension !== "") {
     sentence += ` by ${startCase(dimension).toLowerCase()}`;
   }
@@ -342,7 +333,6 @@ const buildWidgetDescription = ({ aggregation, measure, dimension, view, filters
   return sentence;
 };
 
-
 // 필터 변환 함수들
 const transformFiltersToWidgetFormat = (builderFilters) => {
   return builderFilters.map(filter => {
@@ -353,7 +343,6 @@ const transformFiltersToWidgetFormat = (builderFilters) => {
       columnType = 'string';
     }
     
-    // 서버가 허용하는 컬럼명으로 매핑
     let columnName = filter.column;
     switch (filter.column) {
       case 'session':
@@ -365,7 +354,6 @@ const transformFiltersToWidgetFormat = (builderFilters) => {
       case 'traceName':
         columnName = 'name';
         break;
-      // 필요시 다른 매핑도 추가
       default:
         columnName = filter.column;
         break;
@@ -388,7 +376,7 @@ const transformFiltersToWidgetFormat = (builderFilters) => {
     }
     
     return {
-      column: columnName, // 매핑된 컬럼명 사용
+      column: columnName,
       type: columnType,
       operator: operator,
       value: Array.isArray(filter.values) ? filter.values.join(',') : filter.values || '',
@@ -782,7 +770,7 @@ export default function NewWidget() {
   const [selectedView, setSelectedView] = useState("traces");
   const [selectedMeasure, setSelectedMeasure] = useState("count");
   const [selectedAggregation, setSelectedAggregation] = useState("count");
-const [selectedDimension, setSelectedDimension] = useState(""); 
+  const [selectedDimension, setSelectedDimension] = useState(""); 
 
   // 피벗 테이블 전용
   const [selectedMetrics, setSelectedMetrics] = useState([{
@@ -799,11 +787,9 @@ const [selectedDimension, setSelectedDimension] = useState("");
   const [histogramBins, setHistogramBins] = useState(10);
 
   // 피벗 테이블 정렬
-  const [defaultSortColumn, setDefaultSortColumn] = useState(""); // "none" → ""
+  const [defaultSortColumn, setDefaultSortColumn] = useState("");
   const [defaultSortOrder, setDefaultSortOrder] = useState("DESC");
-
   const [showSubtotals, setShowSubtotals] = useState(false);
-
 
   // 필터와 날짜 - FiltersEditor 형식으로 변경
   const [userFilterState, setUserFilterState] = useState([{
@@ -814,7 +800,7 @@ const [selectedDimension, setSelectedDimension] = useState("");
   const [startDate, setStartDate] = useState(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000));
   const [endDate, setEndDate] = useState(new Date());
 
-  // 로딩과 모달
+  // ✅ EditWidget과 동일한 상태 관리
   const [loading, setLoading] = useState(false);
   const [previewError, setPreviewError] = useState("");
   const [previewData, setPreviewData] = useState([]);
@@ -828,12 +814,10 @@ const [selectedDimension, setSelectedDimension] = useState("");
     const oldChartType = selectedChartType;
     setSelectedChartType(newChartType);
     
-    // 히스토그램으로 변경되는 경우 집계를 histogram으로 강제 설정
     if (newChartType === "HISTOGRAM") {
       console.log("히스토그램 차트로 변경됨, aggregation을 histogram으로 설정");
       setSelectedAggregation("histogram");
       
-      // 다중 메트릭 모드인 경우 모든 메트릭의 집계를 histogram으로 변경
       if (selectedMetrics && selectedMetrics.length > 0) {
         const updatedMetrics = selectedMetrics.map((metric, index) => {
           const measureLabel = getMeasuresForView(selectedView).find(m => m.value === metric.measure)?.label || metric.measure;
@@ -847,14 +831,11 @@ const [selectedDimension, setSelectedDimension] = useState("");
         setSelectedMetrics(updatedMetrics);
       }
     } else if (oldChartType === "HISTOGRAM" && newChartType !== "HISTOGRAM") {
-      // 히스토그램에서 다른 차트로 변경되는 경우 기본 집계로 복원
       console.log("히스토그램에서 다른 차트로 변경됨, 기본 집계로 복원");
       
-      // 단일 메트릭 모드인 경우
       const defaultAgg = getDefaultAggregationForMeasure(selectedMeasure, selectedView, false);
       setSelectedAggregation(defaultAgg);
       
-      // 다중 메트릭 모드인 경우
       if (selectedMetrics && selectedMetrics.length > 0) {
         const updatedMetrics = selectedMetrics.map((metric, index) => {
           const defaultAgg = getDefaultAggregationForMeasure(metric.measure, selectedView, false);
@@ -872,9 +853,7 @@ const [selectedDimension, setSelectedDimension] = useState("");
       }
     }
     
-    // 기존 피벗 테이블 로직 유지
     if (newChartType === "PIVOT_TABLE") {
-      // 피벗 테이블로 변경되는 경우 다중 메트릭 모드로 전환
       if (!selectedMetrics || selectedMetrics.length === 0) {
         setSelectedMetrics([{
           measure: selectedMeasure || "count",
@@ -884,7 +863,6 @@ const [selectedDimension, setSelectedDimension] = useState("");
         }]);
       }
     } else if (oldChartType === "PIVOT_TABLE" && newChartType !== "PIVOT_TABLE") {
-      // 피벗 테이블에서 다른 차트로 변경되는 경우 단일 메트릭 모드로 전환
       if (selectedMetrics && selectedMetrics.length > 0) {
         const firstMetric = selectedMetrics[0];
         setSelectedMeasure(firstMetric.measure);
@@ -913,7 +891,7 @@ const [selectedDimension, setSelectedDimension] = useState("");
 
   const updatePivotDimension = (index, value) => {
     const newDimensions = [...pivotDimensions];
-    if (value && value !== "") { // "none" 체크 제거
+    if (value && value !== "") {
       newDimensions[index] = value;
     } else {
       newDimensions.splice(index);
@@ -921,14 +899,14 @@ const [selectedDimension, setSelectedDimension] = useState("");
     setPivotDimensions(newDimensions);
   };
 
-  // 쿼리 빌드
+  // ✅ EditWidget과 동일한 쿼리 빌드
   const query = useMemo(() => {
     const fromTimestamp = startDate;
     const toTimestamp = endDate;
 
     const queryDimensions = selectedChartType === "PIVOT_TABLE"
       ? pivotDimensions.map((field) => ({ field }))
-      : selectedDimension !== "" // "none" → ""
+      : selectedDimension !== ""
         ? [{ field: selectedDimension }]
         : [];
 
@@ -941,7 +919,6 @@ const [selectedDimension, setSelectedDimension] = useState("");
           }))
       : [{ measure: selectedMeasure, aggregation: selectedAggregation }];
 
-    // 필터를 위젯 형식으로 변환
     const transformedFilters = transformFiltersToWidgetFormat(userFilterState.filter(f => 
       f.column && (f.values && f.values.length > 0)
     ));
@@ -962,7 +939,7 @@ const [selectedDimension, setSelectedDimension] = useState("");
               type: selectedChartType,
               dimensions: pivotDimensions,
               row_limit: rowLimit,
-              defaultSort: defaultSortColumn && defaultSortColumn !== "none"
+              defaultSort: defaultSortColumn && defaultSortColumn !== ""
                 ? { column: defaultSortColumn, order: defaultSortOrder }
                 : undefined,
             }
@@ -974,7 +951,7 @@ const [selectedDimension, setSelectedDimension] = useState("");
     defaultSortColumn, defaultSortOrder
   ]);
 
-  // 미리보기 데이터 가져오기
+  // ✅ EditWidget과 동일한 미리보기 데이터 가져오기
   const refreshPreview = useCallback(async () => {
     if (!projectId) {
       setPreviewError("Project ID is required");
@@ -989,14 +966,13 @@ const [selectedDimension, setSelectedDimension] = useState("");
       if (response.success && response.data) {
         const chartData = response.data.chartData || [];
         
-        // 데이터를 차트 라이브러리 형식으로 변환
+        // ✅ EditWidget과 동일한 데이터 변환
         const transformedData = chartData.map((item, index) => ({
           time_dimension: item.time_dimension || item.timestamp || item.date,
           dimension: item.dimension || item.name || item[selectedDimension] || `Item ${index + 1}`,
           metric: typeof item.metric === 'number' ? item.metric : 
                   typeof item.value === 'number' ? item.value :
                   Object.values(item).find(v => typeof v === 'number') || 0,
-          // 원본 데이터도 포함
           ...item
         }));
         
@@ -1013,7 +989,7 @@ const [selectedDimension, setSelectedDimension] = useState("");
     }
   }, [projectId, query, selectedDimension]);
 
-  // 미리보기 새로고침
+  // ✅ EditWidget과 동일한 미리보기 새로고침
   useEffect(() => {
     const timer = setTimeout(() => {
       refreshPreview();
@@ -1023,14 +999,14 @@ const [selectedDimension, setSelectedDimension] = useState("");
   }, [refreshPreview]);
 
   // 차원 재설정
-    useEffect(() => {
-      if (
-        chartTypes.find((c) => c.value === selectedChartType)?.supportsBreakdown === false &&
-        selectedDimension !== "" // "none" → ""
-      ) {
-        setSelectedDimension(""); // "none" → ""
-      }
-    }, [selectedChartType, selectedDimension]);
+  useEffect(() => {
+    if (
+      chartTypes.find((c) => c.value === selectedChartType)?.supportsBreakdown === false &&
+      selectedDimension !== ""
+    ) {
+      setSelectedDimension("");
+    }
+  }, [selectedChartType, selectedDimension]);
 
   // 피벗 테이블 차원 재설정
   useEffect(() => {
@@ -1089,7 +1065,6 @@ const [selectedDimension, setSelectedDimension] = useState("");
       ? validMetricsForDescription.map((m) => m.id)
       : undefined;
 
-    // 활성 필터 개수 계산 (값이 있는 필터만)
     const activeFilters = userFilterState.filter(f => 
       f.column && (f.values && f.values.length > 0)
     );
@@ -1110,7 +1085,7 @@ const [selectedDimension, setSelectedDimension] = useState("");
     selectedView, userFilterState, selectedChartType, pivotDimensions
   ]);
 
-  // ✅ 수정된 저장 핸들러 - 위젯 생성 후 대시보드에 자동 추가
+  // 수정된 저장 핸들러 - 위젯 생성 후 대시보드에 자동 추가
   const handleSaveWithDashboard = async (dashboardId) => {
     if (!projectId) {
       alert("Project ID is required");
@@ -1121,14 +1096,12 @@ const [selectedDimension, setSelectedDimension] = useState("");
     console.log("🚀 위젯 저장 시작");
     
     try {
-      // 위젯 데이터 준비
       const activeFilters = userFilterState.filter(f => 
         f.column && (f.values && f.values.length > 0)
       );
       
       console.log("📊 현재 선택된 차트 타입:", selectedChartType);
       
-      // 차트 설정 강화
       let chartConfig;
       
       switch(selectedChartType) {
@@ -1140,7 +1113,7 @@ const [selectedDimension, setSelectedDimension] = useState("");
           type: "PIVOT_TABLE",
           dimensions: pivotDimensions,
           row_limit: rowLimit,
-          defaultSort: defaultSortColumn && defaultSortColumn !== "" // "none" → ""
+          defaultSort: defaultSortColumn && defaultSortColumn !== ""
             ? { column: defaultSortColumn, order: defaultSortOrder }
             : undefined,
         };
@@ -1174,7 +1147,7 @@ const [selectedDimension, setSelectedDimension] = useState("");
         view: selectedView,
         dimensions: selectedChartType === "PIVOT_TABLE"
           ? pivotDimensions.map((field) => ({ field }))
-          : selectedDimension !== "" // "none" → ""
+          : selectedDimension !== ""
             ? [{ field: selectedDimension }]
             : [],
         metrics: selectedChartType === "PIVOT_TABLE"
@@ -1192,14 +1165,12 @@ const [selectedDimension, setSelectedDimension] = useState("");
 
       console.log("📋 최종 위젯 데이터:", widgetData);
 
-      // ✅ 위젯만 생성 (dashboardId 제거)
       console.log("📡 API 호출 시작... (위젯만 생성)");
       const response = await api.createWidget(widgetData);
       
       console.log("📨 API 응답:", response);
       
       if (response.success) {
-        // ✅ 위젯 ID 추출
         let widgetId = null;
         
         if (response.data?.widget?.widget?.id) {
@@ -1213,7 +1184,6 @@ const [selectedDimension, setSelectedDimension] = useState("");
         console.log("🎉 위젯 생성 성공! ID:", widgetId);
         
         if (dashboardId && widgetId) {
-          // ✅ 대시보드에 추가하기 위해 state와 함께 이동
           console.log("🔄 대시보드로 이동하며 위젯 추가:", dashboardId);
           navigate(`/project/${projectId}/dashboards/${dashboardId}`, {
             state: { 
@@ -1223,7 +1193,6 @@ const [selectedDimension, setSelectedDimension] = useState("");
           });
           alert("위젯이 생성되었습니다! 대시보드에 추가됩니다.");
         } else if (widgetId) {
-          // ✅ 위젯만 저장한 경우
           console.log("🔄 대시보드 목록으로 이동");
           navigate(`/project/${projectId}/dashboards`);
           alert("위젯이 저장되었습니다!");
@@ -1308,7 +1277,6 @@ const [selectedDimension, setSelectedDimension] = useState("");
                   setPivotDimensions(validDimensions);
                 }
 
-                // 필터 정리
                 if (newView !== "scores-categorical") {
                   setUserFilterState((prev) => prev.filter((filter) => filter.column !== "stringValue"));
                 }
@@ -1359,7 +1327,7 @@ const [selectedDimension, setSelectedDimension] = useState("");
                 Breakdown Dimension (Optional)
               </Label>
           <Select value={selectedDimension} onValueChange={setSelectedDimension} id="dimension-select">
-          <SelectItem value="">None</SelectItem> {/* "none" → "" */}
+          <SelectItem value="">None</SelectItem>
           {availableDimensions.map((dimension) => {
             const meta = viewDeclarations[selectedView]?.dimensions?.[dimension.value];
             return (
@@ -1424,7 +1392,7 @@ const [selectedDimension, setSelectedDimension] = useState("");
             />
           </div>
 
-          {/* 차트 타입 선택 - 수정된 부분 */}
+          {/* 차트 타입 선택 */}
           <div className={styles.block}>
             <Label htmlFor="chart-type-select">Chart Type</Label>
             <Select value={selectedChartType} onValueChange={handleChartTypeChange} id="chart-type-select">
@@ -1515,7 +1483,7 @@ const [selectedDimension, setSelectedDimension] = useState("");
         </Button>
       </div>
 
-      {/* Right Preview Pane */}
+      {/* ✅ EditWidget과 동일한 Right Preview Pane */}
       <div className={styles.rightPane}>
         <div className={styles.previewHeader}>
           <h3 className={styles.previewTitle}>{widgetName}</h3>
@@ -1528,62 +1496,72 @@ const [selectedDimension, setSelectedDimension] = useState("");
         </div>
 
         <div className={styles.chartContainer}>
-          {loading ? (
-            <div className={styles.preview}>
-              <div>Loading preview...</div>
-            </div>
-          ) : previewError ? (
-            <div className={styles.preview}>
-              <div>
-                <strong>Preview Error</strong>
-                <p>{previewError}</p>
-                <Button 
-                  variant="secondary" 
-                  onClick={refreshPreview}
-                >
-                  Retry
-                </Button>
+            {loading ? (
+              <div className={styles.preview}>
+                <div>Loading preview...</div>
               </div>
-            </div>
-          ) : previewData.length > 0 ? (
-            <Chart
-              chartType={selectedChartType}
-              data={previewData}
-              rowLimit={rowLimit}
-              chartConfig={
-                selectedChartType === "PIVOT_TABLE"
-                  ? {
-                      type: selectedChartType,
-                      dimensions: pivotDimensions,
-                      row_limit: rowLimit,
-                      metrics: selectedMetrics
-                        .filter((m) => m.measure && m.measure !== "")
-                        .map((metric) => metric.id),
-                      defaultSort:
-                        defaultSortColumn && defaultSortColumn !== ""
-                          ? { column: defaultSortColumn, order: defaultSortOrder }
-                          : undefined,
-                    }
-                  : selectedChartType === "HISTOGRAM"
-                    ? { type: selectedChartType, bins: histogramBins }
-                    : { type: selectedChartType, row_limit: rowLimit }
-              }
-                sortState={
-                  selectedChartType === "PIVOT_TABLE" &&
-                  defaultSortColumn &&
-                  defaultSortColumn !== "" // "none" → ""
-                    ? { column: defaultSortColumn, order: defaultSortOrder }
-                    : undefined
+            ) : previewError ? (
+              <div className={styles.preview}>
+                <div>
+                  <strong>Preview Error</strong>
+                  <p>{previewError}</p>
+                  <Button 
+                    variant="secondary" 
+                    onClick={refreshPreview}
+                  >
+                    Retry
+                  </Button>
+                </div>
+              </div>
+            ) : previewData.length > 0 ? (
+              <ChartPreview
+                chartType={selectedChartType}
+                data={previewData}
+                rowLimit={rowLimit}
+                loading={loading}
+                error={previewError}
+                chartConfig={
+                  selectedChartType === "PIVOT_TABLE"
+                    ? {
+                        type: selectedChartType,
+                        dimensions: pivotDimensions,
+                        row_limit: rowLimit,
+                        metrics: selectedMetrics
+                          .filter((m) => m.measure && m.measure !== "")
+                          .map((metric) => metric.id),
+                        defaultSort:
+                          defaultSortColumn && defaultSortColumn !== ""
+                            ? { column: defaultSortColumn, order: defaultSortOrder }
+                            : undefined,
+                      }
+                    : selectedChartType === "HISTOGRAM"
+                      ? { type: selectedChartType, bins: histogramBins }
+                      : { type: selectedChartType, row_limit: rowLimit }
                 }
-              onSortChange={undefined}
-              isLoading={loading}
-            />
-          ) : (
-            <div className={styles.preview}>
-              <p>No data to display</p>
-            </div>
-          )}
-        </div>
+                // 🔥 핵심 추가: 위젯 정보 전달 (DashboardWidget과 동일한 데이터 변환을 위해)
+                widget={{
+                  chartType: selectedChartType,
+                  metrics: selectedChartType === "PIVOT_TABLE"
+                    ? selectedMetrics
+                        .filter((metric) => metric.measure && metric.measure !== "")
+                        .map((metric) => ({
+                          measure: metric.measure,
+                          agg: metric.aggregation,
+                        }))
+                    : [{ measure: selectedMeasure, agg: selectedAggregation }],
+                  dimensions: selectedChartType === "PIVOT_TABLE"
+                    ? pivotDimensions.map((field) => ({ field }))
+                    : selectedDimension !== ""
+                      ? [{ field: selectedDimension }]
+                      : [],
+                }}
+              />
+            ) : (
+              <div className={styles.preview}>
+                <p>No data to display</p>
+              </div>
+            )}
+          </div>
       </div>
 
       {/* 대시보드 선택 모달 */}

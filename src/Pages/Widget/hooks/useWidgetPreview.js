@@ -1,4 +1,4 @@
-// src/Pages/Widget/hooks/useWidgetPreview.js - 수정됨
+// src/Pages/Widget/hooks/useWidgetPreview.js - 완전 수정버전
 import { useEffect, useState } from "react";
 import api from "../services"; // index.js에서 가져오기
 
@@ -20,7 +20,7 @@ export default function useWidgetPreview(config, columns = []) {
         
         setLoading(true);
 
-        // 🔥 핵심 수정: api.executeQuery 직접 호출
+        // 🔥 DashboardWidget의 쿼리 구조와 동일하게 수정
         const queryParams = {
           view: config.view || "traces",
           dimensions: config.dimensions || [],
@@ -31,67 +31,76 @@ export default function useWidgetPreview(config, columns = []) {
           filters: config.filters || [],
           fromTimestamp: config?.dateRange?.from?.toISOString?.() || new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
           toTimestamp: config?.dateRange?.to?.toISOString?.() || new Date().toISOString(),
-          chartType: config.chartType || "LINE_TIME_SERIES",
           timeDimension: config.chartType && ["LINE_TIME_SERIES", "BAR_TIME_SERIES"].includes(config.chartType) 
             ? { granularity: "auto" } 
             : null,
-          orderBy: [],
+          orderBy: config.chartType === "PIVOT_TABLE" && config.sortState
+            ? [{ field: config.sortState.column, direction: config.sortState.order.toLowerCase() }]
+            : [],
           chartConfig: config.chartConfig || { type: config.chartType || "LINE_TIME_SERIES" }
         };
 
         console.log("쿼리 파라미터:", queryParams);
 
-        // 🔥 실제 API 호출
-        const result = await api.executeQuery(queryParams);
+        // 🔥 widgetAPI.executeQuery와 동일한 API 호출
+        const result = await api.executeQuery("demo-project", queryParams);
         
         console.log("API 결과:", result);
 
         if (!alive) return;
 
         if (result.success && result.data) {
-          // 🔥 데이터 변환 및 설정
-          const rawData = result.data.chartData || result.data.data || [];
+          // 🔥 DashboardWidget과 동일한 데이터 처리
+          const rawData = result.data || [];
           
           console.log("원시 데이터:", rawData);
           
-          // 차트 라이브러리가 기대하는 형식으로 변환
-          const formattedChartData = rawData.map((item, index) => {
-            console.log(`데이터 포인트 ${index}:`, item);
-            
-            // 다양한 데이터 형식 지원
-            if (Array.isArray(item)) {
+          // 🔥 DashboardWidget의 transformedData와 동일한 변환 로직
+          const formattedChartData = rawData.map((item) => {
+            // PIVOT_TABLE용 변환
+            if (config.chartType === "PIVOT_TABLE") {
               return {
-                time_dimension: item[0],
-                dimension: item[0],
-                metric: Number(item[1]) || 0,
-                value: Number(item[1]) || 0,
-                x: item[0],
-                y: Number(item[1]) || 0
+                dimension: config.dimensions?.length > 0
+                  ? config.dimensions[0]?.field || "dimension"
+                  : "dimension",
+                metric: 0,
+                time_dimension: item["time_dimension"],
+                ...item,
               };
             }
-            
-            // 객체 형식 데이터 처리
-            const metric = item.metric || item.value || item.count || item.total || item.y || 0;
-            const dimension = item.dimension || item.name || item.label || item.x || item.time_dimension || `Point ${index + 1}`;
-            
+
+            // 일반 차트용 변환
+            const metric = config.metrics?.slice().shift() || {
+              measure: "count",
+              agg: "count",
+            };
+            const metricField = `${metric.agg}_${metric.measure}`;
+            const metricValue = item[metricField];
+
+            const dimensionField = config.dimensions?.slice().shift()?.field || "none";
+
             return {
-              time_dimension: item.time_dimension || item.timestamp || item.date || item.time,
-              dimension: dimension,
-              metric: Number(metric),
-              value: Number(metric),
-              count: Number(metric),
-              total: Number(metric),
-              x: dimension,
-              y: Number(metric),
-              // 원본 데이터도 포함
-              ...item
+              dimension: item[dimensionField] !== undefined
+                ? (() => {
+                    const val = item[dimensionField];
+                    if (typeof val === "string") return val;
+                    if (val === null || val === undefined || val === "")
+                      return "n/a";
+                    if (Array.isArray(val)) return val.join(", ");
+                    return String(val);
+                  })()
+                : `${metric.agg}_${metric.measure}`,
+              metric: Array.isArray(metricValue)
+                ? metricValue
+                : Number(metricValue || 0),
+              time_dimension: item["time_dimension"],
             };
           });
 
           console.log("변환된 차트 데이터:", formattedChartData);
 
           setPreviewData({
-            count: result.data.value || formattedChartData.length,
+            count: formattedChartData.length,
             formattedChartData: formattedChartData,
           });
         } else {

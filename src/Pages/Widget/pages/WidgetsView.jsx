@@ -188,6 +188,7 @@ export const WidgetsView = () => {
       columns={columns}
       data={sortedWidgets}
       keyField="id"
+      showFavorite={false}
       renderEmptyState={() => <div>위젯이 없습니다.</div>}
       pagination={{
         enabled: true,

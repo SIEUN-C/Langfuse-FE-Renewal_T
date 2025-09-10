@@ -1,7 +1,8 @@
-// src/Pages/Widget/components/ChartPreview.jsx - 수정됨
+// src/Pages/Widget/components/ChartPreview.jsx - DashboardWidget과 완전 동일한 변환 로직 적용
 import React, { useMemo } from "react";
 import Chart from "../chart-library/Chart.jsx";
 import chartStyles from '../chart-library/chart-library.module.css';
+import { formatMetricName } from "../../Dashboards/utils/widget-utils.js";
 
 export default function ChartPreview({
   chartType = "LINE_TIME_SERIES",
@@ -10,103 +11,76 @@ export default function ChartPreview({
   loading = false,
   error = "",
   rowLimit = 100,
+  // DashboardWidget과 동일한 위젯 정보를 받도록 추가
+  widget = null, // { metrics: [...], dimensions: [...], chartType: "..." }
 }) {
   console.log("=== ChartPreview 렌더링 ===");
-  console.log("Props:", { chartType, data, chartConfig, loading, error, rowLimit });
+  console.log("Props:", { chartType, data: data?.length, chartConfig, loading, error, rowLimit, widget });
 
-  // 🔥 데이터 변환 로직 개선
+  // 🔥 핵심 수정: DashboardWidget.jsx와 완전히 동일한 데이터 변환 로직
   const transformedData = useMemo(() => {
     console.log("=== ChartPreview 데이터 변환 시작 ===");
     console.log("원본 데이터:", data);
     console.log("차트 타입:", chartType);
+    console.log("위젯 정보:", widget);
     
-    if (!Array.isArray(data)) {
-      console.log("데이터가 배열이 아님:", typeof data);
+    if (!Array.isArray(data) || data.length === 0) {
+      console.log("데이터가 배열이 아니거나 비어있음:", typeof data);
       return [];
     }
-    
-    const result = data.map((item, index) => {
-      console.log(`아이템 ${index}:`, item);
-      
-      // 🔥 PIVOT_TABLE의 경우 원본 데이터를 그대로 전달
+
+    // 🔥 DashboardWidget.jsx의 transformedData와 완전히 동일한 로직
+    return data.map((item) => {
+      // PIVOT_TABLE용 변환 - DashboardWidget과 동일
       if (chartType === "PIVOT_TABLE") {
-        console.log(`PIVOT_TABLE용 아이템 ${index} 반환:`, item);
-        return item;
+        return {
+          dimension:
+            widget?.dimensions && widget.dimensions.length > 0
+              ? widget.dimensions[0]?.field || "dimension"
+              : "dimension",
+          metric: 0,
+          time_dimension: item["time_dimension"],
+          ...item,
+        };
       }
 
-      // 🔥 이미 올바른 형식인지 확인
-      if (item.metric !== undefined && item.dimension !== undefined) {
-        console.log(`이미 올바른 형식 ${index}:`, item);
-        return item;
-      }
-
-      // 🔥 메트릭 값 추출 - 우선순위 개선
-      let metricValue = 0;
-      
-      if (typeof item.y === 'number' && !isNaN(item.y)) {
-        metricValue = item.y;
-      } else if (typeof item.metric === 'number' && !isNaN(item.metric)) {
-        metricValue = item.metric;
-      } else if (typeof item.value === 'number' && !isNaN(item.value)) {
-        metricValue = item.value;
-      } else if (typeof item.count === 'number' && !isNaN(item.count)) {
-        metricValue = item.count;
-      } else if (typeof item.total === 'number' && !isNaN(item.total)) {
-        metricValue = item.total;
-      } else {
-        // 모든 숫자 필드에서 0이 아닌 값 찾기
-        const numericFields = Object.keys(item).filter(key => 
-          typeof item[key] === 'number' && !isNaN(item[key]) && item[key] !== 0
-        );
-        
-        if (numericFields.length > 0) {
-          metricValue = item[numericFields[0]];
-        }
-      }
-
-      // 🔥 차원 값 추출 - 우선순위 개선
-      let dimensionValue = item.dimension || 
-                          item.name || 
-                          item.x || 
-                          item.bucket || 
-                          item.label ||
-                          item.category ||
-                          `Point ${index + 1}`;
-
-      // 🔥 시간 차원 값 추출
-      let timeDimensionValue = item.time_dimension || 
-                              item.timestamp || 
-                              item.date || 
-                              item.time ||
-                              item.x;
-
-      // 🔥 chart-library의 DataPoint 형식에 맞게 변환
-      const transformedItem = {
-        time_dimension: timeDimensionValue,
-        dimension: dimensionValue,
-        metric: metricValue,
-        // 호환성을 위한 추가 필드들
-        value: metricValue,
-        count: metricValue,
-        total: metricValue,
-        y: metricValue,
-        x: dimensionValue,
-        name: dimensionValue,
-        // 원본 데이터도 포함
-        ...item
+      // 일반 차트용 변환 - DashboardWidget과 완전히 동일
+      const metric = widget?.metrics?.slice().shift() || {
+        measure: "count",
+        agg: "count",
       };
+      const metricField = `${metric.agg}_${metric.measure}`;
+      const metricValue = item[metricField];
 
-      console.log(`변환된 아이템 ${index}:`, transformedItem);
-      return transformedItem;
+      const dimensionField =
+        widget?.dimensions?.slice().shift()?.field || "none";
+
+      return {
+        dimension:
+          item[dimensionField] !== undefined
+            ? (() => {
+                const val = item[dimensionField];
+                if (typeof val === "string") return val;
+                if (val === null || val === undefined || val === "")
+                  return "n/a";
+                if (Array.isArray(val)) return val.join(", ");
+                return String(val);
+              })()
+            : formatMetricName(metricField),
+        metric: Array.isArray(metricValue)
+          ? metricValue
+          : Number(metricValue || 0),
+        time_dimension: item["time_dimension"],
+      };
     });
 
     console.log("최종 변환된 데이터:", result);
     console.log("=== ChartPreview 데이터 변환 완료 ===");
     
     return result;
-  }, [data, chartType]);
+  }, [data, chartType, widget]);
 
-  // 🔥 로딩 상태
+  // 로딩 상태 - DashboardWidget과 동일
   if (loading) {
     return (
       <div className={chartStyles.chartContainer}>
@@ -126,7 +100,7 @@ export default function ChartPreview({
     );
   }
 
-  // 🔥 에러 상태
+  // 에러 상태 - DashboardWidget과 동일
   if (error) {
     return (
       <div className={chartStyles.chartContainer}>
@@ -138,7 +112,7 @@ export default function ChartPreview({
     );
   }
 
-  // 🔥 데이터가 없는 경우
+  // 데이터가 없는 경우 - DashboardWidget과 동일
   if (!transformedData || transformedData.length === 0) {
     return (
       <div className={chartStyles.chartContainer}>
@@ -150,7 +124,7 @@ export default function ChartPreview({
     );
   }
 
-  // 🔥 차트 렌더링
+  // 🔥 Chart 컴포넌트 렌더링 - DashboardWidget과 완전히 동일
   console.log("Chart 컴포넌트에 전달할 데이터:", {
     chartType,
     dataLength: transformedData.length,
@@ -160,16 +134,31 @@ export default function ChartPreview({
   });
 
   return (
-    <div className={chartStyles.container}>
-      <div className={chartStyles.chartContent}>
-        <Chart
-          chartType={chartType}
-          data={transformedData}
-          rowLimit={rowLimit}
-          chartConfig={chartConfig}
-          isLoading={loading}
-        />
-      </div>
+    <div className={chartStyles.chartContainer}>
+      <Chart
+        chartType={chartType}
+        data={transformedData}
+        rowLimit={
+          chartType === "LINE_TIME_SERIES" ||
+          chartType === "BAR_TIME_SERIES"
+            ? 100
+            : chartConfig?.row_limit || rowLimit
+        }
+        chartConfig={{
+          ...chartConfig,
+          // PIVOT_TABLE용 추가 설정 - DashboardWidget과 동일
+          ...(chartType === "PIVOT_TABLE" && {
+            dimensions:
+              widget?.dimensions?.map((dim) => dim.field) || [],
+            metrics:
+              widget?.metrics?.map(
+                (metric) => `${metric.agg}_${metric.measure}`
+              ) || [],
+          }),
+        }}
+        // PIVOT_TABLE용 정렬 관련 props는 프리뷰에서는 생략 (DashboardWidget과 동일)
+        isLoading={loading}
+      />
     </div>
   );
 }
