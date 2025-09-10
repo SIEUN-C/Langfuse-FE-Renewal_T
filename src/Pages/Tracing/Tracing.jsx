@@ -22,6 +22,8 @@ import { tracingFilterConfig } from 'components/FilterControls/filterConfig';
 import { observationsFilterConfig } from './Observations/observationFilterConfig';
 // --- ▲▲▲ [추가] filter ▲▲▲ ---
 
+import RowDensityButton from "./RowDensityButton.jsx";
+
 // Observation 추가
 import ObservationsTab from './Observations/ObservationsTab.jsx';
 
@@ -82,6 +84,13 @@ const Tracing = () => {
     const c = tracingFilterConfig[0];
     return [{ id: 1, column: c.key, operator: c.operators[0], value: '', metaKey: '' }];
   });
+
+  // 행 밀도(기본 medium). 초기값은 로컬스토리지에서 복원
+  const [rowDensity, setRowDensity] = useState(() => {
+    try { return localStorage.getItem("tracing.rowDensity") || "md"; }
+    catch { return "md"; }
+  });
+
   // Observations 탭 필터 상태 (기본 8개 선택)
   const [builderFiltersObs, setBuilderFiltersObs] = useState(() => ([
     {
@@ -352,12 +361,20 @@ const Tracing = () => {
             <FilterButton onClick={() => setIsColumnModalOpen(true)} style={{ marginLeft: '8px' }}>
               <Columns size={16} /> Columns ({visibleColumns.length}/{columns.length})
             </FilterButton>
+
+
+            {/* 행 높이 아이콘 버튼 */}
+           <RowDensityButton
+             value={rowDensity}
+             onChange={setRowDensity}
+             style={{ marginLeft: 8 }}
+           />
           </div>
         </div>
 
         <ErrorBanner message={error} onDismiss={() => setError(null)} />
 
-        <div className={styles.contentArea}>
+        <div className={`${styles.contentArea} ${styles.densityRoot}`} data-density={rowDensity}>
           {activeTab === 'Traces' && (
             isLoading ? <div>Loading traces...</div> :
               !error && (

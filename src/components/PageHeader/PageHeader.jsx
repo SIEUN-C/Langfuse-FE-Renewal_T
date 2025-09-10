@@ -31,7 +31,10 @@ export default function PageHeader({
   const orgIdFromStore = useSelector((s) => s.currentOrg?.id);
   const selectedProjectName = useSelector((s) => s.currentProject?.name);
 
-  // ✅ 하위 라우트여도 안전하게 projectId 추출
+  // /setup 페이지 여부
+  const isSetupPage = useMemo(() => location.pathname.startsWith("/setup"), [location.pathname]);
+
+  // 하위 라우트여도 안전하게 projectId 추출
   const routePid = useMemo(() => {
     const m = location.pathname.match(/\/project\/([^/]+)/);
     return m ? decodeURIComponent(m[1]) : null;
@@ -114,7 +117,7 @@ export default function PageHeader({
     setTimeout(() => nav(`/settings/organizations/new`), 0);
   };
 
-  // ✅ 세션이 준비되면 routePid 기준으로 프로젝트 이름 자동 보정 (라벨이 "Projects"로 남는 것 방지)
+  // ✅ 세션이 준비되면 routePid 기준으로 프로젝트 이름 자동 보정
   useEffect(() => {
     (async () => {
       if (!routePid) return;
@@ -139,9 +142,12 @@ export default function PageHeader({
       ? currentOrg.projects[0].id
       : "";
 
-  const headerTitle = isProjectSelectPage
-    ? (currentOrg?.name || orgNameFromStore || orgName || "Organization")
-    : title;
+  // ✅ /setup에서는 항상 'Organization'만
+  const headerTitle = isSetupPage
+    ? "Organization"
+    : (isProjectSelectPage
+        ? (currentOrg?.name || orgNameFromStore || orgName || "Organization")
+        : title);
 
   return (
     <header className={`${styles.header} ${flushLeft ? styles.flush : ""}`}>
@@ -159,94 +165,125 @@ export default function PageHeader({
           </button>
 
           <nav aria-label="Breadcrumb" className={styles.breadcrumbs}>
-            {/* Organization switcher - ProjectSwitcher와 비슷한 스타일 */}
-            <div className={styles.dropdownRoot} ref={orgMenuRef}>
-              <button 
-                type="button" 
-                className={styles.crumbBtn} 
-                onClick={openOrgMenu}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  padding: "4px 8px",
-                  backgroundColor: "transparent",
-                  border: "none",
-                  color: "#93c5fd",
-                  borderRadius: "6px",
-                  cursor: "pointer",
-                  fontSize: "14px",
-                  fontWeight: "500"
-                }}
-              >
-                <span>{orgNameFromStore || orgName}</span>
-                <ChevronDown size={14} />
-              </button>
-
-              {isOrgOpen && (
-                <div className={styles.dropdown}>
-                  <div className={styles.dropdownHeader}>Organizations</div>
-                  <div className={styles.dropdownList}>
-                    {loading && <div className={styles.dropdownItemMuted}>Loading…</div>}
-                    {!loading &&
-                      orgs.map((o) => (
-                        <div className={styles.dropdownRow} key={o.id}>
-                          <button
-                            className={styles.dropdownItem}
-                            onClick={() => pickOrg(o.id)}
-                            title={o.name}
-                          >
-                            {o.name}
-                          </button>
-                          <button
-                            className={styles.iconBtn}
-                            onClick={() => goOrgSettings(o.id)}
-                            title="Open organization settings"
-                            aria-label="Open organization settings"
-                          >
-                            <Settings size={16} />
-                          </button>
-                        </div>
-                      ))}
-                  </div>
-                  <div className={styles.dropdownFooter}>
-                    <button className={styles.footerBtn} onClick={goNewOrganization}>
-                      <Plus size={16} />
-                      <span>New Organization</span>
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* ProjectSwitcher는 SelectProjectPage가 아닐 때만 표시 */}
-            {!isProjectSelectPage && (
+            {/* /setup에서는 그냥 텍스트만 */}
+            {isSetupPage ? (
+              <div className={styles.dropdownRoot}>
+                <span
+                  className={styles.crumbBtn}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    padding: "4px 8px",
+                    backgroundColor: "transparent",
+                    border: "none",
+                    color: "#93c5fd",
+                    borderRadius: "6px",
+                    fontSize: "14px",
+                    fontWeight: "500",
+                    cursor: "default",
+                  }}
+                >
+                  Organization
+                </span>
+              </div>
+            ) : (
               <>
-                <span className={styles.separator} aria-hidden>/</span>
-                {/* ✅ routePid를 확실하게 넘긴다 */}
-                <ProjectSwitcher currentProjectId={routePid || null} />
+                {/* Organization switcher */}
+                <div className={styles.dropdownRoot} ref={orgMenuRef}>
+                  <button
+                    type="button"
+                    className={styles.crumbBtn}
+                    onClick={openOrgMenu}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      padding: "4px 8px",
+                      backgroundColor: "transparent",
+                      border: "none",
+                      color: "#93c5fd",
+                      borderRadius: "6px",
+                      cursor: "pointer",
+                      fontSize: "14px",
+                      fontWeight: "500"
+                    }}
+                  >
+                    <span>{orgNameFromStore || orgName}</span>
+                    <ChevronDown size={14} />
+                  </button>
+
+                  {isOrgOpen && (
+                    <div className={styles.dropdown}>
+                      <div className={styles.dropdownHeader}>Organizations</div>
+                      <div className={styles.dropdownList}>
+                        {loading && <div className={styles.dropdownItemMuted}>Loading…</div>}
+                        {!loading &&
+                          orgs.map((o) => (
+                            <div className={styles.dropdownRow} key={o.id}>
+                              <button
+                                className={styles.dropdownItem}
+                                onClick={() => pickOrg(o.id)}
+                                title={o.name}
+                              >
+                                {o.name}
+                              </button>
+                              <button
+                                className={styles.iconBtn}
+                                onClick={() => goOrgSettings(o.id)}
+                                title="Open organization settings"
+                                aria-label="Open organization settings"
+                              >
+                                <Settings size={16} />
+                              </button>
+                            </div>
+                          ))}
+                      </div>
+                      <div className={styles.dropdownFooter}>
+                        <button className={styles.footerBtn} onClick={goNewOrganization}>
+                          <Plus size={16} />
+                          <span>New Organization</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* ProjectSwitcher는 SelectProjectPage가 아닐 때만 표시 */}
+                {!isProjectSelectPage && (
+                  <>
+                    <span className={styles.separator} aria-hidden>/</span>
+                    {/* ✅ routePid를 확실하게 넘긴다 */}
+                    <ProjectSwitcher currentProjectId={routePid || null} />
+                  </>
+                )}
               </>
             )}
           </nav>
 
-          {/* top-right 영역은 일반 페이지에서만 사용 */}
-          <div className={styles.topRight}>{!isProjectSelectPage && rightActions}</div>
+          {/* top-right 영역: /setup에서는 숨김 */}
+          <div className={styles.topRight}>
+            {!isProjectSelectPage && !isSetupPage && rightActions}
+          </div>
         </div>
       </div>
 
       {/* Bottom strip */}
       <div className={styles.bottomRow}>
         <div className={styles.rowInner}>
-          <h2 className={styles.pageTitle} title={typeof headerTitle === "string" ? headerTitle : undefined}>
+          <h2
+            className={styles.pageTitle}
+            title={typeof headerTitle === "string" ? headerTitle : undefined}
+          >
             <span className={styles.titleText}>{headerTitle}</span>
             <span className={styles.infoDot} aria-hidden>
               <Info size={14} />
             </span>
           </h2>
 
-          {/* 오른쪽 액션 */}
+          {/* 오른쪽 액션: /setup에서는 숨김 */}
           <div className={styles.rightActions}>
-            {isProjectSelectPage && currentOrg && (
+            {!isSetupPage && isProjectSelectPage && currentOrg && (
               <>
                 <button
                   className={styles.iconBtn}
