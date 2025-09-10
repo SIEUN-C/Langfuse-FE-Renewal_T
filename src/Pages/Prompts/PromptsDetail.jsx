@@ -376,6 +376,11 @@ export default function PromptsDetail() {
       <div className={styles.header}>
         <div className={styles.breadcrumbs}>
           <h1 className={styles.promptNameH1}>{id}</h1>
+          {/* --- ▼▼▼ [추가] 선택된 버전의 커밋 메시지 표시 ▼▼▼ --- */}
+          {selectedVersion?.commitMessage && (
+            <span className={styles.commitMessage}>{selectedVersion.commitMessage}</span>
+          )}
+          {/* --- ▲▲▲ [추가] 선택된 버전의 커밋 메시지 표시 ▲▲▲ --- */}
           <div className={styles.versionDropdown}>
             {selectedVersion.tags.map(tag => (
               <span key={tag} className={styles.tagItem}><Tag size={12} /> {tag}</span>
@@ -447,8 +452,10 @@ export default function PromptsDetail() {
                   ))}
                 </div>
                 <div className={styles.versionMeta}>
-                  <p>{version.details}</p>
-                  <p>by {version.author}</p>
+                  {/* --- ▼▼▼ [수정] 커밋 메시지와 날짜를 모두 표시 ▼▼▼ --- */}
+                  {version.commitMessage && <p>{version.commitMessage}</p>}
+                  <p>{version.details} by {version.author}</p>
+                  {/* --- ▲▲▲ [수정] 커밋 메시지와 날짜를 모두 표시 ▲▲▲ --- */}
                 </div>
               </li>
             ))}

@@ -274,23 +274,26 @@
 
 .versionMeta {
   font-size: 11px;
-  /* 글자 크기를 줄입니다. */
   color: #94a3b8;
   margin-top: 4px;
   padding-left: 8px;
+  /* --- ▼▼▼ [수정] 줄바꿈을 위한 스타일 변경 ▼▼▼ --- */
   display: flex;
-  /* 자식 요소들을 가로로 배열합니다. */
-  justify-content: space-between;
-  /* 양 끝으로 정렬합니다. */
-  white-space: nowrap;
-  /* 줄바꿈을 방지합니다. */
+  flex-direction: column; /* 세로 배치로 변경 */
+  gap: 2px; /* 줄 간격 추가 */
+  /* display: flex, justify-content: space-between 제거 */
+  /* white-space: nowrap 제거 */
+  /* --- ▲▲▲ [수정] 줄바꿈을 위한 스타일 변경 ▲▲▲ --- */
 }
 
 .versionMeta p {
   margin: 0;
+  /* --- ▼▼▼ [수정] 텍스트 overflow 처리 개선 ▼▼▼ --- */
   text-overflow: ellipsis;
-  /* 내용이 길면 말줄임표로 표시합니다. */
   overflow: hidden;
+  /* white-space: nowrap 제거하여 줄바꿈 허용 */
+  max-width: 100%; /* 컨테이너 너비에 맞춤 */
+  /* --- ▲▲▲ [수정] 텍스트 overflow 처리 개선 ▲▲▲ --- */
 }
 
 
@@ -556,3 +559,15 @@
   color: #fee2e2; /* [수정] 빨간색 배경에 대비되는 텍스트 색상 */
 }
 /* --- ▲▲▲ [추가] 버전 삭제 ▲▲▲ --- */
+
+/* 기존 CSS 파일 맨 끝에 아래 스타일 추가 */
+
+/* --- ▼▼▼ [추가] 커밋 메시지 스타일 ▼▼▼ --- */
+.commitMessage {
+  font-size: 14px;
+  color: #94a3b8;
+  font-weight: 400;
+  margin-left: 12px;
+  font-style: italic;
+}
+/* --- ▲▲▲ [추가] 커밋 메시지 스타일 ▲▲▲ --- */

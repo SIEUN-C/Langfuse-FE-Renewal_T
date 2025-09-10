@@ -25,6 +25,7 @@ export const createPromptOrVersion = async (params, projectId) => {
     .filter(([, isActive]) => isActive)
     .map(([label]) => label);
 
+  // --- ▼▼▼ [수정] 커밋 메시지 처리 로직 개선 ▼▼▼ ---
   const payload = {
     json: {
       projectId: projectId, 
@@ -37,14 +38,14 @@ export const createPromptOrVersion = async (params, projectId) => {
             .map(({ role, content }) => ({ role: role.toLowerCase(), content: content || '' })),
       config: JSON.parse(config),
       labels: activeLabels,
-      commitMessage: commitMessage ? commitMessage : null,
-    },
-    meta: {
-      values: {
-        commitMessage: ["undefined"]
-      }
+      // --- ▼▼▼ [수정] 커밋 메시지가 실제로 입력되었을 때만 포함 ▼▼▼ ---
+      ...(commitMessage && commitMessage.trim() ? { commitMessage: commitMessage.trim() } : {}),
+      // --- ▲▲▲ [수정] 커밋 메시지가 실제로 입력되었을 때만 포함 ▲▲▲ ---
     }
   };
+
+  // meta 필드에서 commitMessage 관련 부분 제거 (불필요한 메타데이터)
+  // --- ▲▲▲ [수정] 커밋 메시지 처리 로직 개선 ▲▲▲ ---
 
   try {
     await axios.post('/api/trpc/prompts.create', payload);
