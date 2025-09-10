@@ -1,5 +1,4 @@
-// PromptsDetail.jsx
-// 수정 코드
+// PromptsDetail.jsx - 정리된 버전
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import styles from './PromptsDetail.module.css';
@@ -13,31 +12,22 @@ import {
   Search,
   Plus,
   GitCommitHorizontal,
-  // --- ▼▼▼ [수정] 프롬프트 이동 화살표 구현 ▼▼▼ ---
   ChevronUp,
   ChevronDown,
-  // --- ▲▲▲ [수정] 프롬프트 이동 화살표 구현 ▲▲▲ ---
   MessageCircle,
   Tag,
-  // --- ▼▼▼ [추가] Reference 멘션 기능 구현 ▼▼▼ ---
   FileText,
-  // --- ▲▲▲ [추가] Reference 멘션 기능 구현 ▲▲▲ ---
 } from 'lucide-react';
 import DuplicatePromptModal from './DuplicatePromptModal.jsx';
 import { duplicatePrompt } from './DuplicatePromptModalApi.js';
 import { fetchPromptVersions } from './PromptsDetailApi.js';
-// --- ▼▼▼ [추가]  프롬프트 이동 화살표 구현 + 버전 삭제 ▼▼▼ ---
 import { deletePromptVersion, fetchPrompts } from './promptsApi.js';
-// --- ▲▲▲ [추가]  프롬프트 이동 화살표 구현 + 버전 삭제 ▲▲▲ ---
 import NewExperimentModal from './NewExperimentModal';
-// --- ▼▼▼ [추가] Comments ▼▼▼ ---
 import SidePanel from '../../components/SidePanel/SidePanel.jsx';
 import Comments from '../../components/Comments/Comments.jsx';
 import { useComments } from '../../hooks/useComments.js';
-// --- ▲▲▲ [추가] Comments ▲▲▲ ---
 
-// --- ▼▼▼ [추가] Reference 멘션 기능 구현 ▼▼▼ ---
-// 이 컴포넌트는 텍스트를 분석하여 참조 태그를 클릭 가능한 멘션으로 렌더링합니다.
+// Reference 멘션 기능 컴포넌트
 const PromptContentViewer = ({ content }) => {
   const navigate = useNavigate();
   const handleMentionClick = (promptName) => {
@@ -47,12 +37,10 @@ const PromptContentViewer = ({ content }) => {
   const parsedContent = useMemo(() => {
     if (!content) return [];
 
-    // 정규식을 수정하여 'version' 또는 'label'을 키로 인식하도록 변경
     const regex = /@@@langfusePrompt:name=([^|]+)\|(version|label)=([^@]+)@@@/g;
     const parts = content.split(regex);
     const elements = [];
 
-    // 루프 구조를 수정하여 [텍스트, name, key, value] 그룹을 처리
     for (let i = 0; i < parts.length; i++) {
       if (i % 4 === 0) {
         if (parts[i]) {
@@ -60,10 +48,8 @@ const PromptContentViewer = ({ content }) => {
         }
       } else if (i % 4 === 1) {
         const name = parts[i];
-        const key = parts[i + 1]; // 'version' 또는 'label'
+        const key = parts[i + 1];
         const value = parts[i + 2];
-
-        // key 값에 따라 배지 텍스트를 다르게 표시
         const badgeText = key === 'version' ? `v${value}` : value;
 
         elements.push(
@@ -85,37 +71,30 @@ const PromptContentViewer = ({ content }) => {
 
   return <pre>{parsedContent.length > 0 ? parsedContent : content}</pre>;
 };
-// --- ▲▲▲ [추가] Reference 멘션 기능 구현 ▲▲▲ ---
 
-// --- 메인 컴포넌트 ---
+// 메인 컴포넌트
 export default function PromptsDetail() {
-  // 1. Hooks and State Initialization
+  // State 초기화
   const { id } = useParams();
   const navigate = useNavigate();
   const { projectId } = useProjectId();
   const playgroundMenuRef = useRef(null);
+  const versionMenuRef = useRef(null);
 
   const [versions, setVersions] = useState([]);
   const [selectedVersion, setSelectedVersion] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeDetailTab, setActiveDetailTab] = useState('Prompt');
-  // --- ▼▼▼ [수정] 프롬프트 이동 화살표 구현 ▼▼▼ ---
   const [allPrompts, setAllPrompts] = useState([]);
-  // --- ▲▲▲ [추가] 프롬프트 이동 화살표 구현 ▲▲▲ ---
   const [isDuplicateModalOpen, setDuplicateModalOpen] = useState(false);
   const [isPlaygroundMenuOpen, setPlaygroundMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isExperimentModalOpen, setExperimentModalOpen] = useState(false);
-  // --- ▼▼▼ [추가] 버전 삭제 ▼▼▼ ---
   const [isVersionMenuOpen, setVersionMenuOpen] = useState(false);
-  const versionMenuRef = useRef(null);
-  // --- ▲▲▲ [추가] 버전 삭제 ▲▲▲ ---
-  // --- ▼▼▼ [추가] Comments ▼▼▼ ---
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
 
-  // useComments 훅을 사용하여 댓글 데이터 및 함수를 가져옵니다.
-  // selectedVersion이 있을 때만 objectId를 전달합니다.
+  // Comments 훅
   const {
     comments,
     isLoading: isCommentsLoading,
@@ -123,9 +102,8 @@ export default function PromptsDetail() {
     addComment,
     removeComment,
   } = useComments(projectId, 'PROMPT', selectedVersion?.dbId);
-  // --- ▲▲▲ [추가] Comments ▲▲▲ ---
 
-  // 2. Memoized Values
+  // Memoized Values
   const filteredVersions = useMemo(() => {
     const searchId = parseInt(searchQuery);
     if (searchQuery && !isNaN(searchId)) {
@@ -141,7 +119,6 @@ export default function PromptsDetail() {
     );
   }, [versions, searchQuery]);
 
-  // --- ▼▼▼ [추가] 프롬프트 이동 화살표 구현 ▼▼▼ ---
   const { currentIndex, prevPromptName, nextPromptName } = useMemo(() => {
     if (!id || allPrompts.length === 0) {
       return { currentIndex: -1, prevPromptName: null, nextPromptName: null };
@@ -153,7 +130,6 @@ export default function PromptsDetail() {
       nextPromptName: idx < allPrompts.length - 1 ? allPrompts[idx + 1] : null,
     };
   }, [id, allPrompts]);
-  // --- ▲▲▲ [추가] 프롬프트 이동 화살표 구현 ▲▲▲ ---
 
   const variables = useMemo(() => {
     if (!selectedVersion) return [];
@@ -165,7 +141,6 @@ export default function PromptsDetail() {
     } else if (typeof promptData === 'string') {
       textToScan = promptData;
     } else if (promptData && typeof promptData === 'object') {
-      // 이전 구조 호환성 유지
       textToScan = `${promptData.system || ''} ${promptData.user || ''}`;
     }
 
@@ -175,7 +150,7 @@ export default function PromptsDetail() {
     return Array.from(uniqueVars);
   }, [selectedVersion]);
 
-  // 3. Data Fetching and Side Effects
+  // 데이터 로딩 함수
   const loadPromptData = useCallback(async () => {
     if (!id) return;
     setIsLoading(true);
@@ -194,17 +169,17 @@ export default function PromptsDetail() {
     }
   }, [id, projectId]);
 
+  // Effects
   useEffect(() => {
     loadPromptData();
   }, [loadPromptData]);
 
-  // --- ▼▼▼ [추가] 프롬프트 이동 화살표 구현 ▼▼▼ ---
   useEffect(() => {
     if (projectId) {
       const loadAllPrompts = async () => {
         try {
           const prompts = await fetchPrompts(projectId);
-          setAllPrompts(prompts.map(p => p.name)); // 이름 배열만 저장
+          setAllPrompts(prompts.map(p => p.name));
         } catch (error) {
           console.error("Failed to load all prompt names:", error);
         }
@@ -212,23 +187,12 @@ export default function PromptsDetail() {
       loadAllPrompts();
     }
   }, [projectId]);
-  // --- ▲▲▲ [추가] 프롬프트 이동 화살표 구현 ▲▲▲ ---
 
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (playgroundMenuRef.current && !playgroundMenuRef.current.contains(event.target)) {
         setPlaygroundMenuOpen(false);
       }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
-  // --- ▼▼▼ [추가] 버전 삭제 ▼▼▼ ---
-  useEffect(() => {
-    const handleClickOutside = (event) => {
       if (versionMenuRef.current && !versionMenuRef.current.contains(event.target)) {
         setVersionMenuOpen(false);
       }
@@ -236,40 +200,27 @@ export default function PromptsDetail() {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-  // --- ▲▲▲ [추가] 버전 삭제 ▲▲▲ ---
 
-  // 4. Event Handlers
-  // --- ▼▼▼ [추가] 프롬프트 이동 화살표 구현 ▼▼▼ ---
+  // Event Handlers
   const handleNavigate = (promptName) => {
     if (promptName) {
       navigate(`/prompts/${promptName}`);
     }
   };
-  // --- ▲▲▲ [추가] 프롬프트 이동 화살표 구현 ▲▲▲ ---
-
-  // src/Pages/Prompts/PromptsDetail.jsx
-
-  // (다른 코드는 그대로)
-
-  // 🔎 파일에서 handleNewVersion 함수를 찾아서, 함수 전체를 아래 코드로 교체해주세요.
 
   const handleNewVersion = () => {
     if (!id || !selectedVersion) return;
 
-    // [핵심 수정] 타입을 UI 렌더링 로직과 동일하게 'prompt'가 배열인지 여부로 판단합니다.
     const isChatType = Array.isArray(selectedVersion.prompt);
-
-    // [안정성 강화] 타입에 따라 content를 명확히 구분하고, 값이 없을 경우 기본값을 설정합니다.
     const chatContentValue = isChatType ? (selectedVersion.prompt || []) : [];
     const textContentValue = !isChatType ? (selectedVersion.prompt || '') : '';
-
     const configValue = selectedVersion.config ? JSON.stringify(selectedVersion.config, null, 2) : '{}';
 
     navigate(`/prompts/new`, {
       state: {
         projectId: projectId,
         promptName: id,
-        promptType: isChatType ? 'Chat' : 'Text', // 이제 이 값이 정확해집니다.
+        promptType: isChatType ? 'Chat' : 'Text',
         chatContent: chatContentValue,
         textContent: textContentValue,
         config: configValue,
@@ -278,7 +229,6 @@ export default function PromptsDetail() {
       },
     });
   };
-  // (이하 코드는 그대로)
 
   const handleGoToPlayground = () => {
     if (!selectedVersion) return;
@@ -323,7 +273,6 @@ export default function PromptsDetail() {
     setExperimentModalOpen(false);
   };
 
-  // --- ▼▼▼ [추가] 버전 삭제 ▼▼▼ ---
   const handleDeleteVersion = async () => {
     if (!selectedVersion || !selectedVersion.dbId) {
       alert("삭제할 버전을 선택해주세요.");
@@ -338,22 +287,21 @@ export default function PromptsDetail() {
       try {
         await deletePromptVersion(selectedVersion.dbId, projectId);
         alert(`버전 #${selectedVersion.id} 이(가) 성공적으로 삭제되었습니다.`);
-        // 삭제 후 데이터 다시 로드
         loadPromptData();
       } catch (error) {
         console.error("버전 삭제 실패:", error);
         alert(`버전 삭제 중 오류 발생: ${error.message}`);
       }
     }
-    setVersionMenuOpen(false); // 메뉴 닫기
+    setVersionMenuOpen(false);
   };
-  // --- ▲▲▲ [추가] 버전 삭제 ▲▲▲ ---
 
-  // 5. Conditional Renders for Loading/Error States
+  // 로딩 상태
   if (isLoading) {
     return <div className={styles.container}><div className={styles.placeholder}>프롬프트를 불러오는 중...</div></div>;
   }
 
+  // 에러 상태
   if (error || !selectedVersion) {
     return (
       <div className={styles.container}>
@@ -370,55 +318,16 @@ export default function PromptsDetail() {
     );
   }
 
-  // 6. Main Render
+  // 메인 렌더링
   return (
     <div className={styles.container}>
-      <div className={styles.header}>
-        <div className={styles.breadcrumbs}>
-          <h1 className={styles.promptNameH1}>{id}</h1>
-          {/* --- ▼▼▼ [추가] 선택된 버전의 커밋 메시지 표시 ▼▼▼ --- */}
-          {selectedVersion?.commitMessage && (
-            <span className={styles.commitMessage}>{selectedVersion.commitMessage}</span>
-          )}
-          {/* --- ▲▲▲ [추가] 선택된 버전의 커밋 메시지 표시 ▲▲▲ --- */}
-          <div className={styles.versionDropdown}>
-            {selectedVersion.tags.map(tag => (
-              <span key={tag} className={styles.tagItem}><Tag size={12} /> {tag}</span>
-            ))}
-          </div>
-        </div>
-        <div className={styles.headerActions}>
-          <button className={styles.actionButton} onClick={() => setDuplicateModalOpen(true)}>
-            <Clipboard size={14} /> Duplicate
-          </button>
-          {/* --- ▼▼▼ [수정] 프롬프트 이동 화살표 구현 ▼▼▼ --- */}
-          <div className={styles.navButtons}>
-            <button
-              className={styles.navButton}
-              onClick={() => handleNavigate(prevPromptName)}
-              disabled={!prevPromptName}
-              title={prevPromptName ? `Go to ${prevPromptName}` : "First prompt"}
-            >
-              <ChevronUp size={16} />
-            </button>
-            <button
-              className={styles.navButton}
-              onClick={() => handleNavigate(nextPromptName)}
-              disabled={!nextPromptName}
-              title={nextPromptName ? `Go to ${nextPromptName}` : "Last prompt"}
-            >
-              <ChevronDown size={16} />
-            </button>
-          </div>
-          {/* --- ▲▲▲ [수정] 프롬프트 이동 화살표 구현 ▲▲▲ --- */}
-        </div>
-      </div>
-
+      {/* 상단 탭 */}
       <div className={styles.tabs}>
         <button className={`${styles.tabButton} ${styles.active}`}>Versions</button>
       </div>
 
       <div className={styles.mainGrid}>
+        {/* 좌측 패널 - 버전 리스트 */}
         <div className={styles.leftPanel}>
           <div className={styles.versionToolbar}>
             <div className={styles.searchBox}>
@@ -452,17 +361,57 @@ export default function PromptsDetail() {
                   ))}
                 </div>
                 <div className={styles.versionMeta}>
-                  {/* --- ▼▼▼ [수정] 커밋 메시지와 날짜를 모두 표시 ▼▼▼ --- */}
                   {version.commitMessage && <p>{version.commitMessage}</p>}
                   <p>{version.details} by {version.author}</p>
-                  {/* --- ▲▲▲ [수정] 커밋 메시지와 날짜를 모두 표시 ▲▲▲ --- */}
                 </div>
               </li>
             ))}
           </ul>
         </div>
 
+        {/* 우측 패널 */}
         <div className={styles.rightPanel}>
+          {/* 우측 패널 헤더 - 버전 정보 */}
+          <div className={styles.rightPanelHeader}>
+            <div className={styles.versionInfo}>
+              <span className={styles.versionNumber}># {selectedVersion.id}</span>
+              {selectedVersion?.commitMessage && (
+                <span className={styles.commitMessage}>{selectedVersion.commitMessage}</span>
+              )}
+              <div className={styles.labelsContainer}>
+                {selectedVersion.labels.map(label => (
+                  <span key={label} className={label.toLowerCase() === 'production' ? styles.statusTagProd : styles.statusTagLatest}>
+                    {label}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <div className={styles.headerActions}>
+              <button className={styles.actionButton} onClick={() => setDuplicateModalOpen(true)}>
+                <Clipboard size={14} /> Duplicate
+              </button>
+              <div className={styles.navButtons}>
+                <button
+                  className={styles.navButton}
+                  onClick={() => handleNavigate(prevPromptName)}
+                  disabled={!prevPromptName}
+                  title={prevPromptName ? `Go to ${prevPromptName}` : "First prompt"}
+                >
+                  <ChevronUp size={16} />
+                </button>
+                <button
+                  className={styles.navButton}
+                  onClick={() => handleNavigate(nextPromptName)}
+                  disabled={!nextPromptName}
+                  title={nextPromptName ? `Go to ${nextPromptName}` : "Last prompt"}
+                >
+                  <ChevronDown size={16} />
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          {/* 탭 영역 */}
           <div className={styles.detailTabs}>
             <div className={styles.detailTabButtons}>
               <button className={`${styles.detailTabButton} ${activeDetailTab === 'Prompt' ? styles.active : ''}`} onClick={() => setActiveDetailTab('Prompt')}>Prompt</button>
@@ -495,12 +444,9 @@ export default function PromptsDetail() {
               >
                 Dataset run
               </button>
-              {/* --- ▼▼▼ [수정] Comments ▼▼▼ --- */}
               <button className={styles.iconButton} onClick={() => setIsCommentsOpen(true)}>
                 <MessageCircle size={16} />
               </button>
-              {/* --- ▲▲▲ [수정] Comments ▲▲▲ --- */}
-              {/* --- ▼▼▼ [수정] 버전 삭제 ▼▼▼ --- */}
               <div className={styles.versionMenuContainer} ref={versionMenuRef}>
                 <button
                   className={styles.iconButton}
@@ -516,18 +462,17 @@ export default function PromptsDetail() {
                   </div>
                 )}
               </div>
-              {/* --- ▲▲▲ [수정] 버전 삭제 ▲▲▲ --- */}
             </div>
           </div>
+
+          {/* 컨텐츠 영역 */}
           <div className={styles.promptArea}>
             {activeDetailTab === 'Prompt' && (
               <>
                 {Array.isArray(selectedVersion.prompt) ? (
-                  // Chat 타입 렌더링
                   selectedVersion.prompt.map((message, index) => (
                     <div className={styles.promptCard} key={index}>
                       <div className={styles.promptHeader}>
-                        {/* 'placeholder' 역할의 첫 글자를 대문자로 변경하여 표시 */}
                         {message.role.charAt(0).toUpperCase() + message.role.slice(1)}
                       </div>
                       <div className={styles.promptBody}>
@@ -536,7 +481,6 @@ export default function PromptsDetail() {
                     </div>
                   ))
                 ) : (
-                  // Text 타입 렌더링
                   <div className={styles.promptCard}>
                     <div className={styles.promptHeader}>Text Prompt</div>
                     <div className={styles.promptBody}>
@@ -554,9 +498,6 @@ export default function PromptsDetail() {
                 )}
               </>
             )}
-            {/* --- ▼▼▼ [수정] Config 및 Use Prompts 탭 컨텐츠 렌더링 로직 추가 ▼▼▼ --- */}
-            {/* 원인: 기존 코드에서 Config와 Use Prompts 탭을 눌렀을 때 표시될 컨텐츠가 누락되어 있었습니다. */}
-            {/* 해결: 아래에 각 탭에 맞는 컨텐츠(config json, API 사용법 코드 블록)를 표시하는 JSX 코드를 추가하여 문제를 해결합니다. */}
             {activeDetailTab === 'Config' && (
               <div className={styles.promptCard}>
                 <div className={styles.promptHeader}>Config</div>
@@ -580,6 +521,7 @@ export default function PromptsDetail() {
         </div>
       </div>
 
+      {/* 모달들 */}
       {isDuplicateModalOpen && (
         <DuplicatePromptModal
           isOpen={isDuplicateModalOpen}
@@ -599,7 +541,6 @@ export default function PromptsDetail() {
         />
       )}
 
-      {/* --- ▼▼▼ [추가] Comments ▼▼▼ --- */}
       <SidePanel
         title="Comments"
         isOpen={isCommentsOpen}
@@ -613,7 +554,6 @@ export default function PromptsDetail() {
           onDeleteComment={removeComment}
         />
       </SidePanel>
-      {/* --- ▲▲▲ [추가] Comments ▲▲▲ --- */}
     </div>
   );
 }

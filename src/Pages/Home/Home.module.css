@@ -1,55 +1,225 @@
-.container {
+/* Home.module.css - 메인 대시보드 스타일 (CSS 모듈) */
+
+/* 페이지 기본 레이아웃 */
+.homePage {
+  padding: 24px;
+  background-color: #f8fafc;
+  min-height: 100vh;
+}
+
+/* 헤더 */
+.pageHeader {
   display: flex;
-  flex-direction: column;
-  gap: 24px;
-  padding: 20px;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
 }
 
-/* 타이틀 제거 가능 */
-.title {
-  display: none;
+.pageHeader h1 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
 }
 
-/* 카드 3분할, 반응형 */
-.cardRow {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-}
-
-/* TraceChart 섹션 */
-.chartSection {
-  margin-top: 10px;
-  background-color: #0f172a;
-  border: 1px solid #334155;
-  border-radius: 10px;
-  padding: 20px;
+.setupTracingBtn {
+  padding: 8px 16px;
+  background-color: #3b82f6;
   color: white;
-}
-
-/* 카드 내부 공통 스타일 */
-.metric {
-  font-size: 28px;
-  font-weight: bold;
-  margin-bottom: 4px;
-}
-
-.sub {
-  color: #94a3b8;
-  font-size: 12px;
-  margin-bottom: 10px;
-}
-
-.tag {
-  background-color: #4c1d95;
-  color: white;
-  padding: 4px 8px;
+  border: none;
   border-radius: 6px;
-  display: inline-block;
-  font-size: 13px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
 }
 
-.button {
-    background-color: #c2d4e5;
-    color: #111;
+.setupTracingBtn:hover {
+  background-color: #2563eb;
+}
+
+/* 필터 영역 */
+.filtersContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.filtersLeft {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.filtersRight {
+  display: flex;
+  gap: 8px;
+}
+
+.dateDisplay, .envDisplay {
+  padding: 8px 12px;
+  background-color: white;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #374151;
+}
+
+.requestChartBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background-color: white;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.requestChartBtn:hover {
+  background-color: #f9fafb;
+  border-color: #9ca3af;
+}
+
+/* 대시보드 그리드 */
+.dashboardGrid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 12px;
+  overflow: hidden;
+}
+
+@media (min-width: 1024px) {
+  .dashboardGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1280px) {
+  .dashboardGrid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+/* 상단 3개 카드 */
+.tracesCard, .modelCostCard, .scoresCard {
+  grid-column: span 1;
+}
+
+@media (min-width: 1280px) {
+  .tracesCard, .modelCostCard, .scoresCard {
+    grid-column: span 2;
+  }
+}
+
+/* 중간 차트들 */
+.tracesTimeseries {
+  grid-column: span 1;
+}
+
+@media (min-width: 1280px) {
+  .tracesTimeseries {
+    grid-column: span 3;
+  }
+}
+
+.modelUsage {
+  grid-column: span 1;
+  min-height: 96px; /* min-h-24 equivalent */
+}
+
+@media (min-width: 1280px) {
+  .modelUsage {
+    grid-column: span 3;
+  }
+}
+
+.userChart, .chartScores {
+  grid-column: span 1;
+}
+
+@media (min-width: 1280px) {
+  .userChart, .chartScores {
+    grid-column: span 3;
+  }
+}
+
+/* 레이턴시 테이블 */
+.latencyTables {
+  grid-column: span 1;
+}
+
+@media (min-width: 1024px) {
+  .latencyTables {
+    grid-column: span 2;
+  }
+}
+
+@media (min-width: 1280px) {
+  .latencyTables {
+    grid-column: span 6;
+  }
+}
+
+/* 전체 너비 차트들 */
+.generationLatency, .scoreAnalytics {
+  grid-column: span 1;
+  display: flex;
+  flex: auto;
+  justify-content: space-between;
+}
+
+@media (min-width: 1024px) {
+  .generationLatency, .scoreAnalytics {
+    grid-column: span 2;
+  }
+}
+
+@media (min-width: 1280px) {
+  .generationLatency, .scoreAnalytics {
+    grid-column: span 6;
+  }
+}
+
+/* 플레이스홀더 스타일 */
+.chartPlaceholder {
+  padding: 40px 20px;
+  background-color: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  text-align: center;
+  color: #6b7280;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+}
+
+/* 반응형 조정 */
+@media (max-width: 768px) {
+  .homePage {
+    padding: 16px;
+  }
+  
+  .filtersContainer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .filtersLeft {
+    width: 100%;
+  }
+  
+  .filtersRight {
+    width: 100%;
+    justify-content: flex-end;
+  }
 }

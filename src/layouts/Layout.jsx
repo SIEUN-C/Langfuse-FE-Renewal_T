@@ -101,14 +101,11 @@ export default function Layout({ session }) {
   const mainMenuSections = [
     {
       title: null,
-      items: [{ label: "Home", icon: <Home size={18} />, path: "/" }],
-    },
-    {
-      title: "Tracing",
-      items: [
-        { label: "Trace", icon: <Activity size={18} />, path: "/trace" },
-        { label: "Sessions", icon: <MessageCircleCode size={18} />, path: "/sessions" },
-      ],
+      items: [{ 
+        label: "Home", 
+        icon: <Home size={18} />, 
+        path: activeProjectId ? `/project/${activeProjectId}` : "/home" // 이 부분만 변경
+      }],
     },
     {
       title: "Evaluation",
