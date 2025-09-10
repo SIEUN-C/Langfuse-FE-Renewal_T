@@ -9,14 +9,19 @@ import Comments from '../../components/Comments/Comments';
 import AddToDatasetModal from '../../components/AddToDatasetModal/AddToDatasetModal';
 import { useComments } from '../../hooks/useComments';
 import UsageBreakdown from './UsageBreakdown';
+import { parseMaybeJSONDeep, decodeUnicodeLiterals } from './utils/json.js'
+
 
 
 // 메시지 content를 텍스트로 안전하게 변환
 const toText = (content) => {
   if (content == null) return '';
-  if (typeof content === 'string') return content;
+  if (typeof content === 'string') return decodeUnicodeLiterals(content);
   if (Array.isArray(content)) return content.map(toText).join('');
-  if (typeof content === 'object') return content.text ?? content.content ?? JSON.stringify(content);
+  if (typeof content === 'object') {
+    const raw = content.text ?? content.content ?? JSON.stringify(content);
+    return typeof raw === 'string' ? decodeUnicodeLiterals(raw) : String(raw);
+  }
   return String(content);
 };
 
@@ -94,7 +99,7 @@ const parseMaybeJSON = (v) => {
 
 // 3000처럼 계층형 Path/Value 테이블 렌더
 const MetaTable = ({ data }) => {
-  const obj = parseMaybeJSON(data);
+  const obj = parseMaybeJSONDeep(data);
   if (!obj || typeof obj !== 'object') return <pre>{String(obj ?? 'null')}</pre>;
 
   // 계층적으로 펼쳐서 테이블 행을 만든다
@@ -237,9 +242,8 @@ const TraceDetailView = ({ details, isLoading, error }) => {
         </div>
         <div className={styles.cardBody}>
           {viewFormat === 'JSON'
-            ? <pre>{JSON.stringify(data, null, 2)}</pre>
-            : renderFormattedContent(data)
-          }
+            ? (typeof data === 'string' ? <pre>{data}</pre> : <pre>{JSON.stringify(data, null, 2)}</pre>)
+            : renderFormattedContent(data)}
         </div>
       </div>
     );
@@ -250,14 +254,14 @@ const TraceDetailView = ({ details, isLoading, error }) => {
   if (!details) return <div className={styles.body}>No details available.</div>;
 
   const metadataRaw = details.metadata ?? null;
-  const metadata = parseMaybeJSON(metadataRaw);
+  const metadata = parseMaybeJSONDeep(metadataRaw);
   const hasMetadata = metadata && typeof metadata === 'object' && Object.keys(metadata).length > 0;
 
   // Path 카드에 쓸 데이터(tags를 “path”처럼 보여줌)
   const pathData = (() => {
     if (!details?.tags) return null;
     if (Array.isArray(details.tags)) return { tags: details.tags };
-    const t = parseMaybeJSON(details.tags);
+    const t = parseMaybeJSONDeep(details.tags);
     if (Array.isArray(t)) return { tags: t };
     if (t && typeof t === 'object') return t; // 이미 객체면 그대로
     return null;
@@ -454,7 +458,7 @@ const TraceDetailView = ({ details, isLoading, error }) => {
               "Output",
               (() => {
                 // 1) details.output이 JSON-string/object면 파싱해서 사용
-                const out = parseMaybeJSON(details.output);
+                const out = parseMaybeJSONDeep(details.output);
                 if (out != null) {
                   return typeof out === 'string' ? { content: out } : out;
                 }

@@ -7,6 +7,7 @@ import styles from './TraceDetailPanel.module.css';
 import TraceDetailView from './TraceDetailView';
 import TraceTimeline from './TraceTimeline';
 import { ChatMlArraySchema } from './utils/chatml.schema';
+import { parseMaybeJSONDeep, decodeUnicodeLiterals } from './utils/json.js'
 
 
 // ---------- 공통 정규화 유틸 ----------
@@ -71,11 +72,11 @@ const sumUsageDeep = (root) => {
 
 
 function coerceMessages({ input, inputText, prompt, metadata, output, type, model, name }) {
-  const inParsed = parseMaybeJSON(input);
-  const inTextParsed = parseMaybeJSON(inputText);
-  const promptParsed = parseMaybeJSON(prompt);
-  const metaParsed = parseMaybeJSON(metadata);
-  const outParsed = parseMaybeJSON(output);
+  const inParsed = parseMaybeJSONDeep(input);
+  const inTextParsed = parseMaybeJSONDeep(inputText);
+  const promptParsed = parseMaybeJSONDeep(prompt);
+  const metaParsed = parseMaybeJSONDeep(metadata);
+  const outParsed = parseMaybeJSONDeep(output);
 
 
   // 어떤 스텝이 LLM 생성 단계인지, 아니면 도구/파서 단계인지 대략 판단
@@ -111,13 +112,25 @@ function coerceMessages({ input, inputText, prompt, metadata, output, type, mode
   // LLM 단계로 판단된 경우에만 assistant 메시지를 붙여준다
   let assistantMsg = null;
   if (isLikelyLLM) {
-    if (outParsed && typeof outParsed === 'object' && 'completion' in outParsed && Object.keys(outParsed).length === 1) {
-      assistantMsg = { role: 'assistant', content: outParsed.completion };
-    } else if (typeof output === 'string' || output?.content) {
-      assistantMsg = { role: 'assistant', content: (output?.content ?? output) };
-    } else if (outParsed && typeof outParsed === 'string') {
+
+    const pickContent = (o) =>
+      (o && typeof o === 'object')
+        ? (o.content ?? o.message ?? o.text ?? o.completion ?? o.output ?? null)
+        : null;
+
+
+    if (outParsed && typeof outParsed === 'object') {
+      const c = pickContent(outParsed);
+      assistantMsg = { role: 'assistant', content: (c != null ? c : JSON.stringify(outParsed)) };
+    } else if (typeof outParsed === 'string') {
       assistantMsg = { role: 'assistant', content: outParsed };
+    } else if (typeof output === 'string') {
+      const maybe = parseMaybeJSONDeep(output);
+      const c = pickContent(maybe);
+      assistantMsg = { role: 'assistant', content: (typeof maybe === 'string' ? maybe : (c ?? JSON.stringify(maybe))) };
     }
+
+
   }
 
   const base = inMsgs || [];
@@ -132,10 +145,10 @@ function normalizeForDetailView(d) {
   if (!d || typeof d !== 'object') return d;
 
   // 메타/태그/플레이스홀더 후보 미리 파싱
-  const metaObj = parseMaybeJSON(d.metadata);
+  const metaObj = parseMaybeJSONDeep(d.metadata);
   const tagsNormalized =
     (Array.isArray(d.tags) ? d.tags
-      : parseMaybeJSON(d.tags))      // 문자열로 온 tags도 허용
+      : parseMaybeJSONDeep(d.tags))      // 문자열로 온 tags도 허용
     ?? metaObj?.tags                 // metadata.tags에도 있을 수 있음
     ?? null;
 
