@@ -58,14 +58,14 @@ const getFilterType = (column) => {
 
 /**
  * 대시보드 위젯 컴포넌트
- * 
+ *
  * 주요 기능:
  * - 위젯 메타데이터 로드 (이름, 차트타입, 설정)
  * - 쿼리 실행 및 차트 데이터 로드
  * - 필터 적용 (날짜 범위 + 사용자 필터)
  * - 차트 렌더링
  * - 위젯 관리 (편집, 복사, 삭제)
- * 
+ *
  * @param {string} projectId - 프로젝트 ID
  * @param {string} dashboardId - 대시보드 ID
  * @param {Object} placement - 위젯 배치 정보
@@ -437,11 +437,11 @@ export default function DashboardWidget({
                 </button>
               ) : widget.owner === "LANGFUSE" ? (
                 <button
-                  onClick={handleCopy}
+                  onClick={handleEdit}
                   className={styles.actionButton}
-                  aria-label="Copy widget"
+                  aria-label="Edit widget"
                 >
-                  <CopyIcon size={16} />
+                  <PencilIcon size={16} />
                 </button>
               ) : null}
 
@@ -502,8 +502,7 @@ export default function DashboardWidget({
               ...widget.chartConfig,
               // PIVOT_TABLE용 추가 설정
               ...(widget.chartType === "PIVOT_TABLE" && {
-                dimensions:
-                  widget.dimensions?.map((dim) => dim.field) || [],
+                dimensions: widget.dimensions?.map((dim) => dim.field) || [],
                 metrics:
                   widget.metrics?.map(
                     (metric) => `${metric.agg}_${metric.measure}`
