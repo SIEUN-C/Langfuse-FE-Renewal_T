@@ -190,8 +190,13 @@
 }
 
 .footer {
-    display: flex;
-    justify-content: flex-end;
+    position: sticky;
+    bottom: 0;
+    z-index: 3;
+    padding: 12px 0;
+    background: #020817;
+    /* 패널 배경과 동일 */
+    border-top: 1px solid #334155;
 }
 
 .primaryBtn {

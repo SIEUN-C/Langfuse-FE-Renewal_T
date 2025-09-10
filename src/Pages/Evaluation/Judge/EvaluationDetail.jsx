@@ -95,7 +95,8 @@ const EvaluationDetail = ({ onClose }) => {
 
   // 상태 토글 (ACTIVE <-> INACTIVE)
   const handleStatusToggle = async (checked) => {
-    if (!detail) return;
+    // edit 모드가 아니거나 토글 중이면 무시
+    if (!detail || !editMode || toggling) return;
     setToggling(true);
     setErr('');
     const newStatus = checked ? 'ACTIVE' : 'INACTIVE';
@@ -164,12 +165,15 @@ const EvaluationDetail = ({ onClose }) => {
             <span className={`${styles.statusPill} ${isActive ? styles.active : styles.inactive}`}>
               {isActive ? 'active' : 'inactive'}
             </span>
-            <label className={styles.toggleSwitch}>
+            <label
+              className={`${styles.toggleSwitch} ${(!editMode || toggling) ? styles.disabled : ''}`}
+              aria-disabled={!editMode || toggling}
+            >
               <input
                 type="checkbox"
                 checked={isActive}
                 onChange={(e) => handleStatusToggle(e.target.checked)}
-                disabled={toggling}
+                disabled={!editMode || toggling}
               />
               <span className={styles.slider}></span>
             </label>

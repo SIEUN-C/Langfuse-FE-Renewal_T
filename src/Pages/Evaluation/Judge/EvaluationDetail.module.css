@@ -292,3 +292,21 @@ input:checked+.slider:before {
     transform: translateY(-6px);
   }
 }
+
+/* 상단 헤더는 패널 내부에서 고정 */
+.panelHeader {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  /* 나머지 기존 스타일 유지 */
+}
+
+/* 본문은 세로/가로 스크롤 허용, 스크롤 체이닝 방지 */
+.content {
+  padding: 1.5rem;
+  flex: 1 1 auto;
+  overflow: auto;
+  /* 세로/가로 모두 */
+  overscroll-behavior: contain;
+  /* 바닥/천장 도달해도 배경 스크롤 금지 */
+}
