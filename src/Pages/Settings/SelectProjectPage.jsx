@@ -2,9 +2,10 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import CreateProjectInline from "./CreateProjectInline";
+import { trpcTryManyMutation } from "./lib/trpcTryMany";
 import { fetchSession } from "./lib/sessionOrg";
 import commonStyles from "./layout/SettingsCommon.module.css";
-import { Settings as GearIcon, Users } from "lucide-react";
+import { Settings as GearIcon, Users, Plus, BookOpen, MessageSquare } from "lucide-react";
 
 import { useDispatch } from "react-redux";
 import { setProject } from "../../state/currentProject.slice";
@@ -69,30 +70,102 @@ export default function SelectProjectPage() {
 
   if (loading) return <div className={commonStyles.container}>Loading...</div>;
 
-  // Organizations 목록 (orgId가 없을 때) - 조직별 섹션으로 표시
+  // ✅ 1) 조직이 하나도 없을 때: Get Started 카드(라이트 레이아웃을 우리 다크 톤으로)
+  if (orgs.length === 0) {
+    const card = {
+      border: "1px solid #334155",
+      backgroundColor: "#0f172a",
+      borderRadius: 12,
+      padding: 20,
+      boxShadow: "0 2px 4px rgba(0,0,0,.1)",
+    };
+    const title = { fontSize: 22, fontWeight: 700, color: "#e2e8f0", margin: 0, marginBottom: 6 };
+    const desc = { color: "#94a3b8", margin: 0, marginBottom: 16, lineHeight: 1.6 };
+    const pill = {
+      display: "inline-flex",
+      alignItems: "center",
+      gap: 8,
+      padding: "10px 14px",
+      borderRadius: 10,
+      border: "1px solid #334155",
+      background: "#0b1220",
+      color: "#e2e8f0",
+      fontWeight: 600,
+      cursor: "pointer",
+      textDecoration: "none",
+    };
+    const pillSoft = { ...pill, background: "#0f172a" };
+
+    return (
+      <div className={commonStyles.container} style={{ paddingTop: 24 }}>
+        <div style={card}>
+          <h3 style={title}>Get Started</h3>
+          <p style={desc}>
+            Create an organization to get started. Alternatively, ask your organization admin to invite you.
+          </p>
+          <div style={{ display: "flex", gap: 10 }}>
+            <button
+              type="button"
+              style={pill}
+              onClick={() => nav("/setup")}
+              title="New Organization"
+            >
+              <Plus size={16} />
+              <span>New Organization</span>
+            </button>
+            <a
+              href="https://langfuse.com/docs"
+              target="_blank"
+              rel="noreferrer"
+              style={pillSoft}
+              title="Docs"
+            >
+              <BookOpen size={16} />
+              <span>Docs</span>
+            </a>
+            <a
+              href="https://langfuse.com/docs/ask-ai"
+              target="_blank"
+              rel="noreferrer"
+              style={pillSoft}
+              title="Ask AI"
+            >
+              <MessageSquare size={16} />
+              <span>Ask AI</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ✅ 2) orgId 없음 → 모든 조직 섹션(어두운 카드들) 렌더
   if (!orgId) {
     return (
       <div className={commonStyles.container} style={{ paddingTop: 24 }}>
-        {/* 각 조직별로 섹션 나누어 표시 */}
         {orgs.map((org) => (
           <div key={org.id} style={{ marginBottom: "40px" }}>
             {/* 조직 헤더 */}
-            <div style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: "16px"
-            }}>
-              <h2 style={{
-                fontSize: "20px",
-                fontWeight: "600",
-                color: "#e2e8f0",
-                margin: 0
-              }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: "16px",
+              }}
+            >
+              <h2
+                style={{
+                  fontSize: "20px",
+                  fontWeight: "600",
+                  color: "#e2e8f0",
+                  margin: 0,
+                }}
+              >
                 {org.name}
               </h2>
               <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                <button 
+                <button
                   style={{
                     width: "32px",
                     height: "32px",
@@ -107,21 +180,21 @@ export default function SelectProjectPage() {
                     transition: "all 0.2s ease",
                   }}
                   onMouseEnter={(e) => {
-                    e.target.style.backgroundColor = "#475569";
-                    e.target.style.borderColor = "#64748b";
+                    e.currentTarget.style.backgroundColor = "#475569";
+                    e.currentTarget.style.borderColor = "#64748b";
                   }}
                   onMouseLeave={(e) => {
-                    e.target.style.backgroundColor = "transparent";
-                    e.target.style.borderColor = "#475569";
+                    e.currentTarget.style.backgroundColor = "transparent";
+                    e.currentTarget.style.borderColor = "#475569";
                   }}
-                  title="Organization settings" 
-                  onClick={() => nav(`/org/${org.id}/settings`)} 
+                  title="Organization settings"
+                  onClick={() => nav(`/org/${org.id}/settings`)}
                   aria-label="Organization settings"
                 >
                   <GearIcon size={16} />
                 </button>
-                
-                <button 
+
+                <button
                   style={{
                     width: "32px",
                     height: "32px",
@@ -136,21 +209,23 @@ export default function SelectProjectPage() {
                     transition: "all 0.2s ease",
                   }}
                   onMouseEnter={(e) => {
-                    e.target.style.backgroundColor = "#475569";
-                    e.target.style.borderColor = "#64748b";
+                    e.currentTarget.style.backgroundColor = "#475569";
+                    e.currentTarget.style.borderColor = "#64748b";
                   }}
                   onMouseLeave={(e) => {
-                    e.target.style.backgroundColor = "transparent";
-                    e.target.style.borderColor = "#475569";
+                    e.currentTarget.style.backgroundColor = "transparent";
+                    e.currentTarget.style.borderColor = "#475569";
                   }}
                   title="Members"
-                  onClick={() => nav(`/project/${org.projects?.[0]?.id ?? ""}/settings/members`)}
+                  onClick={() =>
+                    nav(`/project/${org.projects?.[0]?.id ?? ""}/settings/members`)
+                  }
                   aria-label="Members"
                 >
                   <Users size={16} />
                 </button>
-                
-                <button 
+
+                <button
                   style={{
                     padding: "8px 16px",
                     border: "none",
@@ -163,10 +238,10 @@ export default function SelectProjectPage() {
                     transition: "all 0.2s ease",
                   }}
                   onMouseEnter={(e) => {
-                    e.target.style.backgroundColor = "#2563eb";
+                    e.currentTarget.style.backgroundColor = "#2563eb";
                   }}
                   onMouseLeave={(e) => {
-                    e.target.style.backgroundColor = "#3b82f6";
+                    e.currentTarget.style.backgroundColor = "#3b82f6";
                   }}
                   onClick={() => nav(`/settings/select-project?orgId=${org.id}&create=1`)}
                 >
@@ -177,11 +252,13 @@ export default function SelectProjectPage() {
 
             {/* 해당 조직의 프로젝트들 */}
             {org.projects && org.projects.length > 0 ? (
-              <div style={{ 
-                display: "grid", 
-                gap: 16, 
-                gridTemplateColumns: "repeat(3, minmax(0, 1fr))"
-              }}>
+              <div
+                style={{
+                  display: "grid",
+                  gap: 16,
+                  gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                }}
+              >
                 {org.projects.map((project) => (
                   <div
                     key={project.id}
@@ -199,16 +276,18 @@ export default function SelectProjectPage() {
                       e.currentTarget.style.backgroundColor = "#1e293b";
                     }}
                   >
-                    <div style={{ 
-                      fontWeight: 600, 
-                      fontSize: 16, 
-                      marginBottom: 16, 
-                      wordBreak: "break-word",
-                      color: "#e2e8f0"
-                    }}>
+                    <div
+                      style={{
+                        fontWeight: 600,
+                        fontSize: 16,
+                        marginBottom: 16,
+                        wordBreak: "break-word",
+                        color: "#e2e8f0",
+                      }}
+                    >
                       {project.name}
                     </div>
-                    
+
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <button
                         style={{
@@ -223,15 +302,14 @@ export default function SelectProjectPage() {
                           transition: "all 0.2s ease",
                         }}
                         onMouseEnter={(e) => {
-                          e.target.style.backgroundColor = "#475569";
-                          e.target.style.borderColor = "#64748b";
+                          e.currentTarget.style.backgroundColor = "#475569";
+                          e.currentTarget.style.borderColor = "#64748b";
                         }}
                         onMouseLeave={(e) => {
-                          e.target.style.backgroundColor = "transparent";
-                          e.target.style.borderColor = "#475569";
+                          e.currentTarget.style.backgroundColor = "transparent";
+                          e.currentTarget.style.borderColor = "#475569";
                         }}
                         onClick={() => {
-                          // 프로젝트 클릭시 해당 조직도 함께 동기화
                           try {
                             localStorage.setItem("projectId", project.id);
                             localStorage.setItem("projectName", project.name || "");
@@ -261,16 +339,15 @@ export default function SelectProjectPage() {
                           transition: "all 0.2s ease",
                         }}
                         onMouseEnter={(e) => {
-                          e.target.style.backgroundColor = "#475569";
-                          e.target.style.borderColor = "#64748b";
+                          e.currentTarget.style.backgroundColor = "#475569";
+                          e.currentTarget.style.borderColor = "#64748b";
                         }}
                         onMouseLeave={(e) => {
-                          e.target.style.backgroundColor = "transparent";
-                          e.target.style.borderColor = "#475569";
+                          e.currentTarget.style.backgroundColor = "transparent";
+                          e.currentTarget.style.borderColor = "#475569";
                         }}
                         title="Project settings"
                         onClick={() => {
-                          // 프로젝트 클릭시 해당 조직도 함께 동기화
                           try {
                             localStorage.setItem("projectId", project.id);
                             localStorage.setItem("projectName", project.name || "");
@@ -290,14 +367,16 @@ export default function SelectProjectPage() {
                 ))}
               </div>
             ) : (
-              <div style={{
-                padding: "20px",
-                textAlign: "center",
-                color: "#94a3b8",
-                backgroundColor: "#1e293b",
-                border: "1px solid #334155",
-                borderRadius: "12px"
-              }}>
+              <div
+                style={{
+                  padding: "20px",
+                  textAlign: "center",
+                  color: "#94a3b8",
+                  backgroundColor: "#1e293b",
+                  border: "1px solid #334155",
+                  borderRadius: "12px",
+                }}
+              >
                 No projects in this organization
               </div>
             )}
@@ -307,7 +386,7 @@ export default function SelectProjectPage() {
     );
   }
 
-  // Create 강제 또는 프로젝트 없음
+  // ✅ 3) 특정 orgId가 있는 경우: 인라인 생성 or 프로젝트 그리드
   if (forceCreate || !org || projects.length === 0) {
     return (
       <div className={commonStyles.container} style={{ paddingTop: 24 }}>
@@ -316,14 +395,16 @@ export default function SelectProjectPage() {
     );
   }
 
-  // Projects 그리드 (PageHeader에서 조직명과 액션 버튼들을 처리하므로 여기는 카드만)
+  // Projects 그리드 (orgId로 필터된 케이스)
   return (
     <div className={commonStyles.container} style={{ paddingTop: 24 }}>
-      <div style={{ 
-        display: "grid", 
-        gap: 16, 
-        gridTemplateColumns: "repeat(3, minmax(0, 1fr))"
-      }}>
+      <div
+        style={{
+          display: "grid",
+          gap: 16,
+          gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+        }}
+      >
         {projects.map((p) => (
           <div
             key={p.id}
@@ -341,13 +422,16 @@ export default function SelectProjectPage() {
               e.currentTarget.style.backgroundColor = "#1e293b";
             }}
           >
-            <div style={{ 
-              fontWeight: 600, 
-              fontSize: 16, 
-              marginBottom: 16, 
-              wordBreak: "break-word", 
-              color: "#e2e8f0"
-            }} title={p.name}>
+            <div
+              style={{
+                fontWeight: 600,
+                fontSize: 16,
+                marginBottom: 16,
+                wordBreak: "break-word",
+                color: "#e2e8f0",
+              }}
+              title={p.name}
+            >
               {p.name}
             </div>
 
@@ -365,12 +449,12 @@ export default function SelectProjectPage() {
                   transition: "all 0.2s ease",
                 }}
                 onMouseEnter={(e) => {
-                  e.target.style.backgroundColor = "#475569";
-                  e.target.style.borderColor = "#64748b";
+                  e.currentTarget.style.backgroundColor = "#475569";
+                  e.currentTarget.style.borderColor = "#64748b";
                 }}
                 onMouseLeave={(e) => {
-                  e.target.style.backgroundColor = "transparent";
-                  e.target.style.borderColor = "#475569";
+                  e.currentTarget.style.backgroundColor = "transparent";
+                  e.currentTarget.style.borderColor = "#475569";
                 }}
                 onClick={() => gotoProjectTrace(p)}
               >
@@ -392,12 +476,12 @@ export default function SelectProjectPage() {
                   transition: "all 0.2s ease",
                 }}
                 onMouseEnter={(e) => {
-                  e.target.style.backgroundColor = "#475569";
-                  e.target.style.borderColor = "#64748b";
+                  e.currentTarget.style.backgroundColor = "#475569";
+                  e.currentTarget.style.borderColor = "#64748b";
                 }}
                 onMouseLeave={(e) => {
-                  e.target.style.backgroundColor = "transparent";
-                  e.target.style.borderColor = "#475569";
+                  e.currentTarget.style.backgroundColor = "transparent";
+                  e.currentTarget.style.borderColor = "#475569";
                 }}
                 title="Project settings"
                 onClick={() => gotoProjectSettings(p)}

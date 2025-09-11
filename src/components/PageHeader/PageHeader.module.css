@@ -1,6 +1,3 @@
-/* PageHeader.module.css */
-
-/* === 기존 토대 유지 (색/레이아웃) ======================= */
 :root {
   --pad-x: 24px;
   --h-top: 48px;
@@ -23,135 +20,63 @@
   --menu-item-h: 36px;
 }
 
-.header {
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  width: 100%;
-  color: var(--c-text);
-  background: transparent;
-}
-
+.header { position: sticky; top: 0; z-index: 50; width: 100%; color: var(--c-text); background: transparent; }
 .topRow { background: var(--c-top); border-bottom: 1px solid var(--c-line); }
 .bottomRow { background: var(--c-bottom); border-bottom: 1px solid var(--c-line); }
 
-.rowInner {
-  min-height: var(--h-top);
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 8px var(--pad-x);
-  margin: 0 auto;
-  max-width: var(--max-w);
-}
-
-/* ✅ flushLeft */
+.rowInner { min-height: var(--h-top); display: flex; align-items: center; gap: 12px; padding: 8px var(--pad-x); margin: 0 auto; max-width: var(--max-w); }
 .flush .rowInner { padding-left: 8px; margin-left: 8px; max-width: none; }
 
-.toggleButton {
-  background: none; border: none; color: var(--c-muted);
-  cursor: pointer; padding: 4px; display: flex; align-items: center; border-radius: 8px;
-}
+.toggleButton { background: none; border: none; color: var(--c-muted); cursor: pointer; padding: 4px; display: flex; align-items: center; border-radius: 8px; }
 .toggleButton:hover { color: #fff; background: rgba(148,163,184,.08); }
 
 .breadcrumbs { display: flex; align-items: center; gap: 8px; font-size: 14px; }
 
-.crumbBtn {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 2px 6px; background: transparent; border: none;
-  color: #93c5fd; border-radius: 6px; cursor: pointer;
-}
+.crumbBtn { display: inline-flex; align-items: center; gap: 6px; padding: 2px 6px; background: transparent; border: none; color: #93c5fd; border-radius: 6px; cursor: pointer; }
 .crumbBtn:hover { background: rgba(148,163,184,.08); }
 
-.tag {
-  background: var(--c-chip-bg); color: var(--c-chip-text);
-  padding: 2px 6px; border-radius: 6px; font-size: 12px; border: 1px solid var(--c-chip-br);
-}
 .separator { color: var(--c-text); opacity: .9; }
-.chev { opacity: .9; }
-
 .topRight { margin-left: auto; }
 
 .pageTitle { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 18px; font-weight: 700; line-height: 1.3; }
 .titleText { word-break: break-word; }
 .infoDot { display: inline-flex; align-items: center; justify-content: center; color: var(--c-muted); }
 .rightActions { margin-left: auto; display: flex; align-items: center; gap: 8px; }
-.rightActions :is(button, a, [role="button"]) { cursor: pointer; }
-rightActions :is(button, a, [role="button"]):hover { filter: brightness(1.06); }
 
-/* === 드롭다운 ============================================ */
 .dropdownRoot { position: relative; }
-
-.dropdown {
-  position: absolute;
-  top: calc(100% + 8px);
-  left: 0;
-  min-width: 220px;
-  background: var(--menu-bg);
-  border: 1px solid var(--menu-br);
-  border-radius: 10px;
-  box-shadow: var(--menu-shadow);
-  padding: 8px 0;
-  z-index: 1000;
-}
-
-.dropdownHeader {
-  padding: 8px 12px;
-  font-weight: 700;
-  opacity: .9;
-  border-bottom: 1px solid var(--menu-br);
-  margin-bottom: 6px;
-}
-
+.dropdown { position: absolute; top: calc(100% + 8px); left: 0; min-width: 220px; background: var(--menu-bg); border: 1px solid var(--menu-br); border-radius: 10px; box-shadow: var(--menu-shadow); padding: 8px 0; z-index: 1000; }
+.dropdownHeader { padding: 8px 12px; font-weight: 700; opacity: .9; border-bottom: 1px solid var(--menu-br); margin-bottom: 6px; }
 .dropdownList { display: flex; flex-direction: column; gap: 2px; max-height: 320px; overflow: auto; }
-
-.dropdownRow {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: center;
-  padding-right: 4px;
-}
-
-.dropdownItem,
-.dropdownItemMuted {
-  height: var(--menu-item-h);
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 0 12px; gap: 8px; text-align: left;
-  background: transparent; border: none; color: var(--c-text);
-}
-
+.dropdownRow { display: grid; grid-template-columns: 1fr auto; align-items: center; padding-right: 4px; }
+.dropdownItem, .dropdownItemMuted { height: var(--menu-item-h); display: flex; align-items: center; justify-content: space-between; padding: 0 12px; gap: 8px; background: transparent; border: none; color: var(--c-text); }
 .dropdownItem { cursor: pointer; }
 .dropdownItem:hover { background: rgba(148,163,184,.08); }
 .dropdownItemMuted { color: var(--c-muted); cursor: default; }
 
 .iconBtn {
-  background: transparent; border: none; color: var(--c-muted);
+  background: transparent; border: 1px solid #334155; color: #cbd5e1;
   display: inline-flex; align-items: center; justify-content: center;
-  width: 28px; height: 28px; border-radius: 6px; cursor: pointer;
+  width: 28px; height: 28px; border-radius: 8px; cursor: pointer; padding: 8px;
 }
 .iconBtn:hover { color: #fff; background: rgba(148,163,184,.08); }
 
-.subtleId { margin-left: 6px; opacity: .6; font-size: 12px; }
-
-.dropdownFooter {
-  border-top: 1px solid var(--menu-br);
-  margin-top: 8px; padding-top: 8px;
-  display: flex; justify-content: stretch;
-}
-
-.footerBtn {
-  width: 100%; height: var(--menu-item-h);
-  display: inline-flex; align-items: center; gap: 8px; justify-content: center;
-  background: transparent; border: none; color: #cbd5e1; cursor: pointer;
-}
+.dropdownFooter { border-top: 1px solid var(--menu-br); margin-top: 8px; padding-top: 8px; display: flex; justify-content: stretch; }
+.footerBtn { width: 100%; height: var(--menu-item-h); display: inline-flex; align-items: center; gap: 8px; justify-content: center; background: transparent; border: none; color: #cbd5e1; cursor: pointer; }
 .footerBtn:hover { background: rgba(148,163,184,.08); }
 
-/* 모바일 폰트 크기 약간 축소 */
+.searchActions { display: flex; align-items: center; gap: 8px; }
+.searchWrap { position: relative; }
+.searchIcon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--c-muted); opacity: .85; pointer-events: none; }
+.searchInput { height: 36px; width: 220px; padding: 0 12px 0 32px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: #e2e8f0; outline: none; }
+.searchInput::placeholder { color: #94a3b8; }
+.searchInput:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,.15); }
+
+.primaryBtn { padding: 8px 14px; border-radius: 8px; background: #0f172a; color: #e2e8f0; border: 1px solid #334155; display: inline-flex; align-items: center; gap: 6px; }
+
+/* 모바일 축소 */
 @media (max-width: 640px) {
   :root { --pad-x: 16px; }
   .breadcrumbs { font-size: 13px; }
   .pageTitle { font-size: 16px; }
+  .searchInput { width: 160px; }
 }
-
-.primaryBtn{padding:8px 14px;border-radius:8px;background:#0f172a;color:#e2e8f0;border:1px solid transparent}
-.iconBtn{padding:8px;border:1px solid #334155;border-radius:8px;background:transparent;color:#cbd5e1}

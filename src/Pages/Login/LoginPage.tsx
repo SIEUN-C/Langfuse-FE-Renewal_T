@@ -66,7 +66,7 @@ const LoginPage = () => {
                     const orgs = sessionData?.user?.organizations || [];
                     if (orgs.length === 0) {
                     // 조직 없으면 Setup 페이지 (조직+프로젝트 생성)
-                    window.location.href = "/setup";
+                    window.location.href = "/?search=";
                     } else {
                     // 조직 있으면 홈으로
                     window.location.href = "/";

@@ -186,3 +186,108 @@
     font-size: 14px;
     letter-spacing: -0.025em;
 }
+
+
+/* ---------- SetupOrganizationPage 전용 보조 스타일 ---------- */
+
+/* 상단 타이틀/검색/버튼 */
+.settings-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.settings-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.settings-search-input {
+  width: 360px;
+  min-width: 260px;
+  margin: 0;
+}
+
+/* Get Started hero 영역 */
+.get-started-hero {
+  padding: 20px;
+}
+
+.hero-left {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hero-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+
+/* pill 버튼(우측 상단, 카드 안 공용) */
+.pill-primary,
+.pill-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s ease;
+}
+
+.pill-primary {
+  background: #0b1220; /* 어두운 틴트 위에 */
+  color: #ffffff;
+  border-color: #0b1220;
+  box-shadow: 0 1px 3px rgba(0,0,0,.2);
+}
+.pill-primary:hover {
+  transform: translateY(-1px);
+  background: #111827;
+}
+
+.pill-secondary {
+  background: #0f172a;
+  color: #e2e8f0;
+  border-color: #334155;
+}
+.pill-secondary:hover {
+  background: #111827;
+  border-color: #475569;
+}
+
+/* 카드 안 버튼 줄 */
+.hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+/* 폼 액션 */
+.org-form .form-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+/* 메인 CTA 강조 */
+.primary-cta {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: #fff;
+  border: 1px solid transparent;
+}
+.primary-cta:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  box-shadow: 0 4px 8px rgba(59,130,246,.25);
+}

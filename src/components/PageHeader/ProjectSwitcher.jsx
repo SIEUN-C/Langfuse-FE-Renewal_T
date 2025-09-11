@@ -165,8 +165,10 @@ export default function ProjectSwitcher({ currentProjectId }) {
   };
 
   // 라벨: 전역 이름 > 세션에서 찾은 현재 프로젝트 이름 > 기본
-  const label = selectedName || currentProject?.name || "Projects";
-
+  // URL에 /project/:id 가 있으면 그걸 최우선 반영 (세션 늦어도 즉시 ID 노출)
+  const label = currentProjectId
+    ? (currentProject?.name || currentProjectId)
+    : (selectedName || "Projects");
   return (
     <div className={styles["ps-switcherWrap"]}>
       <button

@@ -65,7 +65,7 @@ export async function createInvite(projectId, { email, orgRole = "MEMBER", proje
   // 기존처럼 단일 절차명일 경우:
   // return trpcMutation("members.create", payload);
 
-  // ✅ 서버 환경마다 절차명이 다를 수 있어 안전하게 시도
+  // 서버 환경마다 절차명이 다를 수 있어 안전하게 시도
   return trpcTryManyMutation(
     [
       "members.create",
@@ -76,7 +76,7 @@ export async function createInvite(projectId, { email, orgRole = "MEMBER", proje
   );
 }
 
-/** ✅ 초대 취소 */
+/** 초대 취소 */
 export async function cancelInvite(projectId, inviteId) {
   const orgId = await resolveOrgId(projectId);
   const payload = { inviteId, orgId };

@@ -27,11 +27,20 @@ export default function Layout({ session }) {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // ✅ /setup 여부: 사이드바는 그대로, 메뉴만 숨김
-  const isSetup = useMemo(
+ // /setup 또는 /?search 여부: 사이드바는 그대로, 메뉴만 숨김
+  const isSetupPath = useMemo(
     () => location.pathname === "/setup" || location.pathname.startsWith("/setup"),
     [location.pathname]
   );
+  const isSearchQuery = useMemo(() => {
+    try {
+      const sp = new URLSearchParams(location.search);
+      return sp.has("search");
+    } catch {
+      return false;
+    }
+  }, [location.search]);
+  const isMinimalChrome = isSetupPath || isSearchQuery; // ← 둘 다 동일 처리
 
   // 현재 활성 프로젝트 ID (세션 검증 포함)
   const { projectId: activeProjectId } = useProjectId({
@@ -212,8 +221,8 @@ export default function Layout({ session }) {
         </div>
 
         <div className={styles.menuWrapper}>
-          {/* ✅ /setup에서는 메뉴 목록을 렌더링하지 않음 */}
-          {!isSetup && (
+          {/* /setup 또는 /?search에서는 메뉴 목록 숨김 */}
+          {!isMinimalChrome  && (
             <ul className={styles.menu} role="menu" aria-label="Main navigation">
               {mainMenuSections.map((section, i) => (
                 <li key={i}>
@@ -248,8 +257,8 @@ export default function Layout({ session }) {
         </div>
 
         <div>
-          {/* ✅ /setup에서는 하단 Settings 메뉴도 숨김, 로그인 정보(유저 메뉴)는 그대로 표시 */}
-          {!isSetup && (
+          {/* /setup 또는 /?search에서는 하단 Settings 메뉴도 숨김, 로그인 정보는 표시 */}
+          {!isMinimalChrome  && (
             <ul className={`${styles.menu} ${styles.bottomMenu}`} role="menu" aria-label="Secondary navigation">
               {bottomMenu.map((item) => (
                 <NavLink
@@ -319,8 +328,8 @@ export default function Layout({ session }) {
           title={headerConfig.title ?? pageTitle}
           onToggleSidebar={() => setCollapsed((prev) => !prev)}
           flushLeft
-          // /setup에서는 우측 액션 숨김 (필요 시 노출 가능)
-          rightActions={isSetup ? null : headerRightActionsCombined}
+          // /setup 또는 /?search에서는 우측 액션 숨김
+          rightActions={isMinimalChrome  ? null : headerRightActionsCombined}
           sessionLoader={fetchSession}
           currentProjectId={activeProjectId}
         />
