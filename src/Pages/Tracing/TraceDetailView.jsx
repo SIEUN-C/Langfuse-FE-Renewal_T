@@ -168,6 +168,10 @@ const TraceDetailView = ({ details, isLoading, error }) => {
     removeComment,
   } = useComments(projectId, objectType, details?.id);
 
+  // 버튼에 표시할 댓글 수 (최대 99+ 표기)
+  const commentCount = Array.isArray(comments) ? comments.length : 0;
+  const commentCountLabel = commentCount > 99 ? '99+' : String(commentCount);
+
   const handleAddComment = async (content) => {
     const result = await addComment(content);
     if (result.success) {
@@ -331,12 +335,19 @@ const TraceDetailView = ({ details, isLoading, error }) => {
                 <Plus size={14} /> Add to datasets
               </button>
             )}
+
             <button
-              className={`${styles.iconButton} ${styles.actionButtonSecondary}`}
+              className={`${styles.iconButton} ${styles.actionButtonSecondary} ${styles.commentButton}`}
               onClick={() => setIsCommentsOpen(true)}
+              aria-label={`Open comments${commentCount ? `, ${commentCount} items` : ''}`}
+              title={`Comments${commentCount ? ` (${commentCountLabel})` : ''}`}
             >
               <MessageSquare size={16} />
+              {commentCount > 0 && (
+                <span className={styles.commentBadge}>{commentCountLabel}</span>
+              )}
             </button>
+
           </div>
         </div>
         <div className={styles.infoBarBottom}>

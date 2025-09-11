@@ -272,6 +272,8 @@
   color: #d1d5db;
 }
 
+/* 기존 .versionMeta 스타일을 아래로 교체해주세요 */
+
 .versionMeta {
   font-size: 11px;
   color: #94a3b8;
@@ -296,6 +298,53 @@
   /* --- ▲▲▲ [수정] 텍스트 overflow 처리 개선 ▲▲▲ --- */
 }
 
+/* --- ▼▼▼ [추가] 헤더의 버전 정보 스타일 ▼▼▼ --- */
+.versionInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.versionNumber {
+  font-size: 20px;
+  font-weight: 600;
+  color: #a78bfa;
+}
+
+.commitMessage {
+  font-size: 16px;
+  color: #e2e8f0;
+  font-weight: 400;
+}
+
+.labelsContainer {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.statusTagLatest,
+.statusTagProd {
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 500;
+}
+
+.statusTagLatest {
+  background-color: #1e40af;
+  color: #dbeafe;
+}
+
+.statusTagProd {
+  background-color: #166534;
+  color: #dcfce7;
+}
+/* --- ▲▲▲ [추가] 헤더의 버전 정보 스타일 ▲▲▲ --- */
 
 /* 3b. 우측 패널 */
 .rightPanel {
@@ -571,3 +620,24 @@
   font-style: italic;
 }
 /* --- ▲▲▲ [추가] 커밋 메시지 스타일 ▲▲▲ --- */
+
+/* --- ▼▼▼ [추가] 우측 패널 헤더 스타일 ▼▼▼ --- */
+.rightPanelHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #1e293b;
+  background-color: #0f172a;
+  flex-shrink: 0;
+}
+
+/* versionInfo, versionNumber, commitMessage, labelsContainer 등의 스타일은 이미 존재함 */
+
+/* headerActions도 이미 존재하지만, 위치 조정을 위해 약간 수정 */
+.rightPanelHeader .headerActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+/* --- ▲▲▲ [추가] 우측 패널 헤더 스타일 ▲▲▲ --- */

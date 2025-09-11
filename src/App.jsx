@@ -130,7 +130,9 @@ export default function App() {
       {/* 루트 */}
       <Route
         path="/"
-        element={session ? <Layout session={session} /> : <Navigate to="/login" />}
+        element={
+          session ? <Layout session={session} /> : <Navigate to="/login" />
+        }
       >
         {/* 홈: 조직 없으면 /setup, 있으면 /trace */}
         <Route
@@ -367,6 +369,19 @@ export default function App() {
         {/* 짧은 경로는 Gate 사용 */}
         <Route path="dashboards" element={<ProjectGate />} />
         <Route path="widgets" element={<ProjectGate />} />
+
+        {/* Home 페이지 - projectId 기반 */}
+        <Route
+          path="project/:projectId"
+          element={
+            <RequireOrg>
+              <Home />
+            </RequireOrg>
+          }
+        />
+
+        {/* 짧은 경로용 Gate */}
+        <Route path="home" element={<ProjectGate />} />
 
         {/* Settings 옆(같은 계층)에 둡니다 */}
         <Route
