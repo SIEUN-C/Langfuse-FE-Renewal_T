@@ -11,7 +11,8 @@
 .infoBar {
   display: flex;
   flex-direction: column;
-  gap: 16px; /* 섹션 간 간격 */
+  gap: 16px;
+  /* 섹션 간 간격 */
   font-size: 13px;
   padding-bottom: 16px;
   border-bottom: 1px solid #30363d;
@@ -21,7 +22,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap; /* 공간 부족 시 줄바꿈 허용 */
+  flex-wrap: wrap;
+  /* 공간 부족 시 줄바꿈 허용 */
   gap: 12px;
 }
 
@@ -36,7 +38,8 @@
 }
 
 .traceName {
-  font-size: 20px; /* 크기 조정 */
+  font-size: 20px;
+  /* 크기 조정 */
   font-weight: 500;
   margin: 0;
   color: #e6edf3;
@@ -55,10 +58,12 @@
   border: none;
   color: #7d8590;
   cursor: pointer;
-  font-size: 13px; /* 크기 조정 */
+  font-size: 13px;
+  /* 크기 조정 */
   font-family: 'D2Coding', 'Courier New', monospace;
   padding: 0;
 }
+
 .idButton:hover {
   color: #c9d1d9;
 }
@@ -67,10 +72,12 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-shrink: 0; /* 액션 버튼은 줄어들지 않음 */
+  flex-shrink: 0;
+  /* 액션 버튼은 줄어들지 않음 */
 }
 
-.actionButton, .actionButtonSecondary {
+.actionButton,
+.actionButtonSecondary {
   background-color: #21262d;
   border: 1px solid #30363d;
   color: #c9d1d9;
@@ -83,17 +90,21 @@
   align-items: center;
   gap: 6px;
 }
-.actionButton:hover, .actionButtonSecondary:hover {
+
+.actionButton:hover,
+.actionButtonSecondary:hover {
   border-color: #8b949e;
 }
 
 .actionButtonSecondary {
-  padding: 8px; /* 아이콘 버튼 패딩 조정 */
+  padding: 8px;
+  /* 아이콘 버튼 패딩 조정 */
 }
 
 .annotateButton {
   display: flex;
 }
+
 .annotateButton button {
   background-color: #21262d;
   border: 1px solid #30363d;
@@ -108,6 +119,7 @@
   border-top-left-radius: 6px;
   border-bottom-left-radius: 6px;
 }
+
 .annotateButton .annotateButtonChevron {
   background-color: #21262d;
   border: 1px solid #30363d;
@@ -120,7 +132,9 @@
   display: flex;
   align-items: center;
 }
-.annotateButton:hover button, .annotateButton:hover .annotateButtonChevron {
+
+.annotateButton:hover button,
+.annotateButton:hover .annotateButtonChevron {
   border-color: #8b949e;
 }
 
@@ -131,8 +145,10 @@
 }
 
 .timestamp {
-  color: #c9d1d9; /* 폰트 색상 변경 */
-  font-size: 14px; /* 폰트 크기 변경 */
+  color: #c9d1d9;
+  /* 폰트 색상 변경 */
+  font-size: 14px;
+  /* 폰트 크기 변경 */
   font-family: 'D2Coding', 'Courier New', monospace;
 }
 
@@ -193,6 +209,7 @@
   border-radius: 6px;
   overflow: hidden;
 }
+
 .cardHeader {
   position: relative;
   padding: 10px 16px;
@@ -200,11 +217,13 @@
   justify-content: space-between;
   align-items: center;
 }
+
 .cardTitle {
   font-size: 14px;
   font-weight: 400;
   color: #e6edf3;
 }
+
 .cardBody {
   padding: 16px;
   font-size: 13px;
@@ -212,6 +231,7 @@
   overflow-y: auto;
   border-top: 1px solid #30363d;
 }
+
 .cardBody pre {
   margin: 0;
   font-family: 'D2Coding', 'Courier New', monospace;
@@ -219,9 +239,11 @@
   word-break: break-word;
   color: #c9d1d9;
 }
+
 .noDataText {
   color: #7d8590;
 }
+
 .formatToggle {
   display: flex;
   justify-content: flex-end;
@@ -230,6 +252,7 @@
   position: relative;
   z-index: 2;
 }
+
 .toggleButton {
   background-color: #21262d;
   border: 1px solid #30363d;
@@ -238,19 +261,23 @@
   font-size: 12px;
   cursor: pointer;
 }
+
 .toggleButton:first-of-type {
   border-top-left-radius: 6px;
   border-bottom-left-radius: 6px;
   border-right: none;
 }
+
 .toggleButton:last-of-type {
   border-top-right-radius: 6px;
   border-bottom-right-radius: 6px;
 }
+
 .toggleButton.active {
   background-color: #0d1117;
   color: #e6edf3;
 }
+
 .copyButton {
   background: none;
   border: none;
@@ -259,22 +286,27 @@
   padding: 4px;
   border-radius: 4px;
 }
+
 .copyButton:hover {
   background-color: #30363d;
   color: #e6edf3;
 }
+
 .outputCard {
   border-left: 4px solid #3fb950;
 }
+
 .outputCard .cardBody {
   background-color: #0d1117;
 }
+
 .formattedTable {
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
   font-family: 'D2Coding', 'Courier New', monospace;
 }
+
 .formattedTable th {
   text-align: left;
   padding: 8px 4px;
@@ -282,18 +314,51 @@
   font-weight: 500;
   border-bottom: 1px solid #30363d;
 }
+
 .formattedTable td {
   padding: 8px 4px;
   border-bottom: 1px solid #30363d;
 }
+
 .formattedTable tr:last-child td {
   border-bottom: none;
 }
+
 .pathCell {
   color: #7d8590;
   width: 150px;
   vertical-align: top;
 }
+
 .valueCell {
   color: #c9d1d9;
+}
+
+
+.commentButton {
+  position: relative;
+}
+
+.commentBadge {
+  position: absolute;
+  top: -4px;
+  /* 아이콘 오른쪽 위에 살짝 걸치도록 */
+  right: -4px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  line-height: 1;
+  font-weight: 600;
+  background: #7c3aed;
+  /* 테마 보라/하이라이트 계열로 맞추세요 */
+  color: white;
+  box-shadow: 0 0 0 2px var(--panel-bg, #0b0e14);
+  /* 다크테마에서 가장자리 깔끔 */
+  pointer-events: none;
+  /* 클릭 방해 X */
 }
