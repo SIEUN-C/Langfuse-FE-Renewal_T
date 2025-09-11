@@ -4,6 +4,8 @@ import { useParams } from 'react-router-dom';
 
 // ===== 1단계: TracesBarListChart 테스트 =====
 import TracesBarListChart from '../Dashboards/components/charts/TracesBarListChart';
+// ===== 2단계: ModelCostTable 추가 =====
+import ModelCostTable from '../Dashboards/components/charts/ModelCostTable';
 
 // 아이콘
 import { BarChart2, TestTube2, CheckCircle } from 'lucide-react';
@@ -34,7 +36,8 @@ const Home = () => {
   // 기본 상태
   const [isLoading, setIsLoading] = useState(false);
   const [testResults, setTestResults] = useState({
-    TracesBarListChart: 'testing' // 'testing' | 'success' | 'error'
+    TracesBarListChart: 'testing', // 'testing' | 'success' | 'error'
+    ModelCostTable: 'testing'
   });
   
   console.log('🏠 Home 컴포넌트 렌더링:', { projectId });
@@ -91,41 +94,17 @@ const Home = () => {
         </div>
       </div>
 
-      {/* 테스트 상태 표시 */}
-      <div className={styles.testStatus}>
-        <h3>컴포넌트 테스트 상태</h3>
-        <div className={styles.testItems}>
-          <div className={`${styles.testItem} ${styles[testResults.TracesBarListChart]}`}>
-            {testResults.TracesBarListChart === 'success' && <CheckCircle size={16} />}
-            {testResults.TracesBarListChart === 'testing' && <TestTube2 size={16} />}
-            {testResults.TracesBarListChart === 'error' && <span>❌</span>}
-            TracesBarListChart: {testResults.TracesBarListChart}
-          </div>
-          
-          {/* 향후 추가될 컴포넌트들 */}
-          <div className={`${styles.testItem} ${styles.pending}`}>
-            ⏳ TracesAndObservationsTimeSeriesChart: pending
-          </div>
-          <div className={`${styles.testItem} ${styles.pending}`}>
-            ⏳ ModelUsageChart: pending
-          </div>
-          <div className={`${styles.testItem} ${styles.pending}`}>
-            ⏳ UserChart: pending
-          </div>
-        </div>
-      </div>
-
       {/* 임시 필터 정보 */}
       <div className={styles.filtersContainer}>
         <div className={styles.filtersLeft}>
           <div className={styles.filterChip}>
-            📅 Past 7 days
+            Past 7 days
           </div>
           <div className={styles.filterChip}>
-            🌍 Environment: All
+            Environment: All
           </div>
           <div className={styles.filterChip}>
-            🏗️ Aggregation: {mockData.agg}
+            Aggregation: {mockData.agg}
           </div>
         </div>
 
@@ -140,7 +119,7 @@ const Home = () => {
         </div>
       </div>
 
-      {/* 대시보드 그리드 - 1개 컴포넌트만 테스트 */}
+      {/* 대시보드 그리드 - 2개 컴포넌트 테스트 */}
       <div className={styles.dashboardGrid}>
         
         {/* 🧪 TracesBarListChart 테스트 영역 */}
@@ -169,12 +148,36 @@ const Home = () => {
           </div>
         </div>
 
+        {/* 💰 ModelCostTable 테스트 영역 */}
+        <div className={styles.testingCard}>
+          <div className={styles.testingHeader}>
+            <h2>
+              <TestTube2 size={20} />
+              Testing: ModelCostTable
+            </h2>
+            <div className={styles.testingBadge}>
+              Status: {testResults.ModelCostTable}
+            </div>
+          </div>
+          
+          <div className={styles.chartWrapper}>
+            <ModelCostTable
+              className={styles.modelCostTable}
+              projectId={projectId}
+              globalFilterState={mockData.filterState}
+              fromTimestamp={mockData.dateRange.from}
+              toTimestamp={mockData.dateRange.to}
+              isLoading={isLoading}
+            />
+          </div>
+        </div>
+
         {/* 향후 구현될 차트들 - 플레이스홀더 */}
         <div className={styles.placeholderCard}>
           <div className={styles.placeholderContent}>
             <h3>📊 Traces by Time</h3>
             <p>TracesAndObservationsTimeSeriesChart</p>
-            <small>구현 예정 (2단계)</small>
+            <small>구현 예정 (3단계)</small>
           </div>
         </div>
 
@@ -182,7 +185,7 @@ const Home = () => {
           <div className={styles.placeholderContent}>
             <h3>🤖 Model Usage</h3>
             <p>ModelUsageChart</p>
-            <small>구현 예정 (2단계)</small>
+            <small>구현 예정 (3단계)</small>
           </div>
         </div>
 
@@ -190,14 +193,6 @@ const Home = () => {
           <div className={styles.placeholderContent}>
             <h3>👤 User Consumption</h3>
             <p>UserChart</p>
-            <small>구현 예정 (2단계)</small>
-          </div>
-        </div>
-
-        <div className={styles.placeholderCard}>
-          <div className={styles.placeholderContent}>
-            <h3>💰 Model Cost Table</h3>
-            <p>ModelCostTable</p>
             <small>구현 예정 (3단계)</small>
           </div>
         </div>
@@ -219,7 +214,7 @@ const Home = () => {
             <div><strong>Project ID:</strong> {projectId}</div>
             <div><strong>Date Range:</strong> {mockData.dateRange.from.toLocaleDateString()} ~ {mockData.dateRange.to.toLocaleDateString()}</div>
             <div><strong>Filter State:</strong> {JSON.stringify(mockData.filterState)}</div>
-            <div><strong>Current Phase:</strong> TracesBarListChart 단독 테스트</div>
+            <div><strong>Current Phase:</strong> TracesBarListChart + ModelCostTable 테스트</div>
           </div>
         </details>
       </div>

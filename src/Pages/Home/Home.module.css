@@ -1,386 +1,548 @@
-/* src/Pages/Home/Home.module.css */
+/* src/Pages/Home/Home.module.css - 동적 필터 시스템 지원 */
 
-/* =========================
-   메인 컨테이너
-   ========================= */
-   .homePage {
-    padding: 24px;
-    background-color: #020817;
-    color: #f8fafc;
-    min-height: 100vh;
-    display: flex;
+/* ===== 기본 페이지 레이아웃 ===== */
+.homePage {
+  padding: 24px;
+  background-color: #020817;
+  color: #f8fafc;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ===== 페이지 헤더 ===== */
+.pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.titleGroup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.titleGroup h1 {
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0;
+  color: #f8fafc;
+}
+
+.devBadge {
+  background-color: #10b981;
+  color: #064e3b;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.projectInfo {
+  font-size: 14px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.setupTracingBtn {
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.setupTracingBtn:hover {
+  background-color: #2563eb;
+}
+
+/* ===== 테스트 상태 표시 ===== */
+.testStatus {
+  background-color: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.testStatus h3 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  color: #f8fafc;
+}
+
+.testItems {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.testItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.testItem.testing {
+  background-color: #fbbf24;
+  color: #92400e;
+}
+
+.testItem.success {
+  background-color: #10b981;
+  color: #064e3b;
+}
+
+.testItem.error {
+  background-color: #ef4444;
+  color: #7f1d1d;
+}
+
+.testItem.pending {
+  background-color: #6b7280;
+  color: #1f2937;
+}
+
+/* ===== 동적 필터 섹션 ===== */
+.filtersSection {
+  background-color: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* 상단 필터 컨트롤 */
+.filtersTop {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+/* 날짜 범위 컨테이너 */
+.dateRangeContainer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #94a3b8;
+}
+
+/* 집계 옵션 컨테이너 */
+.aggregationContainer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #94a3b8;
+}
+
+.aggregationSelect {
+  background-color: #1e293b;
+  color: #cbd5e1;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  padding: 7px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  min-width: 120px;
+}
+
+.aggregationSelect:hover {
+  background-color: #334155;
+}
+
+.aggregationSelect:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+/* 테스트 버튼 */
+.requestChartBtn {
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background-color 0.2s;
+  margin-left: auto; /* 오른쪽 끝으로 이동 */
+}
+
+.requestChartBtn:hover {
+  background-color: #2563eb;
+}
+
+/* 하단 고급 필터 */
+.filtersBottom {
+  border-top: 1px solid #334155;
+  padding-top: 16px;
+}
+
+.advancedFiltersHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  color: #cbd5e1;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.filterCount {
+  background-color: #3b82f6;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  min-width: 20px;
+  text-align: center;
+}
+
+.filterControls {
+  /* FilterControls 컴포넌트 스타일은 해당 컴포넌트에서 관리 */
+}
+
+/* ===== 현재 필터 상태 표시 (개발용) ===== */
+.currentFiltersDisplay {
+  background-color: #1e293b;
+  border: 1px solid #475569;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.currentFiltersDisplay h4 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  color: #f8fafc;
+}
+
+.filterStateInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.filterStateInfo > div {
+  display: flex;
+  gap: 8px;
+}
+
+.filterStateInfo strong {
+  color: #f8fafc;
+  min-width: 120px;
+}
+
+.activeFilters {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+  padding-left: 120px; /* 라벨과 정렬 */
+}
+
+.activeFilter {
+  display: flex;
+  gap: 8px;
+  background-color: #334155;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.filterField {
+  color: #10b981;
+  font-weight: 500;
+}
+
+.filterOperator {
+  color: #fbbf24;
+  font-weight: 500;
+}
+
+.filterValue {
+  color: #f8fafc;
+}
+
+/* ===== 대시보드 그리드 ===== */
+.dashboardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 24px;
+}
+
+/* 테스트 카드 */
+.testingCard {
+  background-color: #0f172a;
+  border: 2px solid #3b82f6;
+  border-radius: 12px;
+  padding: 20px;
+  min-height: 300px;
+}
+
+.testingHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.testingHeader h2 {
+  margin: 0;
+  font-size: 18px;
+  color: #f8fafc;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.testingBadge {
+  background-color: #1e293b;
+  color: #cbd5e1;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.chartWrapper {
+  height: 250px;
+  overflow: hidden;
+}
+
+.tracesChart {
+  height: 100%;
+}
+
+.modelCostTable {
+  height: 100%;
+}
+
+.modelCostTable {
+  height: 100%;
+}
+
+/* 플레이스홀더 카드 */
+.placeholderCard {
+  background-color: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  padding: 20px;
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.placeholderContent {
+  text-align: center;
+  color: #94a3b8;
+}
+
+.placeholderContent h3 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  color: #cbd5e1;
+}
+
+.placeholderContent p {
+  margin: 0 0 4px 0;
+  font-size: 14px;
+}
+
+.placeholderContent small {
+  font-size: 12px;
+  color: #64748b;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.mockProps {
+  margin-top: 8px;
+  padding: 8px;
+  background-color: #0f172a;
+  border-radius: 4px;
+  border: 1px solid #334155;
+}
+
+.mockProps code {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 10px;
+  color: #10b981;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* ===== 개발 정보 패널 ===== */
+.devInfo {
+  background-color: #1e293b;
+  border: 1px solid #475569;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.devInfo details {
+  color: #cbd5e1;
+}
+
+.devInfo summary {
+  cursor: pointer;
+  font-weight: 500;
+  margin-bottom: 12px;
+}
+
+.devInfo summary:hover {
+  color: #f8fafc;
+}
+
+.devDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 14px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+}
+
+.devDetails > div {
+  display: flex;
+  gap: 8px;
+}
+
+.devDetails strong {
+  color: #f8fafc;
+  min-width: 140px;
+  flex-shrink: 0;
+}
+
+/* ===== 반응형 디자인 ===== */
+
+/* 태블릿 */
+@media (max-width: 1024px) {
+  .filtersTop {
     flex-direction: column;
-    gap: 24px;
+    align-items: flex-start;
+    gap: 12px;
   }
   
-  /* =========================
-     페이지 헤더
-     ========================= */
+  .requestChartBtn {
+    margin-left: 0;
+    align-self: flex-end;
+  }
+  
+  .dashboardGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 모바일 */
+@media (max-width: 768px) {
+  .homePage {
+    padding: 16px;
+    gap: 16px;
+  }
+  
   .pageHeader {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-bottom: 16px;
-    border-bottom: 1px solid #1e293b;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
   }
   
-  .titleGroup {
-    display: flex;
-    align-items: center;
+  .headerActions {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .filtersSection {
+    padding: 16px;
+  }
+  
+  .filtersTop {
+    gap: 8px;
+  }
+  
+  .dateRangeContainer,
+  .aggregationContainer {
+    width: 100%;
+  }
+  
+  .aggregationSelect {
+    width: 100%;
+  }
+  
+  .requestChartBtn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .filterStateInfo {
+    font-size: 12px;
+  }
+  
+  .activeFilters {
+    padding-left: 0;
+  }
+  
+  .dashboardGrid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .testingCard,
+  .placeholderCard {
+    min-height: 250px;
+  }
+}
+
+/* 작은 모바일 */
+@media (max-width: 480px) {
+  .homePage {
+    padding: 12px;
     gap: 12px;
   }
   
   .titleGroup h1 {
-    font-size: 24px;
-    font-weight: 600;
-    margin: 0;
-    color: #f8fafc;
+    font-size: 20px;
   }
   
-  .devBadge {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    background-color: #fbbf24;
-    color: #1f2937;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: 500;
+  .filtersSection {
+    padding: 12px;
   }
   
-  .headerActions {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-  
-  .projectInfo {
-    background-color: #1e293b;
-    padding: 8px 12px;
-    border-radius: 6px;
-    font-size: 14px;
-    color: #cbd5e1;
-    border: 1px solid #334155;
-  }
-  
-  .setupTracingBtn {
-    background-color: #3b82f6;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.2s;
-  }
-  
-  .setupTracingBtn:hover {
-    background-color: #2563eb;
-  }
-  
-  /* =========================
-     테스트 상태 패널
-     ========================= */
-  .testStatus {
-    background-color: #1e293b;
-    border: 1px solid #334155;
-    border-radius: 8px;
+  .testingCard,
+  .placeholderCard {
     padding: 16px;
-  }
-  
-  .testStatus h3 {
-    margin: 0 0 12px 0;
-    font-size: 16px;
-    color: #f1f5f9;
-  }
-  
-  .testItems {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  
-  .testItem {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    border-radius: 4px;
-    font-size: 13px;
-    font-weight: 500;
-    border: 1px solid;
-  }
-  
-  .testItem.testing {
-    background-color: #fef3c7;
-    color: #d97706;
-    border-color: #f59e0b;
-  }
-  
-  .testItem.success {
-    background-color: #d1fae5;
-    color: #059669;
-    border-color: #10b981;
-  }
-  
-  .testItem.error {
-    background-color: #fee2e2;
-    color: #dc2626;
-    border-color: #ef4444;
-  }
-  
-  .testItem.pending {
-    background-color: #f1f5f9;
-    color: #64748b;
-    border-color: #cbd5e1;
-  }
-  
-  /* =========================
-     필터 컨테이너
-     ========================= */
-  .filtersContainer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px;
-    background-color: #1e293b;
-    border: 1px solid #334155;
-    border-radius: 8px;
-  }
-  
-  .filtersLeft {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-  
-  .filterChip {
-    background-color: #374151;
-    color: #f9fafb;
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 500;
-    border: 1px solid #4b5563;
-  }
-  
-  .filtersRight {
-    display: flex;
-    gap: 8px;
-  }
-  
-  .requestChartBtn {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background-color: #10b981;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.2s;
-  }
-  
-  .requestChartBtn:hover {
-    background-color: #059669;
-  }
-  
-  /* =========================
-     대시보드 그리드
-     ========================= */
-  .dashboardGrid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-    gap: 20px;
-    flex-grow: 1;
-  }
-  
-  /* =========================
-     테스팅 카드 (현재 테스트 중)
-     ========================= */
-  .testingCard {
-    grid-column: span 2;
-    background-color: #1e293b;
-    border: 2px solid #3b82f6;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.3);
-  }
-  
-  .testingHeader {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px 20px;
-    background-color: rgba(59, 130, 246, 0.1);
-    border-bottom: 1px solid #3b82f6;
-  }
-  
-  .testingHeader h2 {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin: 0;
-    font-size: 18px;
-    color: #3b82f6;
-  }
-  
-  .testingBadge {
-    background-color: #3b82f6;
-    color: white;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: 500;
+    min-height: 200px;
   }
   
   .chartWrapper {
-    padding: 20px;
-    min-height: 300px;
+    height: 200px;
   }
-  
-  .tracesChart {
-    width: 100%;
-    height: 100%;
-  }
-  
-  /* =========================
-     플레이스홀더 카드들
-     ========================= */
-  .placeholderCard {
-    background-color: #1e293b;
-    border: 1px solid #334155;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 200px;
-    opacity: 0.7;
-    transition: opacity 0.2s;
-  }
-  
-  .placeholderCard:hover {
-    opacity: 1;
-  }
-  
-  .placeholderContent {
-    text-align: center;
-    padding: 20px;
-  }
-  
-  .placeholderContent h3 {
-    margin: 0 0 8px 0;
-    font-size: 16px;
-    color: #f1f5f9;
-  }
-  
-  .placeholderContent p {
-    margin: 0 0 4px 0;
-    font-size: 13px;
-    color: #94a3b8;
-    font-family: 'JetBrains Mono', monospace;
-  }
-  
-  .placeholderContent small {
-    font-size: 11px;
-    color: #64748b;
-    font-style: italic;
-  }
-  
-  /* =========================
-     개발 정보 패널
-     ========================= */
-  .devInfo {
-    background-color: #0f172a;
-    border: 1px solid #1e293b;
-    border-radius: 6px;
-    padding: 12px;
-    margin-top: auto;
-  }
-  
-  .devInfo summary {
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-    color: #94a3b8;
-    -webkit-user-select: none;
-    user-select: none;    
-  }
-  
-  .devInfo summary:hover {
-    color: #f1f5f9;
-  }
-  
-  .devDetails {
-    margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1px solid #1e293b;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 8px;
-    font-size: 13px;
-    color: #cbd5e1;
-  }
-  
-  .devDetails div {
-    display: flex;
-    gap: 8px;
-  }
-  
-  .devDetails strong {
-    color: #f1f5f9;
-    min-width: 100px;
-  }
-  
-  /* =========================
-     반응형 디자인
-     ========================= */
-  @media (max-width: 1024px) {
-    .testingCard {
-      grid-column: span 1;
-    }
-    
-    .dashboardGrid {
-      grid-template-columns: 1fr;
-    }
-    
-    .filtersContainer {
-      flex-direction: column;
-      gap: 12px;
-      align-items: stretch;
-    }
-    
-    .filtersLeft {
-      justify-content: center;
-    }
-  }
-  
-  @media (max-width: 768px) {
-    .homePage {
-      padding: 16px;
-      gap: 16px;
-    }
-    
-    .pageHeader {
-      flex-direction: column;
-      gap: 12px;
-      align-items: stretch;
-    }
-    
-    .headerActions {
-      justify-content: space-between;
-    }
-    
-    .testItems {
-      flex-direction: column;
-    }
-    
-    .devDetails {
-      grid-template-columns: 1fr;
-    }
-  }
+}

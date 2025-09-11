@@ -98,52 +98,101 @@ export default function Layout({ session }) {
     }
   };
 
-  const mainMenuSections = [
-    {
-      title: null,
-      items: [{ 
+ // Layout.jsx의 mainMenuSections 부분만 수정
+
+const mainMenuSections = [
+  {
+    title: null,
+    items: [
+      { 
         label: "Home", 
         icon: <Home size={18} />, 
-        path: activeProjectId ? `/project/${activeProjectId}` : "/home" // 이 부분만 변경
-      }],
-    },
-    {
-      title: "Evaluation",
-      items: [
-        { label: "LLM-as-a-Judge", icon: <Lightbulb size={18} />, path: "/llm-as-a-judge" },
-        { label: "Datasets", icon: <Database size={18} />, path: "/datasets" },
-      ],
-    },
-    {
-      title: "Dashboards",
-      items: [{ label: "Dashboards", icon: <LayoutDashboard size={18} />, path: "/dashboards" }],
-    },
-    {
-      title: "Prompt Management",
-      items: [
-        { label: "Prompts", icon: <FlaskConical size={18} />, path: "/prompts" },
-        { label: "Playground", icon: <SquareStack size={18} />, path: "/playground" },
-      ],
-    },
-  ];
+        path: activeProjectId ? `/project/${activeProjectId}` : "/home" 
+      }
+    ],
+  },
+  {
+    title: "Dashboards",
+    items: [
+      { label: "Dashboards", icon: <LayoutDashboard size={18} />, path: "/dashboards" }
+    ],
+  },
+  {
+    title: "Observability",
+    items: [
+      { label: "Tracing", icon: <Activity size={18} />, path: "/trace" },
+      { label: "Sessions", icon: <MessageCircleCode size={18} />, path: "/sessions" },
+    ],
+  },
+  {
+    title: "Prompt Management",
+    items: [
+      { label: "Prompts", icon: <FlaskConical size={18} />, path: "/prompts" },
+      { label: "Playground", icon: <SquareStack size={18} />, path: "/playground" },
+    ],
+  },
+  {
+    title: "Evaluation",
+    items: [
+      { label: "LLM-as-a-Judge", icon: <Lightbulb size={18} />, path: "/llm-as-a-judge" },
+      { label: "Datasets", icon: <Database size={18} />, path: "/datasets" },
+    ],
+  },
+];
 
   const bottomMenu = [{ label: "Settings", icon: <Settings size={18} />, path: "/settings" }];
 
-  // Playground 경로를 위한 특별 로직
-  const isPathActive = (path) => {
-    if (path === "/playground") {
-      return location.pathname.includes("/playground");
-    }
-    return (
-      !!matchPath({ path, end: path === "/" }, location.pathname) ||
-      (path !== "/" && location.pathname.startsWith(path))
-    );
-  };
+// Layout.jsx의 isPathActive 함수 최종 수정
 
-  const navClass = (path) => ({ isActive }) => {
-    const finalIsActive = isActive || isPathActive(path);
-    return `${styles.menuItem} ${finalIsActive ? styles.active : ""} ${collapsed ? styles.iconOnly : ""}`.trim();
-  };
+const isPathActive = (path) => {
+  const currentPath = location.pathname;
+  
+  // Home 경로는 정확히 일치할 때만 (하위 경로 제외)
+  if (path.includes("/project/")) {
+    return currentPath === path; // 정확히 일치할 때만
+  }
+  
+  // 다른 페이지들은 포함 여부로 확인
+  if (path === "/playground") {
+    return currentPath.includes("/playground");
+  }
+  
+  if (path === "/dashboards") {
+    return currentPath.includes("/dashboards");
+  }
+  
+  if (path === "/trace") {
+    return currentPath.includes("/trace");
+  }
+  
+  if (path === "/sessions") {
+    return currentPath.includes("/sessions");
+  }
+  
+  if (path === "/prompts") {
+    return currentPath.includes("/prompts");
+  }
+  
+  if (path === "/llm-as-a-judge") {
+    return currentPath.includes("/llm-as-a-judge");
+  }
+  
+  if (path === "/datasets") {
+    return currentPath.includes("/datasets");
+  }
+  
+  if (path === "/settings") {
+    return currentPath.includes("/settings");
+  }
+  
+  // 기본 매칭
+  return !!matchPath({ path, end: path === "/" }, currentPath);
+};
+
+const navClass = (path) => () => {  // { isActive } 제거
+  const finalIsActive = isPathActive(path);
+  return `${styles.menuItem} ${finalIsActive ? styles.active : ""} ${collapsed ? styles.iconOnly : ""}`.trim();
+};
 
   const sectionActive = (section) => section.items.some(({ path }) => isPathActive(path));
 
