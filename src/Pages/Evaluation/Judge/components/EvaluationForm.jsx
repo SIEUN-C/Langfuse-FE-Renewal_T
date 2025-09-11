@@ -11,6 +11,7 @@ import {
 
 } from "./evalMapping";
 
+import TargetFilterBuilder from "./TargetFilterBuilder";
 
 export default function EvaluationForm({
 
@@ -67,15 +68,22 @@ export default function EvaluationForm({
 
     // 2) view/edit 모드: Detail preset 상태 주입
     useEffect(() => {
-        if (mode !== "create" && preset) {
-            if (Array.isArray(preset.mappingRows)) setMappingRows(preset.mappingRows);
-            if (typeof preset.filterText === "string") setFilterText(preset.filterText);
-            if (Number.isFinite(preset.samplingPct)) setSamplingPct(preset.samplingPct);
-            if (Number.isFinite(preset.delaySec)) setDelaySec(preset.delaySec);
-            if (typeof preset.runsOnNew === "boolean") setRunsOnNew(preset.runsOnNew);
-            if (typeof preset.runsOnExisting === "boolean") setRunsOnExisting(preset.runsOnExisting);
-        }
-    }, [mode, preset]);
+        if (mode === "create" || !preset) return;
+        if (Array.isArray(preset.mappingRows)) setMappingRows(preset.mappingRows);
+        if (typeof preset.filterText === "string") setFilterText(preset.filterText);
+        if (Number.isFinite(preset.samplingPct)) setSamplingPct(preset.samplingPct);
+        if (Number.isFinite(preset.delaySec)) setDelaySec(preset.delaySec);
+        if (typeof preset.runsOnNew === "boolean") setRunsOnNew(preset.runsOnNew);
+        if (typeof preset.runsOnExisting === "boolean") setRunsOnExisting(preset.runsOnExisting);
+    }, [
+        mode,
+        preset?.mappingRows,
+        preset?.filterText,
+        preset?.samplingPct,
+        preset?.delaySec,
+        preset?.runsOnNew,
+        preset?.runsOnExisting,
+    ]);
 
     // 매핑 행 조작
     const changeRow = (i, key, value) =>
@@ -126,15 +134,39 @@ export default function EvaluationForm({
             setPreviewError("");
             setPreviewLoading(true);
             try {
-                let parsed = [];
+                let parsedUI = [];
+                let parsedBE = [];
                 const raw = (filterText || "").trim();
                 if (raw) {
-                    const tmp = JSON.parse(raw);
+                    let tmp = JSON.parse(raw);
+                    // BE 스키마(op/columnId) 들어오면 UI 스키마로 보정
+                    if (Array.isArray(tmp) && tmp.some(f => f && (f.op || f.columnId))) {
+                        tmp = tmp.map(f => {
+                            const col = f.column ?? f.columnId ?? f.key ?? "";
+                            return {
+                                column: col === "datasetId" ? "Dataset" : col,
+                                operator: f.operator || f.op || "=",
+                                value: f.value ?? "",
+                                ...(f.metaKey ? { metaKey: f.metaKey } : {}),
+                            };
+                        });
+                    }
                     if (!Array.isArray(tmp)) throw new Error("Filter must be an array");
-                    // UI형/BE형 모두 허용 → 표준화
-                    parsed = tmp;
+                    // 원본 그대로 = UI형( type / operator / column 레이블 등 )
+                    parsedUI = tmp;
+                    // BE형으로 표준화(op/value/columnId 등)
+                    parsedBE = normalizeFilters(tmp).map(f =>
+                        f?.column === 'Dataset' ? { ...f, column: 'datasetId' } : f
+                    );
                 }
-                const rows = await getPreviewRows({ projectId, filter: parsed, limit: 10 });
+                const rows = await getPreviewRows({
+                    projectId,
+                    filterBE: parsedBE,
+                    filterUI: parsedUI,
+                    limit: 10
+                });
+
+
                 if (!cancelled) setPreviewRows(rows);
             } catch (e) {
                 if (!cancelled) {
@@ -264,41 +296,11 @@ export default function EvaluationForm({
                 </div>
 
                 <div className={styles.fieldsetRow}>
-                    <label className={styles.smallLabel}>Sampling (0–1)</label>
-                    <div className={styles.sliderRow}>
-                        <input
-                            type="range"
-                            min={0}
-                            max={100}
-                            value={samplingPct}
-                            onChange={(e) => setSamplingPct(+e.target.value)}
-                            className={styles.range}
-                            disabled={isReadOnly}
-                        />
-                        <div className={styles.sliderVal}>{samplingPct}%</div>
-                    </div>
-                </div>
-
-                <div className={styles.fieldsetRow}>
-                    <label className={styles.smallLabel}>Delay (seconds)</label>
-                    <input
-                        className={styles.input}
-                        type="number"
-                        min={0}
-                        value={delaySec}
-                        onChange={(e) => setDelaySec(e.target.value)}
-                        disabled={isReadOnly}
-                    />
-                </div>
-
-                <div className={styles.fieldsetRow}>
-                    <label className={styles.smallLabel}>Target filter (optional)</label>
-                    <textarea
-                        className={styles.textarea}
-                        rows={6}
+                    <label className={styles.smallLabel}>Target filter</label>
+                    <TargetFilterBuilder
+                        projectId={projectId}
                         value={filterText}
-                        onChange={(e) => setFilterText(e.target.value)}
-                        placeholder="[]"
+                        onChange={setFilterText}
                         disabled={isReadOnly}
                     />
                 </div>
@@ -343,6 +345,38 @@ export default function EvaluationForm({
                         )}
                     </div>
                 )}
+
+                <div className={styles.fieldsetRow}>
+                    <label className={styles.smallLabel}>Sampling (0–1)</label>
+                    <div className={styles.sliderRow}>
+                        <input
+                            type="range"
+                            min={0}
+                            max={100}
+                            value={samplingPct}
+                            onChange={(e) => setSamplingPct(+e.target.value)}
+                            className={styles.range}
+                            disabled={isReadOnly}
+                        />
+                        <div className={styles.sliderVal}>{samplingPct}%</div>
+                    </div>
+                </div>
+
+                <div className={styles.fieldsetRow}>
+                    <label className={styles.smallLabel}>Delay (seconds)</label>
+                    <input
+                        className={styles.input}
+                        type="number"
+                        min={0}
+                        value={delaySec}
+                        onChange={(e) => setDelaySec(e.target.value)}
+                        disabled={isReadOnly}
+                    />
+                </div>
+
+
+
+
             </section>
 
             {/* Variable mapping (프롬프트 프리뷰 포함) */}

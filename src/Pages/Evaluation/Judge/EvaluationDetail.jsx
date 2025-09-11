@@ -6,7 +6,7 @@ import styles from './EvaluationDetail.module.css';
 import useProjectId from 'hooks/useProjectId';
 import { rowsFromConfigMapping, buildVarValuesFromTrace, fillPrompt } from "../Judge/components/evalMapping";
 import { toUpdateConfigFromForm } from "../Judge/components/evalMapping";
-
+import { useMemo } from "react";
 
 
 
@@ -117,6 +117,45 @@ const EvaluationDetail = ({ onClose }) => {
     }
   };
 
+
+  const beToUiFilters = (arr) =>
+    (Array.isArray(arr) ? arr : []).map((f) => {
+      const col = f.column ?? f.columnId ?? f.key ?? "";
+      const column = col === "datasetId" ? "Dataset" : col;
+      return {
+        column,
+        operator: f.operator || f.op || "=",
+        value: f.value ?? "",
+        ...(f.metaKey ? { metaKey: f.metaKey } : {}),
+      };
+    });
+
+
+  // ✅ preset은 항상 같은 순서로 호출되도록, early return들보다 위에서 계산
+  const presetMemo = useMemo(() => {
+    // detail이 아직 없을 때는 안전한 기본값
+    if (!detail) {
+      return {
+        mappingRows: [],
+        filterText: "[]",
+        samplingPct: 100,
+        delaySec: 30,
+        runsOnNew: true,
+        runsOnExisting: false,
+      };
+    }
+    // detail 로딩 이후의 실제 값
+    const mappingRows = rowsFromConfigMapping(detail?.variableMapping || {});
+    const filterText = JSON.stringify(beToUiFilters(detail?.filter ?? []));
+    const samplingPct = Math.round((detail?.sampling ?? 1) * 100);
+    const delaySec = Math.round((detail?.delay ?? 0) / 1000);
+    const runsOnNew = (detail?.timeScope ?? 'BOTH') !== 'EXISTING';
+    const runsOnExisting = (detail?.timeScope ?? 'BOTH') !== 'NEW';
+    return { mappingRows, filterText, samplingPct, delaySec, runsOnNew, runsOnExisting };
+  }, [detail]);
+
+
+
   if (!peekId) {
     return (
       <div className={styles.container}>
@@ -136,14 +175,6 @@ const EvaluationDetail = ({ onClose }) => {
   if (!detail) return null;
 
   const isActive = detail.status === 'ACTIVE';
-
-  // 현재 설정을 Form이 그대로 재현할 수 있게 preset 구성
-  const mappingPreset = rowsFromConfigMapping(detail?.variableMapping || {});
-  const filterTextPreset = JSON.stringify(detail?.filter ?? []);
-  const samplingPctPreset = Math.round((detail?.sampling ?? 1) * 100);
-  const delaySecPreset = Math.round((detail?.delay ?? 0) / 1000);
-  const runsOnNewPreset = (detail?.timeScope ?? 'BOTH') !== 'EXISTING';
-  const runsOnExistingPreset = (detail?.timeScope ?? 'BOTH') !== 'NEW';
 
 
 
@@ -198,14 +229,7 @@ const EvaluationDetail = ({ onClose }) => {
             mode={editMode ? 'edit' : 'view'}
             projectId={projectId}
             template={detail?.template || detail?.evalTemplate || null}
-            preset={{
-              mappingRows: mappingPreset,
-              filterText: filterTextPreset,
-              samplingPct: samplingPctPreset,
-              delaySec: delaySecPreset,
-              runsOnNew: runsOnNewPreset,
-              runsOnExisting: runsOnExistingPreset,
-            }}
+            preset={presetMemo}
             preventRedirect
             onSubmit={editMode ? handleUpdate : undefined}
           />
