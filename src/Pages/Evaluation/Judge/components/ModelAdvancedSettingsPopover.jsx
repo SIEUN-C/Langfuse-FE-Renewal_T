@@ -1,39 +1,7 @@
-// src/Pages/Prompts/ModelAdvancedSettingsPopover.jsx
-
-// --- ▼▼▼ [수정] Playground 버전과 동일하게 필요한 모든 React Hooks와 라이브러리를 import 합니다. ▼▼▼ ---
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import styles from './ModelAdvancedSettingsPopover.module.css'; // CSS 파일명은 그대로 사용합니다.
-// --- ▲▲▲ [수정] 완료 ▲▲▲ ---
-
-
-// API 키를 가져오는 함수 (이전과 동일)
-function unwrapTrpcJson(json) {
-  return json?.result?.data?.json ?? json?.result?.data ?? json;
-}
-
-async function fetchProviderMaskedKey(provider, projectId) {
-  if (!provider || !projectId) {
-    return { key: "Invalid parameters" };
-  }
-  try {
-    const encodedInput = encodeURIComponent(JSON.stringify({ json: { projectId } }));
-    const response = await fetch(`/api/trpc/llmApiKey.all?input=${encodedInput}`, {
-      credentials: "include",
-    });
-    if (!response.ok) {
-      throw new Error(`API call failed with status: ${response.status}`);
-    }
-    const jsonResponse = await response.json();
-    const connections = unwrapTrpcJson(jsonResponse);
-    const targetConnection = connections?.data?.find(c => c.provider === provider);
-
-    return { key: targetConnection?.displaySecretKey ?? "Not found" };
-  } catch (error) {
-    console.error("Failed to fetch masked key:", error);
-    return { key: "Error fetching key" };
-  }
-}
+import styles from './ModelAdvancedSettingsPopover.module.css';
+import { fetchLlmApiKeys } from '../services/libraryApi'
 
 const ModelAdvancedSettingsPopover = ({
   open,
@@ -46,31 +14,34 @@ const ModelAdvancedSettingsPopover = ({
   projectId,
 }) => {
   const popoverRef = useRef(null);
-  const navigate = useNavigate(); // --- [추가] 'Manage keys' 버튼을 위해 useNavigate를 추가합니다.
-
-  // --- ▼▼▼ [수정] Playground 버전의 모든 상태와 로직을 가져옵니다. ▼▼▼ ---
-  const [position, setPosition] = useState({ top: 0, left: 0 });
-  const [apiKey, setApiKey] = useState("");
+  const navigate = useNavigate();
+  const [apiKeys, setApiKeys] = useState([]);
+  const [apiKey, setApiKey] = useState('');
 
   // API 키 가져오기
   useEffect(() => {
-    if (open && provider && projectId) {
-      fetchProviderMaskedKey(provider, projectId).then(data => {
-        setApiKey(data.key || "Not configured");
-      });
+    if (open && projectId) {
+      fetchLlmApiKeys(projectId)
+        .then(keys => {
+          setApiKeys(keys);
+        })
+        .catch(error => {
+          console.error("API Key 목록을 가져오는 데 실패했습니다:", error);
+          setApiKeys([]);
+        });
     }
-  }, [open, provider, projectId]);
+  }, [open, projectId]);
 
-  // 팝업 위치 계산
+  // provider에 맞는 키 표시
   useEffect(() => {
-    if (open && anchorRef?.current && popoverRef.current) {
-      const buttonRect = anchorRef.current.getBoundingClientRect();
-      setPosition({
-        top: buttonRect.bottom + 8,
-        left: buttonRect.left,
-      });
+    if (apiKeys.length > 0 && provider) {
+      const targetConnection = apiKeys.find(c => c.provider === provider);
+      
+      setApiKey(targetConnection?.displaySecretKey ?? "Not configured");
+    } else {
+      setApiKey("Not configured");
     }
-  }, [open, anchorRef]);
+  }, [provider, apiKeys]);
 
   // 외부 클릭 및 Esc 키로 팝업 닫기
   useEffect(() => {
@@ -93,33 +64,26 @@ const ModelAdvancedSettingsPopover = ({
       document.removeEventListener("keydown", handleEscapeKey);
     };
   }, [open, onClose, anchorRef]);
-  // --- ▲▲▲ [수정] 로직 추가 완료 ▲▲▲ ---
 
   // --- ▼▼▼ [수정] 부모 컴포넌트의 state 업데이트 방식을 맞추기 위한 헬퍼 함수입니다. ▼▼▼ ---
   const toFloat = (v, fallback) => (Number.isFinite(parseFloat(v)) ? parseFloat(v) : fallback);
   const toInt = (v, fallback) => (Number.isFinite(parseInt(v, 10)) ? parseInt(v, 10) : fallback);
-  
+
   const update = (newParams) => {
     // 부모의 onSettingChange는 객체 전체를 인자로 받으므로, 기존 settings와 새 파라미터를 합쳐서 전달합니다.
     onSettingChange({ ...settings, ...newParams });
   };
   // --- ▲▲▲ [수정] 완료 ▲▲▲ ---
 
-  const handleManageKeys = () => navigate("/settings/llm-connections");
+  const handleManageKeys = () => navigate(`/project/${projectId}/settings/llm-connections`);
 
   if (!open) return null;
-  
+
   // --- ▼▼▼ [수정] Playground의 JSX 구조 전체를 가져와서 적용합니다. ▼▼▼ ---
   return (
     <div
       ref={popoverRef}
       className={styles.advWrap}
-      style={{
-        position: "fixed",
-        top: `${position.top}px`,
-        left: `${position.left}px`,
-        zIndex: 1100, // 모달(1000)보다 위에 오도록 설정
-      }}
       role="dialog"
       aria-modal="true"
       aria-label="Model Advanced Settings"

@@ -79,6 +79,11 @@ function fromCanonical(list, schema) {
     });
 }
 
+const autoResizeTextarea = (element) => {
+    element.style.height = 'auto';
+    element.style.height = `${element.scrollHeight}px`;
+};
+
 // ----- 1줄 컴포넌트 -----
 const Row = ({ row, index, moveRow, onChange, onRemove }) => {
     const ref = useRef(null);
@@ -113,6 +118,11 @@ const Row = ({ row, index, moveRow, onChange, onRemove }) => {
     preview(drop(ref));
 
     const isMsg = row.type === "message";
+
+    const handleTextareaChange = (e) => {
+        onChange(row.id, { content: e.target.value });
+        autoResizeTextarea(e.target);
+    }
 
     return (
         <div ref={ref} className={styles.messageRow} style={{ opacity: isDragging ? 0.5 : 1 }}>
@@ -152,7 +162,7 @@ const Row = ({ row, index, moveRow, onChange, onRemove }) => {
                                         : "Enter a user message here."
                         }
                         value={row.content ?? ""}
-                        onChange={(e) => onChange(row.id, { content: e.target.value })}
+                        onChange={handleTextareaChange}
                     />
                 ) : (
                     <input

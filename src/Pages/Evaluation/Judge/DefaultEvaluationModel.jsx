@@ -77,6 +77,7 @@ const DefaultEvaluationModel = () => {
         <DefaultModelModal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
+          projectId={projectId}
           onUpdate={() => {
             alert('Uptated!');
             setIsModalOpen(false);

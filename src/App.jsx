@@ -279,15 +279,22 @@ export default function App() {
             </RequireOrg>
           }
         />
-        <Route
-          path="llm-as-a-judge/custom"
-          element={
-            <RequireOrg>
-              <CustomEvaluator />
-            </RequireOrg>
-          }
-        />
-
+          <Route
+            path="llm-as-a-judge/custom"
+            element={
+              <RequireOrg>
+                <CustomEvaluator />
+              </RequireOrg>
+            }
+          />
+          <Route
+            path="llm-as-a-judge/edit/:templateId"
+            element={
+              <RequireOrg>
+                <CustomEvaluator />
+              </RequireOrg>
+            }
+          />
         {/* Dashboards */}
         <Route
           path="project/:projectId/dashboards"

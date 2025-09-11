@@ -3,7 +3,7 @@ import styles from './EvaluatorsTable.module.css';
 import { Pencil } from 'lucide-react';
 
 // onUse 콜백을 주입받아 네비게이션/동작을 부모로 위임
-export const getEvaluatorLibraryColumns = ({ onUse } = {}) => {
+export const getEvaluatorLibraryColumns = ({ onUse, onEdit } = {}) => {
 
   return [
     {
@@ -43,7 +43,12 @@ export const getEvaluatorLibraryColumns = ({ onUse } = {}) => {
           >
             Use Evaluator
           </button>
-          <button className={styles.editButton}>
+          <button 
+          className={styles.editButton}
+          onClick={(e) => {
+            e.stopPropagation();
+            onEdit?.(row);
+          }}>
             <Pencil size={16} />
           </button>
         </div>

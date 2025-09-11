@@ -6,12 +6,17 @@
 /* 메인 컨테이너 */
 .advWrap {
   width: 320px;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: #020817;
+  border: 1px solid #334155;
   border-radius: 12px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
   overflow: hidden;
   animation: slideUp 0.2s ease-out;
+  margin-bottom: 8px;
+  position: absolute;
+  z-index: 1001;
+  margin-top: 470px;
+  margin-left: 280px;
 }
 
 @keyframes slideUp {
@@ -31,13 +36,13 @@
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px;
-  border-bottom: 1px solid #f1f3f4;
+  border-bottom: 1px solid #334155;
 }
 
 .advTitle {
   font-size: 16px;
   font-weight: 600;
-  color: #1f2937;
+  color: #f1f5f9;
   margin: 0;
 }
 
@@ -49,7 +54,7 @@
   justify-content: center;
   background: transparent;
   border: none;
-  color: #6b7280;
+  color: #f1f5f9;
   font-size: 18px;
   cursor: pointer;
   border-radius: 4px;
@@ -71,7 +76,7 @@
 
 .advDescription {
   font-size: 14px;
-  color: #6b7280;
+  color: #f1f5f9;
   margin: 0;
   line-height: 1.4;
 }
@@ -100,14 +105,14 @@
 .advLabel {
   font-size: 14px;
   font-weight: 500;
-  color: #374151;
+  color: #f1f5f9;
 }
 
 /* 헬프 아이콘 */
 .advHelpIcon {
   width: 16px;
   height: 16px;
-  background: #d1d5db;
+  background: none;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -128,11 +133,11 @@
   width: 60px;
   padding: 4px 8px;
   font-size: 14px;
-  border: 1px solid #d1d5db;
+  border: 1px solid #334155;
   border-radius: 6px;
   text-align: right;
-  background: #ffffff;
-  color: #111827;
+  background: #020817;
+  color: #f1f5f9;
   transition: all 0.2s ease;
 }
 
@@ -238,14 +243,14 @@
 /* 푸터 */
 .advFooter {
   padding: 16px;
-  border-top: 1px solid #f1f3f4;
+  border-top: 1px solid #334155
 }
 
 .advResetButton {
   width: 100%;
   background: transparent;
-  border: 1px solid #d1d5db;
-  color: #6b7280;
+  border: 1px solid #334155;
+  color: #f1f5f9;
   padding: 6px 12px;
   border-radius: 6px;
   font-size: 13px;
