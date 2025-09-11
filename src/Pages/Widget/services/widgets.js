@@ -192,68 +192,119 @@ export class WidgetsAPI extends ApiClient {
     }
   }
 
-  async addWidgetToDashboard(projectId, dashboardId, widgetId) {
-    try {
-      if (!dashboardId || !widgetId) {
-        throw new Error('dashboardId and widgetId are required');
-      }
-
-      if (DEBUG) {
-        console.log("[WidgetsAPI] === 대시보드 위젯 추가 시작 ===");
-        console.log("[WidgetsAPI] projectId:", projectId);
-        console.log("[WidgetsAPI] dashboardId:", dashboardId);
-        console.log("[WidgetsAPI] widgetId:", widgetId);
-      }
-
-      console.log("[WidgetsAPI] 1단계: 대시보드 조회");
-      const dashboard = await this.trpcGet("dashboard.getDashboard", {
-        projectId: projectId || this.projectId,
-        dashboardId
-      });
-
-      if (!dashboard) {
-        throw new Error('대시보드를 찾을 수 없습니다');
-      }
-
-      console.log("[WidgetsAPI] 현재 대시보드:", dashboard);
-
-      const currentDefinition = dashboard.definition || { widgets: [] };
-      console.log("[WidgetsAPI] 현재 대시보드 정의:", currentDefinition);
-
-      const newWidget = {
-        id: `widget-${Date.now()}`,
-        widgetId: widgetId,
-        x: 0,
-        y: 0, 
-        w: 6,
-        h: 4,
-      };
-
-      const updatedDefinition = {
-        ...currentDefinition,
-        widgets: [...(currentDefinition.widgets || []), newWidget]
-      };
-
-      console.log("[WidgetsAPI] 업데이트된 정의:", updatedDefinition);
-
-      console.log("[WidgetsAPI] 2단계: 대시보드 정의 업데이트");
-      const result = await this.trpcPost("dashboard.updateDashboardDefinition", {
-        projectId: projectId || this.projectId,
-        dashboardId,
-        definition: updatedDefinition
-      });
-
-      console.log("[WidgetsAPI] 대시보드 업데이트 결과:", result);
-
-      return { success: true, data: result };
-      
-    } catch (error) {
-      console.error("[WidgetsAPI] === 대시보드 위젯 추가 실패 ===");
-      console.error("[WidgetsAPI] 에러:", error);
-      return { success: false, error: error.message };
+  // ✅ 대시보드에 위젯 추가 메서드 (수정된 버전)
+async addWidgetToDashboard(projectId, dashboardId, widgetId) {
+  try {
+    if (!dashboardId || !widgetId) {
+      throw new Error('dashboardId and widgetId are required');
     }
-  }
 
+    console.log("[WidgetsAPI] === 대시보드 위젯 추가 시작 ===");
+    console.log("[WidgetsAPI] projectId:", projectId);
+    console.log("[WidgetsAPI] dashboardId:", dashboardId);
+    console.log("[WidgetsAPI] widgetId:", widgetId);
+
+    // 1단계: 대시보드 조회
+    const dashboard = await this.trpcGet("dashboard.getDashboard", {
+      projectId: projectId || this.projectId,
+      dashboardId
+    });
+
+    if (!dashboard) {
+      throw new Error('대시보드를 찾을 수 없습니다');
+    }
+
+    const currentDefinition = dashboard.definition || { widgets: [] };
+    const existingWidgets = currentDefinition.widgets || [];
+    
+    console.log("[WidgetsAPI] 현재 대시보드 정의:", currentDefinition);
+    console.log("[WidgetsAPI] 기존 위젯들:", existingWidgets);
+    
+    // 이미 존재하는 위젯인지 확인
+    const existingWidget = existingWidgets.find(w => w.widgetId === widgetId);
+    if (existingWidget) {
+      console.log("[WidgetsAPI] 위젯이 이미 존재함");
+      return { success: true, data: dashboard, message: "Widget already exists" };
+    }
+
+    // 🔥 수정: DashboardWidget.jsx가 기대하는 구조로 위젯 생성
+   const newWidget = {
+  type: "widget", // 🔥 필수: API가 요구하는 type 필드 추가
+  
+  // DashboardGrid가 사용하는 배치 정보
+  id: `widget-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, // 고유 배치 ID
+    widgetId: widgetId, // 실제 위젯 데이터 ID
+    
+    // 배치 정보 (DashboardGrid 호환)
+    x: 0,
+    y: this.calculateNextY(existingWidgets),
+    w: 6,  // 너비 (Grid 단위)
+    h: 4,  // 높이 (Grid 단위)
+    
+    // 추가적으로 x_size, y_size도 포함 (일부 구현에서 사용할 수 있음)
+    x_size: 6,
+    y_size: 4,
+    
+    // 기본 설정
+    minW: 2,
+    minH: 2,
+    maxW: 12,
+    maxH: 12,
+    
+    // 위젯 메타데이터 (필요시)
+    static: false,
+    isDraggable: true,
+    isResizable: true,
+  };
+    console.log("[WidgetsAPI] 생성할 새 위젯:", JSON.stringify(newWidget, null, 2));
+
+    // 업데이트된 정의 생성
+    const updatedDefinition = {
+      ...currentDefinition,
+      widgets: [...existingWidgets, newWidget]
+    };
+
+    console.log("[WidgetsAPI] 업데이트된 정의:", JSON.stringify(updatedDefinition, null, 2));
+
+    // API 호출
+    const result = await this.trpcPost("dashboard.updateDashboardDefinition", {
+      projectId: projectId || this.projectId,
+      dashboardId,
+      definition: updatedDefinition
+    });
+
+    console.log("[WidgetsAPI] 대시보드 업데이트 성공:", result);
+    return { success: true, data: result };
+    
+  } catch (error) {
+    console.error("[WidgetsAPI] === 대시보드 위젯 추가 실패 ===");
+    console.error("[WidgetsAPI] 에러:", error);
+    console.error("[WidgetsAPI] 에러 메시지:", error.message);
+    
+    // 에러 상세 분석
+    if (error.message && error.message.includes('invalid_union')) {
+      console.error("[WidgetsAPI] 스키마 불일치 에러 - 위젯 구조를 확인하세요");
+    }
+    
+    return { success: false, error: error.message };
+  }
+}
+
+// Y 위치 계산 (DashboardGrid 호환) - 수정된 버전
+calculateNextY(existingWidgets) {
+  if (!existingWidgets || existingWidgets.length === 0) {
+    return 0;
+  }
+  
+  // 다양한 높이 필드명 지원 (w, h, x_size, y_size 등)
+  const maxY = Math.max(...existingWidgets.map(widget => {
+    const y = widget.y || 0;
+    const height = widget.h || widget.y_size || widget.height || 4;
+    return y + height;
+  }));
+  
+  return maxY;
+}
   async debugApiStructure() {
     try {
       const payload = {
