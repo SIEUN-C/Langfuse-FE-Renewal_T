@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./DefaultEvaluationModel.module.css";
 import useProjectId from "hooks/useProjectId";
@@ -14,26 +14,24 @@ const DefaultEvaluationModel = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  useEffect(() => {
+  const fetchModelData = useCallback(async () => {
     if (!projectId) return;
 
-    const fetchModelData = async () => {
-      try {
-        const modelData = await getDefaultModel(projectId);
-        setDefaultModel(modelData);
-      } catch (error) {
-        console.error("기본 모델을 가져오는 데 실패했습니다:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchModelData();
+    setIsLoading(true);
+    try {
+      const modelData = await getDefaultModel(projectId);
+      setDefaultModel(modelData);
+    } catch (error) {
+      console.error('기본 모델을 가져오는데 실패했습니다.', error);
+      setDefaultModel(null);
+    } finally {
+      setIsLoading(false);
+    }
   }, [projectId]);
 
-  // edit
-  // const handleEdit = () => {
-  //   navigate(-1);
-  // };
+  useEffect(() => {
+    fetchModelData();
+  }, [fetchModelData]);
 
   // delete
   const handleDelete = () => {
@@ -78,9 +76,12 @@ const DefaultEvaluationModel = () => {
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           projectId={projectId}
+          provider={defaultModel?.provider}
+          modelName={defaultModel?.model}
           onUpdate={() => {
-            alert('Uptated!');
             setIsModalOpen(false);
+            fetchModelData();
+            alert('Updated!');
           }}
         />
       </footer>

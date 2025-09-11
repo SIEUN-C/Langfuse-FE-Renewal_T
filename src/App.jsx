@@ -124,14 +124,14 @@ export default function App() {
 
   /** 홈(index) 분기 */
   function HomeIndex() {
-  const loc = useLocation();
-  const hasOrg = !!localStorage.getItem("orgId");
-  const hasSearch = new URLSearchParams(loc.search).has("search");
+    const loc = useLocation();
+    const hasOrg = !!localStorage.getItem("orgId");
+    const hasSearch = new URLSearchParams(loc.search).has("search");
 
-  if (hasOrg) return <Navigate to="/home" replace />;  // Home으로
-  if (hasSearch) return <SelectProjectPage />;         // /?search면 프로젝트 선택
-  return <Navigate to="/?search" replace />;           // 그 외엔 ?search 붙여서 이동
-}
+    if (hasOrg) return <Navigate to="/home" replace />;  // Home으로
+    if (hasSearch) return <SelectProjectPage />;         // /?search면 프로젝트 선택
+    return <Navigate to="/?search" replace />;           // 그 외엔 ?search 붙여서 이동
+  }
 
   return (
     <Routes>
@@ -233,6 +233,14 @@ export default function App() {
             </RequireOrg>
           }
         />
+        <Route
+          path="llm-as-a-judge/edit/:templateId"
+          element={
+            <RequireOrg>
+              <CustomEvaluator />
+            </RequireOrg>
+          }
+        />
 
         {/* Dashboards */}
         <Route path="project/:projectId/dashboards" element={<RequireOrg><DashboardsKeyed /></RequireOrg>} />
@@ -280,7 +288,7 @@ export default function App() {
 
         {/* Setup Tracing (Step 4) */}
         <Route path="project/:projectId/setup" element={<RequireOrg><SetupTracingPage /></RequireOrg>} />
-        
+
         {/* 레거시 키 경로 리다이렉트 */}
         <Route path="project/:projectId/keys" element={<RequireOrg><LegacyKeysRedirect /></RequireOrg>} />
 

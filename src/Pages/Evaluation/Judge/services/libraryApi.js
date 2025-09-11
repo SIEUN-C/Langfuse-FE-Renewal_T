@@ -71,8 +71,8 @@ export const getTemplateById = async (projectId, templateId) => {
 
 /**
  * 특정 이름을 가진 모든 버전의 템플릿 목록을 가져옵니다.
- * @param {string} projectId - 프로젝트 ID
- * @param {string} name - 조회할 템플릿의 이름
+ * @param {string} projectId
+ * @param {string} name
  */
 export const getAllTemplateVersionsByName = async (projectId, name) => {
   if (!projectId || !name) {
@@ -81,24 +81,39 @@ export const getAllTemplateVersionsByName = async (projectId, name) => {
   }
 
   try {
-    const params = {
+    const paramsForTrue = {
       json: {
         projectId: projectId,
         name: name,
-        isUserManaged: true,
+        isUserManaged: true, // 새로 만든 템플릿은 true
+      },
+    };
+    const paramsForFalse = {
+      json: {
+        projectId: projectId,
+        name: name,
+        isUserManaged: false, // 기존에 있던 템플릿은 false
       },
     };
 
-    const url = `/api/trpc/evals.allTemplatesForName?input=${encodeURIComponent(JSON.stringify(params))}`;
-    const response = await axios.get(url);
+    const urlForTrue = `/api/trpc/evals.allTemplatesForName?input=${encodeURIComponent(JSON.stringify(paramsForTrue))}`;
+    const urlForFalse = `/api/trpc/evals.allTemplatesForName?input=${encodeURIComponent(JSON.stringify(paramsForFalse))}`;
 
-    const templates = response.data.result.data.json.templates;
+    const [responseForTrue, responseForFalse] = await Promise.all([
+      axios.get(urlForTrue),
+      axios.get(urlForFalse),
+    ]);
 
-    if (!templates) {
+    const templatesForTrue = responseForTrue.data.result.data.json.templates || [];
+    const templatesForFalse = responseForFalse.data.result.data.json.templates || [];
+
+    const allTemplates = [...templatesForTrue, ...templatesForFalse];
+
+    if (!allTemplates.length) {
       return [];
     }
 
-    return templates.map(template => ({
+    return allTemplates.map(template => ({
       ...template, // 기존 템플릿의 모든 속성을 그대로 유지하고
       // 날짜 관련 필드만 포맷팅하여 덮어씁니다.
       createdAt: new Date(template.createdAt).toLocaleString(),
@@ -111,10 +126,9 @@ export const getAllTemplateVersionsByName = async (projectId, name) => {
   }
 };
 
-
 /**
  * Default Model
- * @param {string} projectId - 프로젝트 ID
+ * @param {string} projectId
  */
 export const getDefaultModel = async (projectId) => {
   if (!projectId) {
@@ -142,16 +156,14 @@ export const getDefaultModel = async (projectId) => {
 
 /**
  * 새로운 Custom Evaluator 템플릿을 생성합니다.
- * @param {object} templateData - 생성할 템플릿 데이터
+ * @param {object} templateData
  */
 export const createTemplate = async (templateData) => {
-  // 필수 파라미터 확인
   if (!templateData.projectId || !templateData.name || !templateData.prompt) {
     throw new Error("projectId, name, and prompt are required.");
   }
 
   try {
-    // 서버가 요구하는 payload 형식에 맞춰 데이터를 구성합니다.
     const payload = {
       json: {
         name: templateData.name,
@@ -217,6 +229,41 @@ export const fetchLlmApiKeys = async (projectId) => {
   }
 };
 
+/**
+ * 프로젝트의 기본 LLM 모델을 생성하거나 업데이트합니다.
+ * @param {object} modelData
+ * @param {string} modelData.projectId
+ * @param {string} modelData.provider
+ * @param {string} modelData.adapter
+ * @param {string} modelData.model
+ * @param {object} [modelData.modelParams]
+ */
+export const upsertDefaultModel = async (modelData) => {
+  if (!modelData.projectId || !modelData.provider || !modelData.adapter || !modelData.model) {
+    throw new Error("projectId, provider, adapter, and model are required.");
+  }
+
+  try {
+    const payload = {
+      json: {
+        projectId: modelData.projectId,
+        provider: modelData.provider,
+        adapter: modelData.adapter,
+        model: modelData.model,
+        modelParams: modelData.modelParams || {},
+      },
+    };
+
+    const url = `/api/trpc/defaultLlmModel.upsertDefaultModel`;
+    const response = await axios.post(url, payload);
+
+    return response.data.result.data.json;
+
+  } catch (error) {
+    console.error("Failed to upsert default model via tRPC:", error);
+    throw new Error(error.response?.data?.error?.message || "Failed to upsert default model.");
+  }
+};
 
 // /**
 //  * 모든 페이지의 모델 목록 전체를 가져옵니다.

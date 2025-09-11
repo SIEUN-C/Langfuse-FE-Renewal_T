@@ -118,11 +118,16 @@ const JudgePage = () => {
           <h1 className={styles.title}>LLM-as-a-judge</h1>
 
           <div className={styles.actions}>
-            {defaultModel && (
+            {defaultModel ? (
               <button onClick={handleOpenDefaultModel} className={styles.iconButton}>
-                {defaultModel.provider} / {defaultModel.model}  <Pencil size={16} />
+                {defaultModel.provider} / {defaultModel.model} <Pencil size={16} />
+              </button>
+            ) : (
+              <button onClick={handleOpenDefaultModel} className={styles.iconButton}>
+                No default model set <Pencil size={16} />
               </button>
             )}
+
             <button onClick={handleCustomEvaluator} className={styles.setupButton}>
               + Custom Evaluator
             </button>

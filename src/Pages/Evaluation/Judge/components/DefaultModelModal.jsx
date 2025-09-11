@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState, useMemo } from "react";
 import styles from "./DefaultModelModal.module.css";
 import { Settings2 } from 'lucide-react';
 import ModelAdvancedSettingsPopover from "./ModelAdvancedSettingsPopover";
-import { fetchLlmApiKeys } from '../services/libraryApi'
+import { fetchLlmApiKeys, upsertDefaultModel } from '../services/libraryApi'
 import useProjectId from 'hooks/useProjectId'
 
 export default function DefaultModelModal({
@@ -24,6 +24,7 @@ export default function DefaultModelModal({
 
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [confirmText, setConfirmText] = useState("");
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const DEFAULT_SETTINGS = {
     useTemperature: false,
@@ -78,13 +79,41 @@ export default function DefaultModelModal({
     setModelSettings(newSettings);
   }
 
-  const handleConfirmUpdate = () => {
-    if (confirmText === 'update') {
+  const handleConfirmUpdate = async () => {
+    if (confirmText.trim().toLowerCase() !== 'update' || isUpdating) return;
+
+    const selectedApiKey = apiKeys.find(key => key.provider === selectedProvider);
+    if (!selectedProvider || !selectedModelName || !selectedApiKey) {
+      console.error("Provider와 Model을 모두 선택해야 합니다");
+      return;
+    }
+
+    setIsUpdating(true);
+
+    const modelParams = {};
+    if (modelSettings.useTemperature) modelParams.temperature = modelSettings.temperature;
+    if (modelSettings.useTopP) modelParams.top_p = modelSettings.topP;
+    if (modelSettings.useMaxTokens) modelParams.max_tokens = modelSettings.maxTokens;
+
+    const modelData = {
+      projectId: projectId,
+      provider: selectedProvider,
+      adapter: selectedApiKey.adapter,
+      model: selectedModelName,
+      modelParams: modelParams,
+    };
+
+    try {
+      await upsertDefaultModel(modelData);
       onUpdate?.();
 
       setConfirmText("");
       setIsConfirmModalOpen(false);
       onClose();
+    } catch (error) {
+      console.error('기본 모델 업데이트에 실패했습니다.', error);
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -206,6 +235,7 @@ export default function DefaultModelModal({
             className={`${styles.btn} ${styles.primary}`}
             type="button"
             onClick={() => setIsConfirmModalOpen(true)}
+            disabled={!selectedProvider || !selectedModelName}
           >
             Update
           </button>
@@ -237,10 +267,10 @@ export default function DefaultModelModal({
                 <button
                   className={`${styles.btn} ${styles.primary}`}
                   // 'update'라고 정확히 입력했을 때만 활성화
-                  disabled={confirmText !== 'update'}
+                  disabled={confirmText.trim().toLowerCase() !== 'update' || isUpdating}
                   onClick={handleConfirmUpdate}
                 >
-                  Confirm
+                  {isUpdating ? 'Updating...' : 'Confirm'}
                 </button>
               </div>
             </div>

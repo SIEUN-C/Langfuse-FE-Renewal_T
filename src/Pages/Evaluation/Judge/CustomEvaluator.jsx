@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import useProjectId from 'hooks/useProjectId';
-import { getDefaultModel, createTemplate } from "./services/libraryApi";
+import { getDefaultModel, createTemplate, getTemplateById } from "./services/libraryApi";
 import styles from "./CustomEvaluator.module.css";
 import FormPageLayout from "../../../components/Layouts/FormPageLayout.jsx";
 import FormGroup from "../../../components/Form/FormGroup.jsx";
 import CodeBlock from "../../../components/CodeBlock/CodeBlock.jsx";
 import { Pencil } from 'lucide-react';
-import { getTemplateById } from "./services/libraryApi";
 
 const CustomEvaluator = () => {
   const { projectId } = useProjectId();
@@ -24,10 +23,9 @@ const CustomEvaluator = () => {
   const navigate = useNavigate();
   const [isSaving, setIsSaving] = useState(false);
 
-  // ==================================================
+  // Library Edit
   const { templateId } = useParams();
   const isEditModel = Boolean(templateId);
-  // ==================================================
 
   useEffect(() => {
     if (!projectId) {
@@ -47,7 +45,7 @@ const CustomEvaluator = () => {
 
         if (isEditModel) {
           const templateData = await getTemplateById(projectId, templateId);
-          // ======================================
+          // Library Edit
           if (templateData) {
             setName(templateData.name);
             setPrompt(templateData.prompt);
@@ -93,7 +91,7 @@ const CustomEvaluator = () => {
 
   const handleSave = async () => {
     if (!name.trim()) {
-      alert('Evaluator 이름을 입력해주세요');
+      alert('Template 이름을 입력해주세요');
       return;
     }
 
