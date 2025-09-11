@@ -1,19 +1,16 @@
 /* src/Pages/Evaluation/Judge/EvaluationView.module.css */
+
 /*
   수정: 파일 전체를 아래의 새 코드로 교체합니다.
-  - 주석: EvaluationView.jsx 컴포넌트의 전체 레이아웃, 제목,
-    그리고 데이터가 없을 때 표시되는 "No jobs yet" 영역을 위한 스타일입니다.
 */
 
-/* 주석: 페이지 전체의 패딩과 같은 기본 레이아웃을 정의합니다. */
+/* --- 기본 컨테이너 및 헤더 스타일 (기존과 동일) --- */
 .container {
   padding: 24px;
 }
-/* --- ✨ 추가: 새로운 헤더를 위한 스타일 --- */
 .headerContainer {
   margin-bottom: 24px;
 }
-
 .headerRow {
   display: flex;
   justify-content: space-between;
@@ -23,14 +20,12 @@
 .headerRow:last-child {
   margin-bottom: 0;
 }
-
 .headerLeft,
 .headerRight {
   display: flex;
   align-items: center;
-  gap: 12px; /* 주석: 요소들 사이의 간격입니다. */
+  gap: 12px;
 }
-
 .evaluatorBadge {
   display: inline-flex;
   align-items: center;
@@ -42,49 +37,57 @@
   font-weight: 500;
   color: #cbd5e1;
 }
-
 .headerTitle {
-  font-size: 20px; /* 주석: 기존 title 스타일과 유사하게 맞춥니다. */
+  font-size: 20px;
   font-weight: 600;
   color: #f1f5f9;
-  margin: 0; /* 주석: h1의 기본 마진을 제거합니다. */
+  margin: 0;
 }
-/* ------------------------------------ */
-
-/* --- ✨ 추가: 헤더 우측 UI 요소들을 위한 스타일 --- */
 .resultCount {
   font-size: 14px;
-  color: #94a3b8; /* 밝은 회색 텍스트 */
+  color: #94a3b8;
   font-weight: 500;
 }
-
 .activeStatusBadge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   padding: 4px 10px;
   border-radius: 9999px;
-  background-color: rgba(34, 197, 94, 0.1); /* 투명도가 있는 초록색 배경 */
-  color: #22c55e; /* 밝은 초록색 텍스트 */
+  background-color: rgba(34, 197, 94, 0.1);
+  color: #22c55e;
   font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
 }
-
+.inactiveStatusBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 14px;
+    font-weight: 500;
+    text-transform: capitalize;
+    background-color: #f3f4f6;
+    color: #4b5563;
+    border: 1px solid #d1d5db;
+  }
 .statusDot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
   background-color: #22c55e;
 }
-
+.inactiveStatusBadge .statusDot {
+    background-color: #9ca3af;
+}
 .navButtonGroup {
   display: flex;
   align-items: center;
   border: 1px solid #475569;
   border-radius: 6px;
 }
-
 .navButton {
   background-color: transparent;
   border: none;
@@ -96,48 +99,31 @@
   gap: 4px;
   transition: background-color 0.2s;
 }
-
 .navButton:hover {
   background-color: #334155;
 }
-
-/* 주석: 두 버튼 사이의 구분선을 만듭니다. */
 .navButton:first-child {
   border-right: 1px solid #475569;
-  border-top-left-radius: 5px;
-  border-bottom-left-radius: 5px;
 }
-.navButton:last-child {
-  border-top-right-radius: 5px;
-  border-bottom-right-radius: 5px;
-}
-/* ----------------------------------------------- */
-
-
-
-
-/* --- ✨ 추가: 헤더 두 번째 줄 UI 요소들을 위한 스타일 --- */
 .filterButton,
 .columnButton {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   background-color: transparent;
-  border: 1px solid #475569; /* 테두리 */
+  border: 1px solid #475569;
   border-radius: 6px;
   padding: 6px 12px;
-  color: #cbd5e1; /* 밝은 글자색 */
+  color: #cbd5e1;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
   transition: background-color 0.2s;
 }
-
 .filterButton:hover,
 .columnButton:hover {
   background-color: #334155;
 }
-
 .iconButton {
   display: inline-flex;
   align-items: center;
@@ -150,187 +136,183 @@
   cursor: pointer;
   transition: background-color 0.2s;
 }
-
 .iconButton:hover {
   background-color: #334155;
 }
-/* ----------------------------------------------- */
-
-
-
-/* 주석: 데이터가 없을 때 "No jobs yet" 메시지를 표시하는 영역의 스타일입니다. */
-.emptyState {
+.dropdownContainer {
+  position: relative;
+}
+.dropdownMenu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 20;
+  background-color: #334155;
+  border: 1px solid #475569;
+  border-radius: 6px;
+  width: 150px;
+  padding: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+.dropdownHeader {
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+.dropdownItem {
+  padding: 8px;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 14px;
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
-  padding: 60px 20px;
-  margin-top: 40px;
-  border: 1px dashed #475569; /* 주석: 테마에 맞는 어두운 점선 테두리입니다. */
-  border-radius: 8px;
-  background-color: #1e293b; /* 주석: 테이블과 유사한 배경색을 사용합니다. */
-  text-align: center;
+  color: #cbd5e1;
+}
+.dropdownItem:hover {
+  background-color: #475569;
 }
 
-.emptyState h2 {
-  font-size: 20px;
-  margin-bottom: 8px;
-  color: #cbd5e1; /* 주석: "No jobs yet" 제목 텍스트 색상입니다. */
-}
+/* --- 테이블 및 셀 관련 스타일 --- */
 
-.emptyState p {
-  color: #94a3b8; /* 주석: 설명 텍스트 색상입니다. */
-}
-
-/* ... 기존 .container, .title 등의 스타일 ... */
-
-/* --- ✨ 추가: Status 뱃지 스타일 --- */
-/* 주석: Status 컬럼의 텍스트를 감싸는 뱃지의 기본 스타일입니다. */
+/* 주석: Status 뱃지, 셀 버튼 등은 기존 스타일 유지 */
 .statusBadge {
   display: inline-block;
   padding: 4px 10px;
-  border-radius: 9999px; /* 주석: 둥근 모서리를 만들기 위한 값입니다. */
+  border-radius: 9999px;
   font-size: 12px;
   font-weight: 600;
-  line-height: 1.2;
   text-transform: uppercase;
   color: white;
-  background-color: #6b7280; /* 주석: 기본 회색 배경입니다. */
+  background-color: #6b7280;
 }
-
-/* 주석: Status가 'COMPLETED'일 때 적용될 초록색 배경 스타일입니다. */
 .statusCompleted {
   background-color: #22c55e;
   color: #f0fdf4;
 }
-
-/* 주석: 필요하다면 다른 상태(예: FAILED)를 위한 스타일도 추가할 수 있습니다. */
-.statusFailed {
-  background-color: #ef4444; /* 예시: 빨간색 */
-  color: #fef2f2;
-}
-/* --------------------------------- */
-
-/* --- ✨ 추가: Trace, Template 컬럼에 적용될 버튼 스타일 --- */
-/* 주석: 테이블 셀 내의 텍스트를 버튼처럼 보이게 하는 스타일입니다. */
 .cellButton {
   display: inline-block;
   padding: 4px 10px;
   border-radius: 6px;
-  background-color: #334155; /* 어두운 배경 */
-  border: 1px solid #475569;   /* 약간 더 밝은 테두리 */
-  color: #cbd5e1;             /* 밝은 글자색 */
-  font-size: 12px;
-  font-weight: 500;
-  text-decoration: none;       /* 링크의 밑줄 제거 */
-  transition: background-color 0.2s;
-}
-
-/* 주석: 버튼에 마우스를 올렸을 때의 스타일입니다. */
-.cellButton:hover {
-  background-color: #475569;
-  color: #f1f5f9;
-}
-/* --------------------------------------------------- */
-
-/* --- ✨ 추가: Score Comment 컬럼에 적용될 테두리 스타일 --- */
-.scoreComment {
-  display: inline-block;
-  padding: 4px 8px;
-  border: 1px solid #475569;   /* 주석: 테두리 색상입니다. */
-  border-radius: 6px;
-  background-color: transparent; /* 주석: 배경색을 투명하게 설정합니다. */
+  background-color: #334155;
+  border: 1px solid #475569;
   color: #cbd5e1;
   font-size: 12px;
-}
-/* --------------------------------------------------- */
-
-/* ========================[추가 시작]======================== */
-/*
- * 추가 내용:
- * INACTIVE 상태 뱃지를 위한 스타일 클래스를 추가합니다.
- * 로컬 환경의 UI(회색 배경, 회색 텍스트)를 참고하여 비활성화된 느낌을 줍니다.
- * 기존 activeStatusBadge의 레이아웃 속성을 공유하여 일관성을 유지합니다.
- */
-.inactiveStatusBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 12px;
-  border-radius: 16px;
-  font-size: 14px;
   font-weight: 500;
-  text-transform: capitalize;
-  background-color: #f3f4f6; /* 밝은 회색 배경 */
-  color: #4b5563; /* 어두운 회색 텍스트 */
-  border: 1px solid #d1d5db; /* 회색 테두리 */
+  text-decoration: none;
+  transition: background-color 0.2s;
+}
+.cellButton:hover {
+  background-color: #475569;
 }
 
-/* INACTIVE 뱃지 내부의 점(dot) 색상도 회색으로 변경합니다. */
-.inactiveStatusBadge .statusDot {
-  background-color: #9ca3af; /* 회색 점 */
-}
-/* ========================[추가 끝]======================== */
-
-/* ... 기존에 있던 모든 CSS 코드는 그대로 둡니다 ... */
-
-/* ========================[추가 시작]======================== */
-/* 주석: tanstack-table의 표준 렌더링 방식을 위한 테이블 스타일입니다. */
-/* 테이블을 감싸는 컨테이너에 위쪽 여백을 주어 헤더와 분리합니다. */
+/* ========================[수정 시작 (1/3)]======================== */
+/* 주석: 너비 고정 문제 해결을 위한 테이블 스타일입니다. 
+  jsx 파일에서 추가한 .tableWrapper div 내의 table에 스타일을 적용합니다.
+*/
 .tableWrapper {
   border: 1px solid #475569;
   border-radius: 8px;
   overflow: hidden; /* 모서리를 둥글게 처리하기 위해 */
-  margin-top: 24px; /* 헤더와 테이블 사이의 간격을 만듭니다. */
 }
 
 .tableWrapper table {
   width: 100%;
   border-collapse: collapse;
+  /* 주석: 너비 고정을 위한 가장 중요한 속성입니다.
+    이 속성은 각 컬럼이 내용의 길이에 상관없이 지정된 너비를 유지하도록 강제합니다.
+  */
+  table-layout: fixed; 
 }
 
-/* 주석: 테이블의 헤더(th)와 셀(td)에 패딩과 테두리 선을 추가합니다. */
-.tableWrapper th,
-.tableWrapper td {
+/* 주석: 각 테이블 헤더(th)에 명시적인 너비(%)를 지정합니다.
+  'table-layout: fixed'와 함께 사용되어야 효과가 있습니다.
+  이제 Score Comment 컬럼의 내용이 길어져도 다른 컬럼의 너비는 절대 변하지 않습니다.
+*/
+.tableWrapper th {
   padding: 12px 16px;
   text-align: left;
   border-bottom: 1px solid #475569;
   font-size: 14px;
-  vertical-align: middle; /* 셀 내용 수직 정렬 */
-}
-
-.tableWrapper th {
   background-color: #1e293b;
   font-weight: 600;
   color: #cbd5e1;
 }
+/* ========================[수정 시작]======================== */
+/* 주석: 각 테이블 헤더(th)의 너비(%)를 재조정합니다.
+  - 'Score Comment'의 너비를 25% -> 21%로 줄였습니다.
+  - 줄어든 너비를 'Trace', 'Template' 컬럼 등에 분배하여 내용이 밀리는 현상을 해결했습니다.
+  - 모든 너비의 합은 100%입니다.
+*/
+.tableWrapper th:nth-child(1) { width: 8%; }  /* Status */
+.tableWrapper th:nth-child(2) { width: 14%; } /* Start Time */
+.tableWrapper th:nth-child(3) { width: 14%; } /* End Time */
+.tableWrapper th:nth-child(4) { width: 12%; } /* Score Name */
+.tableWrapper th:nth-child(5) { width: 7%; }  /* Score Value (조정) */
+.tableWrapper th:nth-child(6) { width: 21%; } /* Score Comment (축소) */
+.tableWrapper th:nth-child(7) { width: 8%; }  /* Error */
+.tableWrapper th:nth-child(8) { width: 8%; }  /* Trace (확대) */
+.tableWrapper th:nth-child(9) { width: 8%; }  /* Template (확대) */
+/* ========================[수정 끝]======================== */
 
+/*
+  주석: 모든 테이블 셀(td)의 텍스트가 길어질 경우 자동으로 줄바꿈 되도록 설정합니다.
+  - vertical-align: top; -> 셀 높이가 늘어났을 때 내용이 위쪽에 정렬되도록 합니다.
+  - word-wrap: break-word; -> 매우 긴 영단어가 셀 밖으로 나가지 않도록 합니다.
+*/
+.tableWrapper td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #475569;
+  font-size: 14px;
+  vertical-align: top;
+  word-wrap: break-word;
+  white-space: normal;
+}
 .tableWrapper tr:last-child td {
   border-bottom: none;
 }
 
-/* 주석: 페이지네이션 컨트롤(Previous, Next 버튼)을 위한 스타일입니다. */
-.pagination {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 16px;
-  margin-top: 16px;
-  font-size: 14px;
-  color: #cbd5e1;
-}
+/* ========================[수정 끝 (1/3)]======================== */
 
-.pagination button {
-  background-color: #334155;
+
+/* --- Score Comment 높이 조절 --- */
+
+.scoreComment {
+  /* --- 스타일 복원 --- */
+  display: inline-block; /* 너비에 맞게 표시되도록 block으로 변경 */
+  padding: 4px 8px;
   border: 1px solid #475569;
   border-radius: 6px;
-  padding: 6px 12px;
   color: #cbd5e1;
-  cursor: pointer;
+  font-size: 12px;
+  width: 100%; /* 부모(td) 너비를 꽉 채우도록 설정 */
+  box-sizing: border-box; /* 패딩과 테두리가 너비에 포함되도록 설정 */
+  
+  /* --- 줄바꿈 및 높이 조절 --- */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.5;
 }
+/* ========================[수정 끝 (2/3)]======================== */
 
-.pagination button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+/* ========================[수정 시작 (3/3)]======================== */
+/* 주석: 이 클래스들은 rowHeight 상태에 따라 동적으로 적용됩니다.
+  - -webkit-line-clamp 속성은 텍스트를 지정된 줄 수만큼만 보여주고 나머지는 잘라냅니다.
+  - 'small'은 1줄, 'medium'은 5줄, 'large'는 15줄까지 보이도록 설정하여 높이를 조절합니다.
+*/
+.small {
+  -webkit-line-clamp: 1; 
 }
-/* ========================[추가 끝]======================== */
+.medium {
+  -webkit-line-clamp: 5;
+}
+.large {
+  -webkit-line-clamp: 15;
+}
+/* ========================[수정 끝 (3/3)]======================== */

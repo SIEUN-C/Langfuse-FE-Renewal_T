@@ -1,8 +1,8 @@
 // src/Pages/Evaluation/Judge/EvaluationView.jsx
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react'; // useRef 추가
 import { useParams } from 'react-router-dom';
 // --- ✨ 추가: 새로운 아이콘들을 import 합니다 ---
-import { ChevronUp, ChevronDown, ChevronRight, Columns, LayoutGrid } from 'lucide-react';
+import { ChevronUp, ChevronDown, ChevronRight, Columns, LayoutGrid, Check } from 'lucide-react';// Check 아이콘 추가
 // --- 수정: 다시 기존 DataTable을 import합니다 ---
 import { DataTable } from '../../../components/DataTable/DataTable';
 import {
@@ -35,8 +35,19 @@ const EvaluationView = () => {
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   // ------------------------------------------------------------------------------------------------
   
-  // 주석: useMemo는 한 번만 실행되도록 빈 의존성 배열로 변경합니다.
-  const columns = useMemo(() => getEvaluationViewColumns(projectId), [projectId]);
+ // ========================[수정 시작 (1/4)]========================
+  // 주석: Row height 상태와 드롭다운 메뉴의 열림 상태를 관리할 state를 추가합니다.
+  const [rowHeight, setRowHeight] = useState('small'); // 'small', 'medium', 'large'
+  const [isRowHeightMenuOpen, setIsRowHeightMenuOpen] = useState(false);
+  const rowHeightMenuRef = useRef(null); // 드롭다운 메뉴 외부 클릭 감지를 위한 ref
+  // ========================[수정 끝 (1/4)]========================
+
+  // ========================[수정 시작 (2/4)]========================
+  // 주석: getEvaluationViewColumns 함수에 rowHeight 상태를 전달하여
+  // Score Comment 컬럼이 동적으로 스타일을 변경할 수 있도록 합니다.
+  const columns = useMemo(() => getEvaluationViewColumns(projectId, rowHeight), [projectId, rowHeight]);
+  // ========================[수정 끝 (2/4)]========================
+
 
   useEffect(() => {
     const fetchJobs = async () => {
@@ -66,6 +77,21 @@ const EvaluationView = () => {
 
     fetchJobs();
   }, [projectId, evaluationId]);
+
+  // ========================[수정 시작 (3/4)]========================
+  // 주석: 드롭다운 메뉴 외부를 클릭하면 메뉴가 닫히도록 하는 useEffect를 추가합니다.
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (rowHeightMenuRef.current && !rowHeightMenuRef.current.contains(event.target)) {
+        setIsRowHeightMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+  // ========================[수정 끝 (3/4)]========================
 
 
 // 주석: useReactTable은 이제 렌더링이 아닌 '상태 관리' 용도로만 사용합니다.
@@ -150,38 +176,64 @@ const EvaluationView = () => {
               {/* --- 수정: 버튼 텍스트도 table 인스턴스를 사용합니다. --- */}
               Columns {table.getVisibleLeafColumns().length}/{columns.length}
             </button>
-            <button className={styles.iconButton}>
-              <LayoutGrid size={16} />
-            </button>
-          </div>
+            {/* ========================[수정 시작 (4/4)]======================== */}
+                {/* 주석: LayoutGrid 버튼을 드롭다운 컨테이너로 감싸고, 클릭 이벤트를 연결합니다. */}
+                <div className={styles.dropdownContainer} ref={rowHeightMenuRef}>
+                    <button className={styles.iconButton} onClick={() => setIsRowHeightMenuOpen(!isRowHeightMenuOpen)}>
+                        <LayoutGrid size={16} />
+                    </button>
+                    {isRowHeightMenuOpen && (
+                        <div className={styles.dropdownMenu}>
+                            <div className={styles.dropdownHeader}>Row height</div>
+                            <div className={styles.dropdownItem} onClick={() => { setRowHeight('small'); setIsRowHeightMenuOpen(false); }}>
+                                <span>Small</span>
+                                {rowHeight === 'small' && <Check size={16} />}
+                            </div>
+                            <div className={styles.dropdownItem} onClick={() => { setRowHeight('medium'); setIsRowHeightMenuOpen(false); }}>
+                                <span>Medium</span>
+                                {rowHeight === 'medium' && <Check size={16} />}
+                            </div>
+                            <div className={styles.dropdownItem} onClick={() => { setRowHeight('large'); setIsRowHeightMenuOpen(false); }}>
+                                <span>Large</span>
+                                {rowHeight === 'large' && <Check size={16} />}
+                            </div>
+                        </div>
+                    )}
+                </div>
+                {/* ========================[수정 끝 (4/4)]======================== */}
+            </div>
         </div>
-        {/* ------------------------------------------------------------ */}
-       </div>
+      </div>
        
-        {/* ========================[수정 시작 (2/2)]======================== */}
-      {/* 주석: 다시 기존의 공통 DataTable 컴포넌트를 사용합니다. */}
-      {/* columns prop에 필터링된 'visibleColumns'를 전달하여 컬럼 숨기기 기능을 구현합니다. */}
-      <DataTable
-        columns={visibleColumns}
-        data={jobs}
-        keyField="jobOutputScoreId"
-        showCheckbox={false}
-        showFavorite={false}
-        isLoading={isLoading}
-        renderEmptyState={() => "No results."}
-        pagination={{
-          enabled: true,
-          pageSize: 50,
-          pageSizeOptions: [10, 20, 30, 50],
-          position: "fixed-bottom"
-        }}
-      />
-      {/* ========================[수정 끝 (2/2)]======================== */}
+        {/* ========================[수정 시작]======================== */}
+      {/* 주석: 바로 이 부분이 너비 고정 문제 해결의 핵심입니다.
+        <DataTable> 컴포넌트를 <div className={styles.tableWrapper}>로 감싸줍니다.
+        이렇게 해야 .module.css 파일에 있는 '.tableWrapper table' 스타일이 적용되어
+        'table-layout: fixed;' 속성이 테이블에 반영되고, 너비가 고정됩니다.
+      */}
+      <div className={styles.tableWrapper}>
+        <DataTable
+          columns={visibleColumns}
+          data={jobs}
+          keyField="jobOutputScoreId"
+          showCheckbox={false}
+          showFavorite={false}
+          isLoading={isLoading}
+          renderEmptyState={() => "No results."}
+          pagination={{
+            enabled: true,
+            pageSize: 50,
+            pageSizeOptions: [10, 20, 30, 50],
+            position: "fixed-bottom"
+          }}
+        />
+      </div>
+      {/* ========================[수정 끝]======================== */}
 
       <ColumnVisibilityPanel
         isOpen={isPanelOpen}
         onClose={() => setIsPanelOpen(false)}
-        table={table} // 사이드 패널은 여전히 전체 상태 관리를 위해 table 인스턴스를 받습니다.
+        table={table}
       />
     </div>
   );
