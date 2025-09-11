@@ -1,8 +1,13 @@
 // src/Pages/Evaluation/Judge/components/EvaluatorColumns.jsx
 
-import React from 'react';
+// ========================[수정 시작]========================
+// 주석: 드롭다운 메뉴의 상태 관리를 위해 useState, useRef, useEffect를 import 합니다.
+//       아이콘도 추가로 import 합니다.
+import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import styles from './EvaluatorsTable.module.css';
+import { Pencil, Trash2 } from 'lucide-react'; // 아이콘 추가
+// ========================[수정 끝]========================
 
 
 // 상태 뱃지 컴포넌트 - 다른 곳에서 import할 수 있도록 export 추가
@@ -62,14 +67,67 @@ const formatDateTime = (isoString) => {
   return date.toLocaleString();
 };
 
-// --- ✨ 바로 여기가 핵심입니다! 함수가 datasetMap을 받도록 수정해주세요. ---
-export const getEvaluatorColumns = (projectId, datasetMap) => {
-// --------------------------------------------------------------------
-  const handleActionClick = (e, action, row) => {
+// ========================[핵심 수정 1: ActionMenu 컴포넌트 분리]========================
+// 주석: 오류의 원인이었던 useState, useRef, useEffect를 사용하는 로직을
+//       이 ActionMenu 라는 별도의 컴포넌트로 완전히 옮겼습니다.
+//       이제 Hook이 올바른 위치에서 사용되므로 오류가 발생하지 않습니다.
+const ActionMenu = ({ row, onDeleteClick }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const handleToggle = (e) => {
     e.stopPropagation();
-    console.log(`${action} button clicked for evaluator ${row.id}`);
-    // TODO: 각 액션에 맞는 로직 구현 (View 로그, 클론, 보관 등)
+    setIsOpen(!isOpen);
   };
+
+  return (
+    <div className={styles.rowActions} ref={dropdownRef}>
+      <button onClick={handleToggle} className={styles.moreButton}>
+        ...
+      </button>
+      {isOpen && (
+        <div className={styles.dropdownMenu}>
+          <button className={styles.dropdownItem} onClick={(e) => e.stopPropagation()}>
+            <Pencil size={14} /> Edit
+          </button>
+          <button 
+            className={`${styles.dropdownItem} ${styles.deleteItem}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              onDeleteClick(row);
+              setIsOpen(false);
+            }}
+          >
+            <Trash2 size={14} /> Delete
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+// ========================[핵심 수정 1 끝]========================
+
+
+// --- 컬럼 정의 함수 ---
+// 주석: onDeleteClick 핸들러를 props로 받습니다.
+export const getEvaluatorColumns = (projectId, datasetMap, onDeleteClick) => {
+  // ========================[핵심 수정 2: 오류 코드 삭제]========================
+  // 주석: 이전에 오류를 일으켰던 useState, useRef, useEffect 관련 코드를
+  //       여기서 모두 삭제했습니다. 그래서 코드가 짧아진 것입니다.
+  // ========================[핵심 수정 2 끝]========================
+
 
   return [
     {
@@ -154,13 +212,10 @@ export const getEvaluatorColumns = (projectId, datasetMap) => {
     },
     {
       header: 'Actions',
-      accessor: (row) => (
-        <div className={styles.rowActions}>
-          <button onClick={(e) => handleActionClick(e, 'More', row)} className={styles.moreButton}>
-            ...
-          </button>
-        </div>
-      ),
+     // ========================[핵심 수정 3: ActionMenu 컴포넌트 사용]========================
+      // 주석: accessor에서 위에서 만든 ActionMenu 컴포넌트를 호출하여 렌더링합니다.
+      accessor: (row) => <ActionMenu row={row} onDeleteClick={onDeleteClick} />,
+      // ========================[핵심 수정 3 끝]========================
     },
   ];
 };

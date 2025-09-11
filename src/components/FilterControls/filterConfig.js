@@ -106,6 +106,95 @@ export const widgetFilterConfig = [
   { key: "timestamp", label: "Timestamp", type: "date", operators: dateTimeOperators },
 ];
 
+// ===== 새로 추가: Home 페이지 전용 필터 설정 =====
+// 원본 Dashboard 페이지의 filterColumns와 정확히 일치
+export const homeFilterConfig = [
+  {
+    key: "traceName",
+    label: "Trace Name", 
+    type: "stringOptions", // 원본과 동일
+    operators: commonCategoricalOperators,
+    options: [], // 동적으로 설정됨
+    internal: "internalValue"
+  },
+  {
+    key: "tags",
+    label: "Tags",
+    type: "arrayOptions", // 원본과 동일
+    operators: allCategoricalOperators,
+    options: [], // 동적으로 설정됨  
+    internal: "internalValue"
+  },
+  {
+    key: "user", 
+    label: "User",
+    type: "string", // 원본과 동일
+    operators: commonStringOperators,
+    internal: "internalValue"
+  },
+  {
+    key: "release",
+    label: "Release", 
+    type: "string", // 원본과 동일
+    operators: commonStringOperators,
+    internal: "internalValue"
+  },
+  {
+    key: "version",
+    label: "Version",
+    type: "string", // 원본과 동일 
+    operators: commonStringOperators,
+    internal: "internalValue"
+  },
+];
+
+// ===== Home 필터 변환 함수 =====
+/**
+ * Home 페이지의 FilterBuilder 필터를 Langfuse API 형식으로 변환
+ * 원본의 userFilterState 처리 방식과 동일
+ */
+export const convertHomeFiltersToLangfuse = (builderFilters) => {
+  return builderFilters
+    .filter(filter => String(filter.value || '').trim() !== '') // 값이 있는 것만
+    .map((filter) => {
+      const config = homeFilterConfig.find(c => c.key === filter.column);
+      const filterType = config?.type || "string";
+
+      // 원본과 동일한 변환 로직
+      let apiFilter = {
+        column: filter.column,
+        type: filterType,
+        operator: filter.operator,
+        value: filter.value,
+        ...(filter.metaKey && { key: filter.metaKey }),
+      };
+
+      // stringOptions와 arrayOptions 타입 처리
+      if ((filterType === "stringOptions" || filterType === "arrayOptions") && typeof filter.value === "string") {
+        apiFilter.value = filter.value ? filter.value.split(",") : [];
+      }
+
+      return apiFilter;
+    });
+};
+
+// ===== 환경 필터 변환 함수 (원본의 convertSelectedEnvironmentsToFilter와 동일) =====
+export const convertEnvironmentsToFilter = (selectedEnvironments, environmentOptions) => {
+  // 전체 선택이거나 빈 선택인 경우 필터 없음
+  if (selectedEnvironments.length === 0 || selectedEnvironments.length === environmentOptions.length) {
+    return [];
+  }
+
+  return [
+    {
+      type: "stringOptions",
+      column: "environment", 
+      operator: "any of",
+      value: selectedEnvironments
+    }
+  ];
+};
+
 // ✅ 위젯용 연산자 매핑 함수 추가
 export const getWidgetOperatorMapping = () => {
   return {
