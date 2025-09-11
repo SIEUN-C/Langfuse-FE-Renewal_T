@@ -27,18 +27,6 @@ const formatScoreValue = (value) => {
 };
 // -----------------------------------------------------------
 
-// --- ✨ 추가: 텍스트를 특정 단어 수로 자르는 함수 ---
-const truncateText = (text, wordLimit = 7) => {
-  if (!text || typeof text !== 'string') {
-    return '-';
-  }
-  const words = text.split(' ');
-  if (words.length > wordLimit) {
-    // 주석: 7단어 이상이면 자르고 뒤에 '...'을 붙입니다.
-    return words.slice(0, wordLimit).join(' ') + '...';
-  }
-  return text;
-};
 
 // --- ✨ 추가: 긴 ID를 앞뒤 일부만 보여주도록 자르는 함수 ---
 const shortenId = (id, start = 8, end = 4) => {
@@ -49,10 +37,27 @@ const shortenId = (id, start = 8, end = 4) => {
   return `${id.substring(0, start)}...${id.substring(id.length - end)}`;
 }
 
+// ========================[수정 시작 (1/2)]========================
+// 주석: truncateText 함수의 기본 단어 제한을 8로 수정하여
+//       'Small' 상태일 때 7-9단어만 보이도록 하는 요구사항을 반영합니다.
+const truncateText = (text, wordLimit = 8) => { 
+// ========================[수정 끝 (1/2)]========================
+  if (!text || typeof text !== 'string') {
+    return '-';
+  }
+  const words = text.split(' ');
+  if (words.length > wordLimit) {
+    return words.slice(0, wordLimit).join(' ') + '...';
+  }
+  return text;
+};
+
+
+
 // ========================[수정 시작]========================
-// 주석: accessorKey와 cell 대신, 기존 DataTable이 이해하는 accessor 함수 방식으로 되돌립니다.
-// 각 컬럼에 id와 header는 그대로 유지하여 컬럼 숨기기 기능은 정상 작동하도록 합니다.
-export const getEvaluationViewColumns = (projectId) => {
+// 주석: getEvaluationViewColumns 함수가 rowHeight를 인자로 받도록 수정합니다.
+export const getEvaluationViewColumns = (projectId, rowHeight) => {
+// ========================[수정 끝]========================
   return [
     {
       id: 'status',
@@ -93,16 +98,24 @@ export const getEvaluationViewColumns = (projectId) => {
     {
       id: 'scoreComment',
       header: 'Score Comment',
-      // --- ✨ 수정: Score Comment 컬럼에 truncateText 함수를 적용합니다 ---
-//     // --- ✨ 수정: Score Comment 컬럼에 테두리 스타일을 적용합니다 ---
       accessor: (row) => {
         const comment = row.score?.comment;
+        // ========================[수정 시작 (2/2)]========================
+        // 주석: 이 로직은 기존과 동일하게 유지됩니다. 
+        //       'small'일 때는 위에서 수정한 truncateText(8단어)가 적용되고,
+        //       'medium'과 'large'일 때는 전체 텍스트가 표시됩니다.
+        //       CSS에서 이 전체 텍스트를 몇 줄까지 보여줄지 결정하게 됩니다.
+        const displayText = rowHeight === 'small' ? truncateText(comment) : comment;
+        // ========================[수정 끝 (2/2)]========================
+        
         return comment ? (
-           // 주석: comment가 있을 때만 스타일이 적용된 span으로 감싸줍니다.
-          <span className={styles.scoreComment}>
-            {truncateText(comment)}
+          // 주석: 현재 rowHeight('small', 'medium', 'large')를 클래스 이름으로 넘겨주어
+          //       CSS가 올바른 높이 스타일을 적용할 수 있도록 합니다.
+          <span className={`${styles.scoreComment} ${styles[rowHeight]}`}>
+            {displayText}
           </span>
         ) : '-';
+        // ========================[수정 끝 (2/2)]========================
       },
     },
     {
