@@ -9,14 +9,19 @@ import Comments from '../../components/Comments/Comments';
 import AddToDatasetModal from '../../components/AddToDatasetModal/AddToDatasetModal';
 import { useComments } from '../../hooks/useComments';
 import UsageBreakdown from './UsageBreakdown';
+import { parseMaybeJSONDeep, decodeUnicodeLiterals } from './utils/json.js'
+
 
 
 // 메시지 content를 텍스트로 안전하게 변환
 const toText = (content) => {
   if (content == null) return '';
-  if (typeof content === 'string') return content;
+  if (typeof content === 'string') return decodeUnicodeLiterals(content);
   if (Array.isArray(content)) return content.map(toText).join('');
-  if (typeof content === 'object') return content.text ?? content.content ?? JSON.stringify(content);
+  if (typeof content === 'object') {
+    const raw = content.text ?? content.content ?? JSON.stringify(content);
+    return typeof raw === 'string' ? decodeUnicodeLiterals(raw) : String(raw);
+  }
   return String(content);
 };
 
@@ -28,6 +33,15 @@ const extractRoleText = (messages, role) => {
     .map(m => toText(m.content))
     .filter(Boolean)
     .join('\n\n');
+};
+
+// 값이 있는지 판단
+const hasContent = (v) => {
+  if (v == null) return false;
+  if (typeof v === 'string') return v.trim() !== '';
+  if (Array.isArray(v)) return v.length > 0;
+  if (typeof v === 'object') return Object.keys(v).length > 0;
+  return true;
 };
 
 // 객체를 "path -> value" 로 평탄화
@@ -85,7 +99,7 @@ const parseMaybeJSON = (v) => {
 
 // 3000처럼 계층형 Path/Value 테이블 렌더
 const MetaTable = ({ data }) => {
-  const obj = parseMaybeJSON(data);
+  const obj = parseMaybeJSONDeep(data);
   if (!obj || typeof obj !== 'object') return <pre>{String(obj ?? 'null')}</pre>;
 
   // 계층적으로 펼쳐서 테이블 행을 만든다
@@ -153,6 +167,10 @@ const TraceDetailView = ({ details, isLoading, error }) => {
     addComment,
     removeComment,
   } = useComments(projectId, objectType, details?.id);
+
+  // 버튼에 표시할 댓글 수 (최대 99+ 표기)
+  const commentCount = Array.isArray(comments) ? comments.length : 0;
+  const commentCountLabel = commentCount > 99 ? '99+' : String(commentCount);
 
   const handleAddComment = async (content) => {
     const result = await addComment(content);
@@ -228,9 +246,8 @@ const TraceDetailView = ({ details, isLoading, error }) => {
         </div>
         <div className={styles.cardBody}>
           {viewFormat === 'JSON'
-            ? <pre>{JSON.stringify(data, null, 2)}</pre>
-            : renderFormattedContent(data)
-          }
+            ? (typeof data === 'string' ? <pre>{data}</pre> : <pre>{JSON.stringify(data, null, 2)}</pre>)
+            : renderFormattedContent(data)}
         </div>
       </div>
     );
@@ -241,8 +258,23 @@ const TraceDetailView = ({ details, isLoading, error }) => {
   if (!details) return <div className={styles.body}>No details available.</div>;
 
   const metadataRaw = details.metadata ?? null;
-  const metadata = parseMaybeJSON(metadataRaw);
+  const metadata = parseMaybeJSONDeep(metadataRaw);
   const hasMetadata = metadata && typeof metadata === 'object' && Object.keys(metadata).length > 0;
+
+  // Path 카드에 쓸 데이터(tags를 “path”처럼 보여줌)
+  const pathData = (() => {
+    if (!details?.tags) return null;
+    if (Array.isArray(details.tags)) return { tags: details.tags };
+    const t = parseMaybeJSONDeep(details.tags);
+    if (Array.isArray(t)) return { tags: t };
+    if (t && typeof t === 'object') return t; // 이미 객체면 그대로
+    return null;
+  })();
+
+  // Placeholder 카드에 쓸 데이터
+  const placeholdersData = details?.placeholders ?? null;
+
+
   const name = details.name ?? 'N/A';
   const id = details.id;
 
@@ -303,12 +335,19 @@ const TraceDetailView = ({ details, isLoading, error }) => {
                 <Plus size={14} /> Add to datasets
               </button>
             )}
+
             <button
-              className={`${styles.iconButton} ${styles.actionButtonSecondary}`}
+              className={`${styles.iconButton} ${styles.actionButtonSecondary} ${styles.commentButton}`}
               onClick={() => setIsCommentsOpen(true)}
+              aria-label={`Open comments${commentCount ? `, ${commentCount} items` : ''}`}
+              title={`Comments${commentCount ? ` (${commentCountLabel})` : ''}`}
             >
               <MessageSquare size={16} />
+              {commentCount > 0 && (
+                <span className={styles.commentBadge}>{commentCountLabel}</span>
+              )}
             </button>
+
           </div>
         </div>
         <div className={styles.infoBarBottom}>
@@ -430,7 +469,7 @@ const TraceDetailView = ({ details, isLoading, error }) => {
               "Output",
               (() => {
                 // 1) details.output이 JSON-string/object면 파싱해서 사용
-                const out = parseMaybeJSON(details.output);
+                const out = parseMaybeJSONDeep(details.output);
                 if (out != null) {
                   return typeof out === 'string' ? { content: out } : out;
                 }
@@ -447,24 +486,30 @@ const TraceDetailView = ({ details, isLoading, error }) => {
           <>
             <h3 className={styles.previewTitle}>Preview</h3>
             {/* Formatted 모드: 역할별로 사람이 읽기 좋게 */}
-            {renderContent("System", extractRoleText(details.messages, 'system'))}
-            {renderContent("User", extractRoleText(details.messages, 'user'))}
-            {renderContent(
-              "Assistant",
-              (() => {
+            {(() => {
+              const sysText = extractRoleText(details.messages, 'system');
+              const userText = extractRoleText(details.messages, 'user');
+              const asstText = (() => {
                 const fromMsgs = extractRoleText(details.messages, 'assistant');
-                if (fromMsgs) return fromMsgs;
+                if (hasContent(fromMsgs)) return fromMsgs;
                 if (typeof details.output === 'string') {
                   try {
                     const o = JSON.parse(details.output);
                     if (o && typeof o === 'object') return toText(o.content ?? o);
-                  } catch { /* plain string */ }
+                  } catch { }
                   return details.output;
                 }
                 return toText(details.output);
-              })(),
-              'output'
-            )}
+              })();
+
+              return (
+                <>
+                  {hasContent(sysText) && renderContent("System", sysText)}
+                  {hasContent(userText) && renderContent("User", userText)}
+                  {hasContent(asstText) && renderContent("Assistant", asstText, 'output')}
+                </>
+              );
+            })()}
           </>
         )
       ) : (
@@ -474,6 +519,39 @@ const TraceDetailView = ({ details, isLoading, error }) => {
           {renderContent("Output", details.output, 'output')}
         </>
       )}
+
+
+      {/* 3000처럼 Path / Placeholders 카드 추가 (값이 있을 때만) */}
+      {hasContent(pathData) && (
+        <div className={styles.contentCard}>
+          <div className={styles.cardHeader}>
+            <h3 className={styles.cardTitle}>Path</h3>
+          </div>
+          <div className={styles.cardBody}>
+            {viewFormat === 'JSON'
+              ? <pre>{JSON.stringify(pathData, null, 2)}</pre>
+              : <MetaTable data={pathData} />}
+          </div>
+        </div>
+      )}
+
+      {hasContent(placeholdersData) && (
+        <div className={styles.contentCard}>
+          <div className={styles.cardHeader}>
+            <h3 className={styles.cardTitle}>Placeholders</h3>
+          </div>
+          <div className={styles.cardBody}>
+            {viewFormat === 'JSON'
+              ? <pre>{JSON.stringify(placeholdersData, null, 2)}</pre>
+              : (typeof placeholdersData === 'object'
+                ? <FormattedTable data={placeholdersData} />
+                : <pre>{String(placeholdersData)}</pre>)}
+          </div>
+        </div>
+      )}
+
+
+
       {isObservation &&
         details.modelParameters &&
         Object.keys(details.modelParameters || {}).length > 0 &&

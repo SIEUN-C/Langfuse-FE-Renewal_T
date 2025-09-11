@@ -11,6 +11,7 @@ import { Expand } from 'lucide-react';
 const EvaluatorLibrary = () => {
   const columns = getEvaluatorLibraryColumns({
     onUse: (row) => navigate(`evals/new/${row.id}`),
+    onEdit: (row) => navigate(`edit/${row.id}`),
   });
   const { projectId } = useProjectId();
   const [data, setData] = useState([]);

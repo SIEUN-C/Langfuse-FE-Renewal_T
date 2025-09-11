@@ -92,6 +92,7 @@
 .placeholderInput {
   width: 100%;
   box-sizing: border-box;
+  overflow-y: hidden;
   /* ✅ 겹침 방지 핵심 */
 }
 

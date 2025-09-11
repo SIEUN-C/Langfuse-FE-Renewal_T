@@ -1086,133 +1086,188 @@ export default function NewWidget() {
   ]);
 
   // 수정된 저장 핸들러 - 위젯 생성 후 대시보드에 자동 추가
-  const handleSaveWithDashboard = async (dashboardId) => {
-    if (!projectId) {
-      alert("Project ID is required");
-      return;
+const handleSaveWithDashboard = async (dashboardId) => {
+  if (!projectId) {
+    alert("Project ID is required");
+    return;
+  }
+  
+  setSaving(true);
+  console.log("🚀 위젯 저장 시작");
+  
+  try {
+    const activeFilters = userFilterState.filter(f => 
+      f.column && (f.values && f.values.length > 0)
+    );
+    
+    console.log("📊 현재 선택된 차트 타입:", selectedChartType);
+    
+    let chartConfig;
+    
+    switch(selectedChartType) {
+      case "HISTOGRAM":
+        chartConfig = { type: "HISTOGRAM", bins: histogramBins };
+        break;
+      case "PIVOT_TABLE":
+       chartConfig = {
+        type: "PIVOT_TABLE",
+        dimensions: pivotDimensions,
+        row_limit: rowLimit,
+        defaultSort: defaultSortColumn && defaultSortColumn !== ""
+          ? { column: defaultSortColumn, order: defaultSortOrder }
+          : undefined,
+      };
+        break;
+      case "NUMBER":
+        chartConfig = { type: "NUMBER" };
+        break;
+      case "PIE":
+        chartConfig = { type: "PIE", row_limit: rowLimit };
+        break;
+      case "HORIZONTAL_BAR":
+        chartConfig = { type: "HORIZONTAL_BAR", row_limit: rowLimit };
+        break;
+      case "VERTICAL_BAR":
+        chartConfig = { type: "VERTICAL_BAR", row_limit: rowLimit };
+        break;
+      case "LINE_TIME_SERIES":
+        chartConfig = { type: "LINE_TIME_SERIES", row_limit: rowLimit };
+        break;
+      case "BAR_TIME_SERIES":
+        chartConfig = { type: "BAR_TIME_SERIES", row_limit: rowLimit };
+        break;
+      default:
+        chartConfig = { type: selectedChartType, row_limit: rowLimit };
+        break;
     }
     
-    setSaving(true);
-    console.log("🚀 위젯 저장 시작");
+    const widgetData = {
+      name: widgetName,
+      description: widgetDescription,
+      view: selectedView,
+      dimensions: selectedChartType === "PIVOT_TABLE"
+        ? pivotDimensions.map((field) => ({ field }))
+        : selectedDimension !== ""
+          ? [{ field: selectedDimension }]
+          : [],
+      metrics: selectedChartType === "PIVOT_TABLE"
+        ? selectedMetrics
+            .filter((metric) => metric.measure && metric.measure !== "")
+            .map((metric) => ({
+              measure: metric.measure,
+              agg: metric.aggregation,
+            }))
+        : [{ measure: selectedMeasure, agg: selectedAggregation }],
+      filters: transformFiltersToWidgetFormat(activeFilters),
+      chartType: selectedChartType,
+      chartConfig: chartConfig,
+    };
+
+    console.log("📋 최종 위젯 데이터:", widgetData);
+
+    // 1단계: 위젯 생성
+    console.log("📡 API 호출 시작... (위젯 생성)");
+    const createResponse = await api.createWidget(widgetData);
     
-    try {
-      const activeFilters = userFilterState.filter(f => 
-        f.column && (f.values && f.values.length > 0)
-      );
+    console.log("📨 위젯 생성 API 전체 응답:", JSON.stringify(createResponse, null, 2));
+    
+    if (!createResponse.success) {
+      throw new Error(createResponse.error || 'Failed to create widget');
+    }
+    
+    // 🔥 수정: 위젯 ID 추출 로직 개선
+    let widgetId = null;
+    const responseData = createResponse.data;
+    
+ // 실제 API 응답 구조에 맞게 수정
+    if (responseData?.widget?.widget?.id) {
+      widgetId = responseData.widget.widget.id;  // 이것을 첫 번째로
+      console.log("위젯 ID 추출 성공:", widgetId);
+    } else if (responseData?.widget?.id) {
+      widgetId = responseData.widget.id;
+    } else if (responseData?.id) {
+      widgetId = responseData.id;
+    } else if (responseData?.widgetId) {
+      widgetId = responseData.widgetId;
+    } else {
+      // 응답 구조를 디버깅하기 위해 전체 구조 출력
+      console.error("위젯 ID 추출 실패. 응답 구조:", JSON.stringify(responseData, null, 2));
+      throw new Error("위젯은 생성되었지만 위젯 ID를 가져올 수 없습니다.");
+    }
+    
+    console.log("🎉 위젯 생성 성공! 추출된 위젯 ID:", widgetId);
+    
+    if (!widgetId) {
+      throw new Error("위젯 ID를 가져올 수 없습니다.");
+    }
+    
+    // 2단계: dashboardId가 있으면 대시보드에 위젯 추가
+    if (dashboardId) {
+      console.log("🔄 대시보드에 위젯 추가 시작:", { dashboardId, widgetId });
       
-      console.log("📊 현재 선택된 차트 타입:", selectedChartType);
-      
-      let chartConfig;
-      
-      switch(selectedChartType) {
-        case "HISTOGRAM":
-          chartConfig = { type: "HISTOGRAM", bins: histogramBins };
-          break;
-        case "PIVOT_TABLE":
-         chartConfig = {
-          type: "PIVOT_TABLE",
-          dimensions: pivotDimensions,
-          row_limit: rowLimit,
-          defaultSort: defaultSortColumn && defaultSortColumn !== ""
-            ? { column: defaultSortColumn, order: defaultSortOrder }
-            : undefined,
-        };
-          break;
-        case "NUMBER":
-          chartConfig = { type: "NUMBER" };
-          break;
-        case "PIE":
-          chartConfig = { type: "PIE", row_limit: rowLimit };
-          break;
-        case "HORIZONTAL_BAR":
-          chartConfig = { type: "HORIZONTAL_BAR", row_limit: rowLimit };
-          break;
-        case "VERTICAL_BAR":
-          chartConfig = { type: "VERTICAL_BAR", row_limit: rowLimit };
-          break;
-        case "LINE_TIME_SERIES":
-          chartConfig = { type: "LINE_TIME_SERIES", row_limit: rowLimit };
-          break;
-        case "BAR_TIME_SERIES":
-          chartConfig = { type: "BAR_TIME_SERIES", row_limit: rowLimit };
-          break;
-        default:
-          chartConfig = { type: selectedChartType, row_limit: rowLimit };
-          break;
-      }
-      
-      const widgetData = {
-        name: widgetName,
-        description: widgetDescription,
-        view: selectedView,
-        dimensions: selectedChartType === "PIVOT_TABLE"
-          ? pivotDimensions.map((field) => ({ field }))
-          : selectedDimension !== ""
-            ? [{ field: selectedDimension }]
-            : [],
-        metrics: selectedChartType === "PIVOT_TABLE"
-          ? selectedMetrics
-              .filter((metric) => metric.measure && metric.measure !== "")
-              .map((metric) => ({
-                measure: metric.measure,
-                agg: metric.aggregation,
-              }))
-          : [{ measure: selectedMeasure, agg: selectedAggregation }],
-        filters: transformFiltersToWidgetFormat(activeFilters),
-        chartType: selectedChartType,
-        chartConfig: chartConfig,
-      };
-
-      console.log("📋 최종 위젯 데이터:", widgetData);
-
-      console.log("📡 API 호출 시작... (위젯만 생성)");
-      const response = await api.createWidget(widgetData);
-      
-      console.log("📨 API 응답:", response);
-      
-      if (response.success) {
-        let widgetId = null;
+      try {
+        // 🔥 수정: api.addWidgetToDashboard 호출 방식 통일
+        const addResult = await api.addWidgetToDashboard(projectId, dashboardId, widgetId);
         
-        if (response.data?.widget?.widget?.id) {
-          widgetId = response.data.widget.widget.id;
-        } else if (response.data?.widget?.id) {
-          widgetId = response.data.widget.id;
-        } else if (response.data?.id) {
-          widgetId = response.data.id;
-        }
+        console.log("📨 대시보드 추가 결과:", JSON.stringify(addResult, null, 2));
         
-        console.log("🎉 위젯 생성 성공! ID:", widgetId);
-        
-        if (dashboardId && widgetId) {
-          console.log("🔄 대시보드로 이동하며 위젯 추가:", dashboardId);
+        if (addResult.success) {
+          console.log("✅ 대시보드에 위젯 추가 성공");
+          
+          // 🔥 수정: 대시보드로 이동할 때 새로고침 강제
+          const dashboardUrl = `/project/${projectId}/dashboards/${dashboardId}`;
+          console.log("🔄 대시보드로 이동:", dashboardUrl);
+          
+          // 성공 메시지와 함께 이동
+          alert("위젯이 성공적으로 생성되고 대시보드에 추가되었습니다!");
+          
+          // 페이지 새로고침을 통해 대시보드 재로딩
+          window.location.href = dashboardUrl;
+          
+        } else {
+          console.warn("⚠️ 대시보드 추가 실패:", addResult.error);
+          
+          // 위젯은 생성되었지만 대시보드 추가 실패
           navigate(`/project/${projectId}/dashboards/${dashboardId}`, {
             state: { 
-              addWidgetId: widgetId,
-              refreshDashboard: true 
+              refreshDashboard: true,
+              widgetCreated: true,
+              widgetId: widgetId,
+              warning: `위젯은 생성되었지만 대시보드 추가에 실패했습니다: ${addResult.error}`
             }
           });
-          alert("위젯이 생성되었습니다! 대시보드에 추가됩니다.");
-        } else if (widgetId) {
-          console.log("🔄 대시보드 목록으로 이동");
-          navigate(`/project/${projectId}/dashboards`);
-          alert("위젯이 저장되었습니다!");
-        } else {
-          throw new Error("위젯 ID를 가져올 수 없습니다.");
+          alert(`위젯은 생성되었지만 대시보드 추가에 실패했습니다.\n수동으로 추가해주세요.\n오류: ${addResult.error}`);
         }
-      } else {
-        console.error("❌ API 실패:", response.error);
-        throw new Error(response.error || 'Failed to create widget');
+      } catch (addError) {
+        console.error("💥 대시보드 추가 중 예외:", addError);
+        
+        // 위젯은 생성되었지만 대시보드 추가 실패
+        navigate(`/project/${projectId}/dashboards/${dashboardId}`, {
+          state: { 
+            refreshDashboard: true,
+            widgetCreated: true,
+            widgetId: widgetId,
+            warning: `위젯은 생성되었지만 대시보드 추가에 실패했습니다: ${addError.message}`
+          }
+        });
+        alert(`위젯은 생성되었지만 대시보드 추가에 실패했습니다.\n수동으로 추가해주세요.\n오류: ${addError.message}`);
       }
-    } catch (error) {
-      console.error("💥 저장 에러:", error);
-      alert(`저장 실패:\n${error.message || error}`);
-    } finally {
-      setSaving(false);
-      setShowDashboardModal(false);
-      console.log("🔚 저장 프로세스 완료");
+    } else {
+      // dashboardId가 없으면 위젯 목록으로 이동
+      console.log("🔄 대시보드 목록으로 이동");
+      navigate(`/project/${projectId}/dashboards`);
+      alert("위젯이 저장되었습니다!");
     }
-  };
-
+    
+  } catch (error) {
+    console.error("💥 저장 에러:", error);
+    alert(`저장 실패:\n${error.message || error}`);
+  } finally {
+    setSaving(false);
+    setShowDashboardModal(false);
+    console.log("🔚 저장 프로세스 완료");
+  }
+};
   const handleSave = () => setShowDashboardModal(true);
 
   if (!projectId) {

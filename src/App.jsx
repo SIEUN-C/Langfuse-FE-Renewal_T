@@ -1,3 +1,4 @@
+// src/App.jsx
 import React, { useState, useEffect } from "react";
 import { Routes, Route, Navigate, useParams, useLocation, useSearchParams } from "react-router-dom";
 import Layout from "./layouts/Layout";
@@ -51,19 +52,14 @@ import Members from "./Pages/Settings/Members";
 import Scores from "./Pages/Settings/Scores";
 import TraceProjectRedirect from "./Pages/Settings/test/TraceProjectRedirect";
 
+/** Setup step router: /organization/:orgId/setup?orgstep=invite-members */
 function SetupStepRouter() {
-  // 3000 패턴: /organization/:orgId/setup?orgstep=invite-members
-  const { orgId } = useParams(); // 필요하면 내부 로직에서 사용
   const search = new URLSearchParams(useLocation().search);
   const step = (search.get("orgstep") || "").toLowerCase();
-
-  // 초대 스텝이면 멤버 초대 화면, 그 외엔 조직 생성/개요 화면
-  if (step === "invite-members") {
-    return <SetupInviteMembers />;
-  }
-  return <SetupOrganizationPage />;
+  return step === "invite-members" ? <SetupInviteMembers /> : <SetupOrganizationPage />;
 }
 
+/** Legacy keys redirect: /project/:projectId/keys -> /project/:projectId/setup?... */
 function LegacyKeysRedirect() {
   const { projectId } = useParams();
   const [params] = useSearchParams();
@@ -72,8 +68,7 @@ function LegacyKeysRedirect() {
   return <Navigate to={`/project/${projectId}/setup${q}`} replace />;
 }
 
-
-/** 🔑 projectId 변경 시 강제 리마운트 */
+/** projectId 변경 시 강제 리마운트 */
 function keyByProjectId(Component) {
   return function KeyedByProjectId(props) {
     const { projectId } = useParams();
@@ -106,31 +101,27 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const checkSession = async () => {
+    (async () => {
       try {
         const res = await fetch("/api/auth/session");
         const data = await res.json();
         if (data && Object.keys(data).length > 0) setSession(data);
-      } catch {
-        // noop
       } finally {
         setIsLoading(false);
       }
-    };
-    checkSession();
+    })();
   }, []);
 
   if (isLoading) return <div>Loading...</div>;
 
-  /** ✅ 홈(index) 분기 */
+  /** 홈(index) 분기 */
   function HomeIndex() {
     const loc = useLocation();
     const hasOrg = !!localStorage.getItem("orgId");
     const hasSearch = new URLSearchParams(loc.search).has("search");
-
     if (hasOrg) return <Navigate to="/trace" replace />;
-    if (hasSearch) return <SelectProjectPage />; // /?search면 목록/히어로 노출
-    return <Navigate to="/?search" replace />;   // 그 외에는 /?search로
+    if (hasSearch) return <SelectProjectPage />;
+    return <Navigate to="/?search" replace />;
   }
 
   return (
@@ -140,10 +131,11 @@ export default function App() {
       <Route path="/auth/sign-up" element={!session ? <SignUpPage /> : <Navigate to="/" />} />
       <Route path="/signup" element={<Navigate to="/auth/sign-up" replace />} />
 
-      {/* Setup Wizard - Layout 외부 (조직이 없는 경우) */}
+      {/* Setup Wizard - Layout 외부 */}
       <Route path="/setup" element={!session ? <Navigate to="/login" /> : <SetupOrganizationPage />} />
       <Route path="/setup/members" element={!session ? <Navigate to="/login" /> : <SetupInviteMembers />} />
       <Route path="/organization/:orgId/setup" element={!session ? <Navigate to="/login" /> : <SetupStepRouter />} />
+
       {/* 앱 메인 - Layout 포함 */}
       <Route path="/" element={session ? <Layout session={session} /> : <Navigate to="/login" />}>
         <Route index element={<HomeIndex />} />
@@ -208,7 +200,7 @@ export default function App() {
 
         {/* Setup Tracing (Step 4) */}
         <Route path="project/:projectId/setup" element={<RequireOrg><SetupTracingPage /></RequireOrg>} />
-        
+
         {/* 레거시 키 경로 리다이렉트 */}
         <Route path="project/:projectId/keys" element={<RequireOrg><LegacyKeysRedirect /></RequireOrg>} />
 

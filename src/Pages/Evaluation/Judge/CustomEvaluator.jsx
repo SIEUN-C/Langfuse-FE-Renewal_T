@@ -7,6 +7,7 @@ import FormPageLayout from "../../../components/Layouts/FormPageLayout.jsx";
 import FormGroup from "../../../components/Form/FormGroup.jsx";
 import CodeBlock from "../../../components/CodeBlock/CodeBlock.jsx";
 import { Pencil } from 'lucide-react';
+import { getTemplateById } from "./services/libraryApi";
 
 const CustomEvaluator = () => {
   const { projectId } = useProjectId();
@@ -22,6 +23,11 @@ const CustomEvaluator = () => {
   const [scoreRange, setScoreRange] = useState("Score between 0 and 1. Score 0 if false or negative and 1 if true or positive.")
   const navigate = useNavigate();
   const [isSaving, setIsSaving] = useState(false);
+
+  // ==================================================
+  const { templateId } = useParams();
+  const isEditModel = Boolean(templateId);
+  // ==================================================
 
   useEffect(() => {
     if (!projectId) {
@@ -39,17 +45,27 @@ const CustomEvaluator = () => {
 
         setDefaultModel(modelResponse);
 
+        if (isEditModel) {
+          const templateData = await getTemplateById(projectId, templateId);
+          // ======================================
+          if (templateData) {
+            setName(templateData.name);
+            setPrompt(templateData.prompt);
+            setScoreReasoning(templateData.outputSchema.score);
+            setScoreRange(templateData.outputSchema.reasoning);
+          }
+        }
+
       } catch (err) {
         setError("Failed to load template details.");
         console.error(err);
       } finally {
         setLoading(false);
-        setIsLoading(false);
       }
     };
 
     fetchData();
-  }, [projectId]);
+  }, [projectId, templateId, isEditModel]);
 
   useEffect(() => {
     const extractVariables = (text) => {
@@ -138,7 +154,7 @@ const CustomEvaluator = () => {
               <label htmlFor="useDefaultModel">Use default evaluation model</label>
             </div>
             <div className={styles.modelInfo}>
-              <span className={styles.modelName}> {isLoading ? (
+              <span className={styles.modelName}> {loading ? (
                 <p>Loading default model...</p>
               ) : defaultModel ? (
                 <p>
@@ -152,7 +168,7 @@ const CustomEvaluator = () => {
                 <p>Default model not found.</p>
               )}</span>
               <button onClick={handleDefaultModel} className={styles.editButton}>
-                <Pencil size={16}/>
+                <Pencil size={16} />
               </button>
             </div>
           </div>
@@ -218,7 +234,7 @@ const CustomEvaluator = () => {
           className={styles.saveButton}
           onClick={handleSave}
           disables={isSaving}
-          >
+        >
           {isSaving ? 'Saving...' : 'Save'}
         </button>
       </div>

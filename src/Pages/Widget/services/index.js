@@ -176,6 +176,36 @@ class WidgetAPI extends PreviewAPI {
     }
   }
 
+  // ✅ 대시보드에 위젯 추가 메서드 (NewWidget에서 사용)
+ async addWidgetToDashboard(projectId, dashboardId, widgetId) {
+  try {
+    if (!dashboardId || !widgetId) {
+      throw new Error('dashboardId and widgetId are required');
+    }
+
+    console.log("[WidgetAPI] === 대시보드 위젯 추가 시작 ===");
+    console.log("[WidgetAPI] projectId:", projectId);
+    console.log("[WidgetAPI] dashboardId:", dashboardId);
+    console.log("[WidgetAPI] widgetId:", widgetId);
+
+    // 🔥 수정: _widgets.addWidgetToDashboard 메서드 사용
+    const result = await this._widgets.addWidgetToDashboard(projectId, dashboardId, widgetId);
+    
+    if (result.success) {
+      console.log("[WidgetAPI] 대시보드에 위젯 추가 성공");
+      return result;
+    } else {
+      console.error("[WidgetAPI] 대시보드에 위젯 추가 실패:", result.error);
+      return result;
+    }
+    
+  } catch (error) {
+    console.error("[WidgetAPI] === 대시보드 위젯 추가 실패 ===");
+    console.error("[WidgetAPI] 에러:", error);
+    return { success: false, error: error.message };
+  }
+}
+
   // ✅ 대시보드 관련 메서드들 추가
   async getAllDashboards(params = {}) {
     const payload = {

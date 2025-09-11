@@ -1,58 +1,14 @@
-import React, { useState } from 'react';
-import WidgetCard from '../WidgetCard';
+import React, { useState, useEffect } from 'react';
+import { DashboardCard } from '../cards/DashboardCard';
 import TotalMetric from './TotalMetric';
-import { compactNumberFormatter } from '../../utils/numbers';
 import NoDataOrLoading from './NoDataOrLoading';
+import ExpandListButton from './ExpandListButton';
+import { widgetAPI } from '../../services/dashboardApi';
+import { compactNumberFormatter } from '../../utils/numbers';
+// ✅ 수정: 원본과 동일한 필터 매핑 사용
+import { mapLegacyUiTableFilterToView } from '../../utils/widget-utils';
 
-// ExpandListButton 간단 구현 (임시)
-const ExpandListButton = ({ 
-  isExpanded, 
-  setExpanded, 
-  totalLength, 
-  maxLength, 
-  expandText 
-}) => {
-  if (totalLength <= maxLength) return null;
-
-  return (
-    <button
-      onClick={() => setExpanded(!isExpanded)}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: '100%',
-        padding: '8px 16px',
-        marginTop: '12px',
-        border: '1px solid #d1d5db',
-        backgroundColor: 'white',
-        color: '#374151',
-        borderRadius: '4px',
-        cursor: 'pointer',
-        fontSize: '14px',
-        fontWeight: '500',
-        transition: 'all 0.2s'
-      }}
-      onMouseEnter={(e) => {
-        e.target.style.backgroundColor = '#f9fafb';
-      }}
-      onMouseLeave={(e) => {
-        e.target.style.backgroundColor = 'white';
-      }}
-    >
-      {isExpanded ? 'Show less' : expandText}
-      <span style={{ 
-        marginLeft: '4px',
-        transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
-        transition: 'transform 0.2s'
-      }}>
-        ▼
-      </span>
-    </button>
-  );
-};
-
-// BarList 컴포넌트 (Tremor 대체)
+// BarList 구현
 const BarList = ({ data, valueFormatter, showAnimation = true, color = "indigo" }) => {
   const maxValue = Math.max(...data.map(item => item.value));
   
@@ -86,7 +42,7 @@ const BarList = ({ data, valueFormatter, showAnimation = true, color = "indigo" 
             <div style={{
               minWidth: '120px',
               fontSize: '14px',
-              color: '#374151',
+              color: '#f3f4f6',
               fontWeight: '500',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
@@ -100,7 +56,7 @@ const BarList = ({ data, valueFormatter, showAnimation = true, color = "indigo" 
               flex: 1,
               margin: '0 12px',
               height: '20px',
-              backgroundColor: '#f3f4f6',
+              backgroundColor: '#374151',
               borderRadius: '4px',
               overflow: 'hidden',
               position: 'relative'
@@ -123,7 +79,7 @@ const BarList = ({ data, valueFormatter, showAnimation = true, color = "indigo" 
               minWidth: '60px',
               textAlign: 'right',
               fontSize: '14px',
-              color: '#6b7280',
+              color: '#9ca3af',
               fontWeight: '500'
             }}>
               {valueFormatter ? valueFormatter(item.value) : item.value}
@@ -136,85 +92,141 @@ const BarList = ({ data, valueFormatter, showAnimation = true, color = "indigo" 
 };
 
 /**
- * 트레이스 바 리스트 차트 컴포넌트
- * DashboardDetail에서 data prop으로 차트 데이터를 받음
- * @param {Object} props
- * @param {Array} props.data - 차트 데이터 배열 (transformWidgetData에서 변환된 데이터)
+ * TracesBarListChart 컴포넌트
+ * 원본 Langfuse와 동일한 구조로 구현
+ * 
+ * ✅ 수정사항:
+ * 1. 필터 매핑 함수 변경 (createTracesTimeFilter → mapLegacyUiTableFilterToView)
+ * 2. 에러 핸들링 개선
+ * 3. API 응답 구조 검증 추가
  */
-const TracesBarListChart = ({ data = [] }) => {
+export const TracesBarListChart = ({
+  className,
+  projectId,
+  globalFilterState,
+  fromTimestamp,
+  toTimestamp,
+  isLoading = false,
+}) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [totalTracesData, setTotalTracesData] = useState(null);
+  const [tracesData, setTracesData] = useState(null);
+  const [apiLoading, setApiLoading] = useState(false);
+  const [apiError, setApiError] = useState(null);
 
-  // 디버깅용 로그 추가
-  console.log('=== TracesBarListChart Debug ===');
-  console.log('Raw data received:', data);
-  console.log('Data type:', typeof data);
-  console.log('Is array:', Array.isArray(data));
-  console.log('Data length:', data?.length);
-  
-  // 각 데이터 아이템 상세 분석
-  if (Array.isArray(data) && data.length > 0) {
-    data.forEach((item, index) => {
-      console.log(`Item ${index}:`, item);
-      console.log(`  - Keys: ${Object.keys(item)}`);
-      console.log(`  - Values: ${Object.values(item)}`);
-    });
-  }
+  // API 호출
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!projectId || isLoading) return;
 
-  // 데이터가 없거나 비어있는 경우
-  if (!data || data.length === 0) {
-    return (
-      <NoDataOrLoading
-        isLoading={false}
-        description="Traces contain details about LLM applications and can be created using the SDK."
-        href="https://langfuse.com/docs/get-started"
-      />
-    );
-  }
+      setApiLoading(true);
+      setApiError(null);
 
-  // 데이터 변환 (모든 가능한 키 확인)
-  const transformedTraces = data.map((item, index) => {
-    console.log(`Transforming item ${index}:`, item);
-    
-    // 가능한 모든 name 필드 확인
-    const name = item.name || 
-                 item.trace_name || 
-                 item.traceName || 
-                 item.key || 
-                 item.label ||
-                 item.dimension ||
-                 `Trace ${index + 1}`;
-    
-    // 가능한 모든 value 필드 확인
-    const rawValue = item.value || 
-                     item.count || 
-                     item.count_count || 
-                     item.metric || 
-                     item.total ||
-                     item.sum || 
-                     0;
-    
-    console.log(`  - Raw name: "${name}"`);
-    console.log(`  - Raw value: "${rawValue}"`);
-    
-    // 값을 숫자로 변환
-    const value = Number(rawValue);
-    console.log(`  - Parsed value: ${value} (isNaN: ${isNaN(value)})`);
-    
-    return {
-      name: String(name),
-      value: isNaN(value) ? 0 : value
+      try {
+        // ✅ 수정: 원본과 동일한 필터 매핑 사용
+        const filters = mapLegacyUiTableFilterToView("traces", globalFilterState || []);
+
+        console.log('🔍 TracesBarListChart API 호출:', {
+          projectId,
+          filters,
+          fromTimestamp: fromTimestamp.toISOString(),
+          toTimestamp: toTimestamp.toISOString()
+        });
+
+        // 1. Total traces query (원본과 동일)
+        const totalTracesQuery = {
+          view: "traces",
+          dimensions: [],
+          metrics: [{ measure: "count", aggregation: "count" }],
+          filters,
+          timeDimension: null,
+          fromTimestamp: fromTimestamp.toISOString(),
+          toTimestamp: toTimestamp.toISOString(),
+          orderBy: null,
+        };
+
+        const totalResult = await widgetAPI.executeQuery(projectId, totalTracesQuery);
+        console.log('📊 Total traces 결과:', totalResult);
+
+        // 2. Traces grouped by name query (원본과 동일)
+        const tracesQuery = {
+          view: "traces",
+          dimensions: [{ field: "name" }],
+          metrics: [{ measure: "count", aggregation: "count" }],
+          filters,
+          timeDimension: null,
+          fromTimestamp: fromTimestamp.toISOString(),
+          toTimestamp: toTimestamp.toISOString(),
+          orderBy: null,
+        };
+
+        const tracesResult = await widgetAPI.executeQuery(projectId, tracesQuery);
+        console.log('📊 Grouped traces 결과:', tracesResult);
+
+        // ✅ 개선: API 응답 구조 검증
+        if (totalResult.success && Array.isArray(totalResult.data)) {
+          setTotalTracesData(totalResult.data);
+          console.log('✅ Total traces 데이터 설정 완료');
+        } else {
+          console.warn('⚠️ Total traces 데이터 형식이 예상과 다름:', totalResult);
+        }
+
+        if (tracesResult.success && Array.isArray(tracesResult.data)) {
+          setTracesData(tracesResult.data);
+          console.log('✅ Grouped traces 데이터 설정 완료');
+        } else {
+          console.warn('⚠️ Grouped traces 데이터 형식이 예상과 다름:', tracesResult);
+        }
+
+        // 에러 처리
+        if (!totalResult.success || !tracesResult.success) {
+          const errorMsg = totalResult.error || tracesResult.error || 'Unknown API error';
+          setApiError(errorMsg);
+          console.error('❌ API 에러:', errorMsg);
+        }
+
+      } catch (error) {
+        console.error('❌ TracesBarListChart API 호출 실패:', error);
+        setApiError(error.message);
+      } finally {
+        setApiLoading(false);
+      }
     };
-  });
 
-  console.log('Transformed traces:', transformedTraces);
+    fetchData();
+  }, [projectId, globalFilterState, fromTimestamp, toTimestamp, isLoading]);
 
-  // 총합 계산
-  const totalCount = transformedTraces.reduce((sum, item) => {
-    const validValue = isNaN(item.value) ? 0 : item.value;
-    return sum + validValue;
-  }, 0);
-  
-  console.log('Total count:', totalCount);
+  // ✅ 개선: 데이터 변환 및 검증
+  const transformedTraces = React.useMemo(() => {
+    if (!tracesData || !Array.isArray(tracesData)) {
+      console.log('📊 변환할 tracesData가 없음:', tracesData);
+      return [];
+    }
+
+    const transformed = tracesData.map((item) => {
+      // ✅ 검증: 예상되는 데이터 구조 확인
+      if (!item || typeof item !== 'object') {
+        console.warn('⚠️ 잘못된 trace 아이템:', item);
+        return null;
+      }
+
+      // count_count 필드 확인 (다양한 형태 지원)
+      const countValue = item.count_count || item.count || item.value || 0;
+      
+      return {
+        name: item.name || "Unknown",
+        value: Number(countValue),
+      };
+    }).filter(Boolean); // null 값 제거
+
+    console.log('🔄 Traces 데이터 변환 완료:', {
+      원본: tracesData.length,
+      변환후: transformed.length,
+      샘플: transformed.slice(0, 3)
+    });
+
+    return transformed;
+  }, [tracesData]);
 
   const maxNumberOfEntries = { collapsed: 5, expanded: 20 };
 
@@ -222,50 +234,97 @@ const TracesBarListChart = ({ data = [] }) => {
     ? transformedTraces.slice(0, maxNumberOfEntries.expanded)
     : transformedTraces.slice(0, maxNumberOfEntries.collapsed);
 
-  // compactNumberFormatter 안전 호출
-  let formattedTotal;
-  try {
-    formattedTotal = compactNumberFormatter ? compactNumberFormatter(totalCount) : totalCount.toLocaleString();
-    console.log('Formatted total:', formattedTotal);
-  } catch (error) {
-    console.error('compactNumberFormatter error:', error);
-    formattedTotal = totalCount.toLocaleString();
-  }
+  // ✅ 개선: 총 개수 계산
+  const totalCount = React.useMemo(() => {
+    if (!totalTracesData || !Array.isArray(totalTracesData) || totalTracesData.length === 0) {
+      return 0;
+    }
+
+    const firstItem = totalTracesData[0];
+    const count = firstItem?.count_count || firstItem?.count || firstItem?.value || 0;
+    
+    console.log('📊 총 Traces 개수:', {
+      totalTracesData,
+      extractedCount: count
+    });
+
+    return Number(count);
+  }, [totalTracesData]);
+
+  const isCurrentlyLoading = isLoading || apiLoading;
 
   return (
-    <>
-      <TotalMetric
-        metric={formattedTotal}
-        description="Total traces tracked"
-      />
-      {adjustedData.length > 0 ? (
-        <BarList
-          data={adjustedData}
-          valueFormatter={(number) =>
-            Intl.NumberFormat("en-US").format(number).toString()
+    <DashboardCard
+      className={className}
+      title="Traces"
+      description={null}
+      isLoading={isCurrentlyLoading}
+    >
+      <>
+        <TotalMetric
+          metric={compactNumberFormatter(totalCount)}
+          description="Total traces tracked"
+        />
+        
+        {adjustedData.length > 0 ? (
+          <>
+            <BarList
+              data={adjustedData}
+              valueFormatter={(number) =>
+                Intl.NumberFormat("en-US").format(number).toString()
+              }
+              showAnimation={true}
+              color="indigo"
+            />
+          </>
+        ) : (
+          <NoDataOrLoading
+            isLoading={isCurrentlyLoading}
+            description="Traces contain details about LLM applications and can be created using the SDK."
+            href="https://langfuse.com/docs/get-started"
+          />
+        )}
+        
+        <ExpandListButton
+          isExpanded={isExpanded}
+          setExpanded={setIsExpanded}
+          totalLength={transformedTraces.length}
+          maxLength={maxNumberOfEntries.collapsed}
+          expandText={
+            transformedTraces.length > maxNumberOfEntries.expanded
+              ? `Show top ${maxNumberOfEntries.expanded}`
+              : "Show all"
           }
-          showAnimation={true}
-          color="indigo"
         />
-      ) : (
-        <NoDataOrLoading
-          isLoading={false}
-          description="Traces contain details about LLM applications and can be created using the SDK."
-          href="https://langfuse.com/docs/get-started"
-        />
-      )}
-      <ExpandListButton
-        isExpanded={isExpanded}
-        setExpanded={setIsExpanded}
-        totalLength={transformedTraces.length}
-        maxLength={maxNumberOfEntries.collapsed}
-        expandText={
-          transformedTraces.length > maxNumberOfEntries.expanded
-            ? `Show top ${maxNumberOfEntries.expanded}`
-            : "Show all"
-        }
-      />
-    </>
+        
+        {/* 에러 표시 */}
+        {apiError && (
+          <div style={{
+            marginTop: '12px',
+            padding: '8px',
+            backgroundColor: '#7f1d1d',
+            color: '#fca5a5',
+            borderRadius: '4px',
+            fontSize: '14px'
+          }}>
+            Error: {apiError}
+          </div>
+        )}
+
+        {/* 개발 모드에서 디버그 정보 표시 */}
+        {import.meta.env.DEV && (
+          <details style={{ marginTop: '12px', fontSize: '12px', color: '#64748b' }}>
+            <summary style={{ cursor: 'pointer' }}>🔧 Debug Info</summary>
+            <div style={{ marginTop: '8px', fontFamily: 'monospace' }}>
+              <div>Total Traces: {totalTracesData?.length || 0} items</div>
+              <div>Grouped Traces: {tracesData?.length || 0} items</div>
+              <div>Transformed: {transformedTraces.length} items</div>
+              <div>Displayed: {adjustedData.length} items</div>
+            </div>
+          </details>
+        )}
+      </>
+    </DashboardCard>
   );
 };
 

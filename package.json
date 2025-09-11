@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.9.0",
+    "@tanstack/react-table": "^8.21.3",
     "@types/node": "^22.8.2",
     "@vitejs/plugin-react-swc": "~3.7.1",
     "ag-grid-community": "~32.3.1",
@@ -41,7 +42,8 @@
     "recharts": "^3.1.2",
     "superjson": "^2.2.2",
     "uuid": "^11.1.0",
-    "vite-tsconfig-paths": "~5.0.1"
+    "vite-tsconfig-paths": "~5.0.1",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@eslint/js": "^9.13.0",
