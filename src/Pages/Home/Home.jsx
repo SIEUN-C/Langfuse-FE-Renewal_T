@@ -5,6 +5,7 @@ import { useParams } from 'react-router-dom';
 // ===== 차트 컴포넌트들 =====
 import TracesBarListChart from '../Dashboards/components/charts/TracesBarListChart';
 import ModelCostTable from '../Dashboards/components/charts/ModelCostTable';
+import LatencyChart from '../Dashboards/components/charts/LatencyChart'; // 🆕 추가
 
 // ===== 필터 컴포넌트들 - 기존 것 활용 =====
 import DateRangePicker from '../../components/DateRange/DateRangePicker';
@@ -318,6 +319,19 @@ const Home = () => {
         </div>
       </div>
 
+      {/* 🆕 LatencyChart - 맨 아래에 가로로 길게 배치 */}
+      <div className={styles.latencyChartSection}>
+        <LatencyChart
+          className={styles.latencyChartWide}
+          projectId={projectId}
+          globalFilterState={mergedFilterState}
+          agg="1 hour"
+          fromTimestamp={dateRange.startDate}
+          toTimestamp={dateRange.endDate}
+          isLoading={isLoading || filterOptionsLoading}
+        />
+      </div>
+
       {/* 테스트 컨트롤 패널 */}
       <div className={styles.testControls}>
         <button 
@@ -346,7 +360,7 @@ const Home = () => {
             <div><strong>Project ID:</strong> {projectId}</div>
             <div><strong>Date Range:</strong> {dateRange.startDate.toLocaleDateString()} ~ {dateRange.endDate.toLocaleDateString()}</div>
             <div><strong>Active Filters:</strong> {mergedFilterState.length}개</div>
-            <div><strong>Current Phase:</strong> 깔끔한 카드 레이아웃 완성</div>
+            <div><strong>Current Phase:</strong> LatencyChart 추가 완료</div>
             <div><strong>Filter Options:</strong> {filterOptionsLoading ? 'Loading...' : 'Loaded'}</div>
           </div>
         </details>

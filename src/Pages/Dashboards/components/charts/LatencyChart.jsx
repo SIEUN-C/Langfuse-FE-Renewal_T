@@ -4,12 +4,12 @@ import {
  fillMissingValuesAndTransform,
  isEmptyTimeSeries,
 } from '../../utils/hooks';
-import WidgetCard from '../WidgetCard';
+import { DashboardCard } from '../cards/DashboardCard';
 import BaseTimeSeriesChart from './BaseTimeSeriesChart';
 import TabComponent from './TabsComponent';
 import { latencyFormatter } from '../../utils/numbers';
 import { dashboardDateRangeAggregationSettings } from '../../utils/date-range-utils';
-//import NoDataOrLoading from './NoDataOrLoading';
+import NoDataOrLoading from './NoDataOrLoading';
 import {
  ModelSelectorPopover,
  useModelSelection,
@@ -33,7 +33,7 @@ function getGenerationLikeTypes() {
 }
 
 /**
- * 지연시간 차트 컴포넌트 (GenerationLatencyChart)
+ * 지연시간 차트 컴포넌트 (LatencyChart)
  * @param {Object} props
  * @param {string} props.className - CSS 클래스명
  * @param {string} props.projectId - 프로젝트 ID
@@ -43,7 +43,7 @@ function getGenerationLikeTypes() {
  * @param {Date} props.toTimestamp - 종료 날짜
  * @param {boolean} props.isLoading - 로딩 상태
  */
-const GenerationLatencyChart = ({
+const LatencyChart = ({
   className,
   projectId,
   globalFilterState,
@@ -100,45 +100,52 @@ const GenerationLatencyChart = ({
     orderBy: null,
   };
 
-  // Mock 지연시간 데이터
-  const mockLatencyData = [
-    {
-      time_dimension: fromTimestamp.toISOString(),
-      providedModelName: 'gpt-4',
-      p50_latency: 1.2,
-      p75_latency: 1.8,
-      p90_latency: 2.5,
-      p95_latency: 3.2,
-      p99_latency: 4.8
-    },
-    {
-      time_dimension: new Date(fromTimestamp.getTime() + 3600000).toISOString(), // +1시간
-      providedModelName: 'gpt-4',
-      p50_latency: 1.1,
-      p75_latency: 1.7,
-      p90_latency: 2.3,
-      p95_latency: 3.0,
-      p99_latency: 4.5
-    },
-    {
-      time_dimension: fromTimestamp.toISOString(),
-      providedModelName: 'gpt-3.5-turbo',
-      p50_latency: 0.8,
-      p75_latency: 1.2,
-      p90_latency: 1.8,
-      p95_latency: 2.2,
-      p99_latency: 3.5
-    },
-    {
-      time_dimension: new Date(fromTimestamp.getTime() + 3600000).toISOString(),
-      providedModelName: 'gpt-3.5-turbo',
-      p50_latency: 0.7,
-      p75_latency: 1.1,
-      p90_latency: 1.6,
-      p95_latency: 2.0,
-      p99_latency: 3.2
-    },
-  ];
+  // Mock 지연시간 데이터 생성 (더 현실적인 데이터)
+  const generateMockLatencyData = () => {
+    const models = selectedModels.length > 0 ? selectedModels : ['Qwen3-30B-A3B-Instruct-2507-UD-Q5_K_XL.gguf'];
+    const timePoints = [];
+    
+    // 시간 포인트 생성 (현재 시간부터 과거로)
+    const now = new Date();
+    for (let i = 0; i < 48; i++) { // 48시간
+      const time = new Date(now.getTime() - (i * 60 * 60 * 1000)); // 1시간씩 감소
+      timePoints.push(time);
+    }
+    timePoints.reverse(); // 시간순으로 정렬
+
+    const data = [];
+    
+    timePoints.forEach(time => {
+      models.forEach(model => {
+        // 모델별 기본 레이턴시 설정
+        const baseLatency = model.includes('gpt-4') ? 1.5 : 
+                           model.includes('gpt-3.5') ? 0.8 :
+                           model.includes('claude') ? 1.2 : 0.15; // Qwen 모델은 매우 빠름
+        
+        // 각 퍼센타일별 레이턴시 생성
+        const variance = 0.8 + Math.random() * 0.4; // 80-120% 변동
+        const p50 = baseLatency * variance;
+        const p75 = p50 * 1.3;
+        const p90 = p50 * 1.8;
+        const p95 = p50 * 2.2;
+        const p99 = p50 * 3.5;
+
+        data.push({
+          time_dimension: time.toISOString(),
+          providedModelName: model,
+          p50_latency: p50,
+          p75_latency: p75,
+          p90_latency: p90,
+          p95_latency: p95,
+          p99_latency: p99
+        });
+      });
+    });
+
+    return data;
+  };
+
+  const mockLatencyData = generateMockLatencyData();
 
   // Mock API 호출 시뮬레이션
   const latencies = {
@@ -204,7 +211,7 @@ const GenerationLatencyChart = ({
   ];
 
   return (
-    <WidgetCard
+    <DashboardCard
       className={className}
       title="Model latencies"
       description="Latencies (seconds) per LLM generation"
@@ -240,10 +247,13 @@ const GenerationLatencyChart = ({
                     data={item.data}
                     connectNulls={true}
                     valueFormatter={latencyFormatter}
+                    showLegend={true}
                   />
                 ) : (
                   <NoDataOrLoading
                     isLoading={isLoading || latencies.isLoading}
+                    description="Model latencies are tracked automatically when using the Langfuse SDK or API."
+                    href="https://langfuse.com/docs/model-usage-and-cost"
                   />
                 )}
               </>
@@ -251,8 +261,8 @@ const GenerationLatencyChart = ({
           };
         })}
       />
-    </WidgetCard>
+    </DashboardCard>
   );
 };
 
-export default GenerationLatencyChart;
+export default LatencyChart;
