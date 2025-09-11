@@ -130,24 +130,27 @@ const EvaluationView = () => {
           {/* --- ✨ 수정: headerRight 부분에 UI 요소들을 추가합니다 --- */}
           <div className={styles.headerRight}>
             <span className={styles.resultCount}>✅ {jobs.length} results</span>
-             {/* ========================[수정 시작]======================== */}
+              {/* ========================[수정 시작]======================== */}
             {/*
-             * 수정 내용:
-             * 기존에는 'ACTIVE' 상태일 때만 뱃지를 표시했습니다.
-             * 이제 evaluatorConfig.status 값이 존재할 경우 항상 뱃지를 표시하도록 변경합니다.
-             * status 값에 따라 className을 동적으로 부여하여 'ACTIVE'와 'INACTIVE' 상태의 UI를 다르게 보여줍니다.
-             * 텍스트도 status 값을 소문자로 변환하여 동적으로 표시합니다.
-             */}
-            {evaluatorConfig?.status && (
+              * 수정 내용:
+              * 1. 표시할 상태 값 변경:
+              * - 기존: evaluatorConfig.status (기본 상태)
+              * - 변경: evaluatorConfig.finalStatus (모든 상태를 포함하는 최종 계산된 상태)
+              * 2. CSS 클래스 적용 로직 변경:
+              * - 기존: 'ACTIVE'일 때만 active 스타일 적용
+              * - 변경: 'INACTIVE'가 아닐 경우 모두 active 스타일을 적용하여
+              * 'ACTIVE', 'FINISHED' 등 다른 모든 상태가 동일한 UI를 갖도록 함.
+              */}
+            {evaluatorConfig?.finalStatus && (
               <span
                 className={
-                  evaluatorConfig.status === "ACTIVE"
-                    ? styles.activeStatusBadge
-                    : styles.inactiveStatusBadge
+                  evaluatorConfig.finalStatus === "INACTIVE"
+                    ? styles.inactiveStatusBadge
+                    : styles.activeStatusBadge
                 }
               >
                 <span className={styles.statusDot}></span>
-                {evaluatorConfig.status.toLowerCase()}
+                {evaluatorConfig.finalStatus.toLowerCase()}
               </span>
             )}
             {/* ========================[수정 끝]======================== */}
