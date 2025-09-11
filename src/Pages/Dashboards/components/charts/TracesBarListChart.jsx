@@ -5,7 +5,7 @@ import NoDataOrLoading from './NoDataOrLoading';
 import ExpandListButton from './ExpandListButton';
 import { widgetAPI } from '../../services/dashboardApi';
 
-// BarList 구현
+// BarList 구현 - 막대 안에 텍스트
 const BarList = ({ data, valueFormatter, showAnimation = true, color = "indigo" }) => {
   const maxValue = Math.max(...data.map(item => item.value));
   
@@ -31,50 +31,57 @@ const BarList = ({ data, valueFormatter, showAnimation = true, color = "indigo" 
             style={{
               display: 'flex',
               alignItems: 'center',
-              marginBottom: '12px',
-              padding: '0'
+              marginBottom: '8px',
+              position: 'relative'
             }}
           >
-            <div style={{
-              minWidth: '200px',
-              fontSize: '14px',
-              color: '#f3f4f6',
-              fontWeight: '400',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-              paddingRight: '16px'
-            }}>
-              {item.name}
-            </div>
-            
+            {/* 막대 배경 */}
             <div style={{
               flex: 1,
-              height: '24px',
-              backgroundColor: '#374151',
-              borderRadius: '12px',
+              height: '32px', // 더 높게 해서 텍스트 공간 확보
+              borderRadius: '6px', // 높이의 절반으로 완전 둥글게
               overflow: 'hidden',
               position: 'relative'
             }}>
+              {/* 채워진 막대 */}
               <div
                 style={{
                   width: `${percentage}%`,
                   height: '100%',
                   backgroundColor: getBarColor(color),
-                  borderRadius: '12px',
+                  borderRadius: '6px',
                   transition: showAnimation ? 'width 0.8s ease-out' : 'none',
-                  opacity: 0.9
+                  opacity: 0.5,
+                  position: 'relative'
                 }}
               />
+              
+              {/* 막대 안의 텍스트 */}
+              <div style={{
+                position: 'absolute',
+                left: '16px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                color: '#ffffff',
+                fontSize: '12px',
+                fontWeight: '400',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                maxWidth: 'calc(100% - 32px)',
+                zIndex: 2
+              }}>
+                {item.name}
+              </div>
             </div>
             
+            {/* 오른쪽 숫자 */}
             <div style={{
               minWidth: '40px',
               textAlign: 'right',
               fontSize: '14px',
               color: '#9ca3af',
-              fontWeight: '500',
-              paddingLeft: '16px'
+              fontWeight: '500'
             }}>
               {valueFormatter ? valueFormatter(item.value) : item.value}
             </div>

@@ -7,18 +7,18 @@ const TotalMetric = ({ totalCount, description }) => {
       display: 'flex',
       alignItems: 'baseline', 
       gap: '8px',
-      marginBottom: '8px'
+      marginBottom: '0px'
     }}>
       <div style={{
-        fontSize: '2.5rem',   
-        fontWeight: '700',
+        fontSize: '1.9rem',   
+        fontWeight: '500',
         color: '#f8fafc'
       }}>
         {compactNumberFormatter(totalCount)}
       </div>
       
       <div style={{
-        fontSize: '14px',     
+        fontSize: '12px',     
         color: '#9ca3af',      
         fontWeight: '400'
       }}>
