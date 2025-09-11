@@ -1,58 +1,169 @@
 // src/Pages/Home/Home.jsx
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 
-// ===== 1단계: TracesBarListChart 테스트 =====
+// ===== 차트 컴포넌트들 =====
 import TracesBarListChart from '../Dashboards/components/charts/TracesBarListChart';
-// ===== 2단계: ModelCostTable 추가 =====
 import ModelCostTable from '../Dashboards/components/charts/ModelCostTable';
 
+// ===== 필터 컴포넌트들 - 기존 것 활용 =====
+import DateRangePicker from '../../components/DateRange/DateRangePicker';
+import MultiSelectDropdown from '../../components/FilterControls/MultiSelectDropdown';
+import { 
+  homeFilterConfig, 
+  convertHomeFiltersToLangfuse, 
+  convertEnvironmentsToFilter 
+} from '../../components/FilterControls/filterConfig';
+
+import FilterControls from '../../components/FilterControls/FilterControls';
+// ===== API 서비스 =====
+import { dashboardAPI } from '../Dashboards/services/dashboardApi';
+
+// ===== 유틸리티 =====
+import { useDebounce } from '../Dashboards/hooks/useDebounce';
+
 // 아이콘
-import { BarChart2, TestTube2, CheckCircle } from 'lucide-react';
+import { BarChart2, TestTube2, CheckCircle, Loader } from 'lucide-react';
 
 // CSS
 import styles from './Home.module.css';
 
-// ===== 2단계: 추가 차트 컴포넌트들 (구현 확인 후 주석 해제) =====
-// import TracesAndObservationsTimeSeriesChart from '../Dashboards/components/charts/TracesAndObservationsTimeSeriesChart';
-// import ModelUsageChart from '../Dashboards/components/charts/ModelUsageChart';
-// import UserChart from '../Dashboards/components/charts/UserChart';
-// import ChartScores from '../Dashboards/components/charts/ChartScores';
-// import LatencyTables from '../Dashboards/components/charts/LatencyTables';
-// import GenerationLatencyChart from '../Dashboards/components/charts/LatencyChart';
-// import ScoreAnalytics from '../Dashboards/components/charts/score-analytics/ScoreAnalytics';
-
-// ===== 3단계: UI 컴포넌트들 (필요 시 구현) =====
-// import DatePickerWithRange from '../components/DatePickerWithRange';
-// import MultiSelect from '../components/MultiSelect';
-
 /**
- * 홈 대시보드 페이지
- * 점진적 구현 - TracesBarListChart부터 시작하여 하나씩 추가
+ * 홈 대시보드 페이지 - 기존 컴포넌트 조합
+ * 원본 Langfuse 레이아웃 매칭: 날짜 범위 + 환경 선택 + 고급 필터
  */
 const Home = () => {
   const { projectId } = useParams();
   
-  // 기본 상태
+  // ===== 기본 상태 =====
   const [isLoading, setIsLoading] = useState(false);
   const [testResults, setTestResults] = useState({
-    TracesBarListChart: 'testing', // 'testing' | 'success' | 'error'
+    TracesBarListChart: 'testing',
     ModelCostTable: 'testing'
   });
-  
-  console.log('🏠 Home 컴포넌트 렌더링:', { projectId });
-  
-  // 임시 데이터 (API 연동 전)
-  const mockData = useMemo(() => ({
-    dateRange: {
-      from: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 7일 전
-      to: new Date()
-    },
-    filterState: [], // 빈 필터
-    agg: "24 hours" // 집계 옵션
-  }), []);
 
-  // 컴포넌트 테스트 상태 업데이트
+  // ===== 날짜 범위 상태 (기본: 최근 7일) =====
+  const [dateRange, setDateRange] = useState({
+    startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+    endDate: new Date(),
+  });
+
+  // ===== 환경 필터 상태 =====
+  const [selectedEnvironments, setSelectedEnvironments] = useState([]);
+
+  // ===== 고급 필터 상태 =====
+  const [builderFilters, setBuilderFilters] = useState(() => {
+    const initialColumn = homeFilterConfig[0];
+    return [
+      {
+        id: Date.now(),
+        column: initialColumn.key,
+        operator: initialColumn.operators[0],
+        value: "",
+        metaKey: "",
+      },
+    ];
+  });
+
+  // ===== 필터 옵션 데이터 =====
+  const [environmentOptions, setEnvironmentOptions] = useState([]);
+  const [nameOptions, setNameOptions] = useState([]);
+  const [tagsOptions, setTagsOptions] = useState([]);
+  const [filterOptionsLoading, setFilterOptionsLoading] = useState(false);
+
+  // ===== API 옵션을 기본 필터 설정에 동적 추가 =====
+  const dynamicFilterConfig = useMemo(() => {
+    return homeFilterConfig.map((config) => {
+      if (config.key === "environment") {
+        return { ...config, options: environmentOptions };
+      }
+      if (config.key === "traceName") {
+        return { ...config, options: nameOptions };
+      }
+      if (config.key === "tags") {
+        return { ...config, options: tagsOptions };
+      }
+      return config;
+    });
+  }, [environmentOptions, nameOptions, tagsOptions]);
+
+  // ===== 필터 옵션 로딩 =====
+  const loadFilterOptions = useCallback(async () => {
+    if (!projectId) return;
+
+    setFilterOptionsLoading(true);
+
+    const defaultEnvironmentOptions = ["default"];
+    const defaultNameOptions = [];
+    const defaultTagsOptions = [];
+
+    try {
+      const [traceOptions, envOptions] = await Promise.all([
+        dashboardAPI.getTraceFilterOptions(projectId),
+        dashboardAPI.getEnvironmentFilterOptions(projectId),
+      ]);
+
+      // Trace 필터 옵션 처리
+      if (traceOptions.success && traceOptions.data) {
+        setNameOptions(traceOptions.data.name || defaultNameOptions);
+        setTagsOptions(traceOptions.data.tags || defaultTagsOptions);
+      } else {
+        setNameOptions(defaultNameOptions);
+        setTagsOptions(defaultTagsOptions);
+      }
+
+      // Environment 필터 옵션 처리
+      if (envOptions.success && envOptions.data) {
+        const envList = envOptions.data.map(item => typeof item === 'string' ? item : item.environment).filter(Boolean);
+        setEnvironmentOptions(
+          envList.length > 0 ? envList : defaultEnvironmentOptions
+        );
+      } else {
+        setEnvironmentOptions(defaultEnvironmentOptions);
+      }
+
+      console.log('필터 옵션 로딩 완료:', {
+        environments: environmentOptions.length,
+        names: nameOptions.length,
+        tags: tagsOptions.length
+      });
+
+    } catch (error) {
+      console.error("Failed to fetch filter options:", error);
+      setEnvironmentOptions(defaultEnvironmentOptions);
+      setNameOptions(defaultNameOptions);
+      setTagsOptions(defaultTagsOptions);
+    } finally {
+      setFilterOptionsLoading(false);
+    }
+  }, [projectId]);
+
+  // ===== 날짜 범위 변경 핸들러 =====
+  const handleDateRangeChange = useCallback((startDate, endDate) => {
+    console.log('날짜 범위 변경:', { startDate, endDate });
+    setDateRange({ startDate, endDate });
+  }, []);
+
+  // DateRangePicker용 개별 setter 함수들
+  const setStartDate = (date) => {
+    setDateRange(prev => ({ ...prev, startDate: date }));
+  };
+
+  const setEndDate = (date) => {
+    setDateRange(prev => ({ ...prev, endDate: date }));
+  };
+
+  const setBothDates = (startDate, endDate) => {
+    setDateRange({ startDate, endDate });
+  };
+
+  // ===== 디바운스된 필터 변경 핸들러 =====
+  const debouncedFilterChange = useDebounce((newFilters) => {
+    console.log('필터 변경:', newFilters);
+    setBuilderFilters(newFilters);
+  }, 300);
+
+  // ===== 컴포넌트 테스트 상태 업데이트 =====
   const updateTestStatus = (component, status) => {
     setTestResults(prev => ({
       ...prev,
@@ -60,27 +171,56 @@ const Home = () => {
     }));
   };
 
-  // TracesBarListChart 에러 핸들링
+  // ===== 차트 에러/성공 핸들링 =====
   const handleTracesChartError = (error) => {
     console.error('TracesBarListChart 에러:', error);
     updateTestStatus('TracesBarListChart', 'error');
   };
 
-  // TracesBarListChart 성공 핸들링
   const handleTracesChartSuccess = () => {
-    console.log('✅ TracesBarListChart 로딩 성공');
+    console.log('TracesBarListChart 로딩 성공');
     updateTestStatus('TracesBarListChart', 'success');
   };
+
+  const handleModelCostSuccess = () => {
+    console.log('ModelCostTable 로딩 성공');
+    updateTestStatus('ModelCostTable', 'success');
+  };
+
+  // ===== 초기 필터 옵션 로딩 =====
+  useEffect(() => {
+    loadFilterOptions();
+  }, [loadFilterOptions]);
+
+  // ===== 필터 상태 통합 (원본과 정확히 동일한 방식) =====
+  const mergedFilterState = useMemo(() => {
+    // 1. 고급 필터 변환 (userFilterState와 동일)
+    const userFilters = convertHomeFiltersToLangfuse(builderFilters);
+
+    // 2. 환경 필터 변환 (environmentFilter와 동일)  
+    const environmentFilter = convertEnvironmentsToFilter(selectedEnvironments, environmentOptions);
+
+    // 3. 원본과 동일: userFilterState + environmentFilter (시간 필터는 별도 전달)
+    return [...userFilters, ...environmentFilter];
+  }, [builderFilters, selectedEnvironments, environmentOptions]);
+
+  console.log('Home 컴포넌트 렌더링:', { 
+    projectId, 
+    dateRange,
+    selectedEnvironments: selectedEnvironments.length,
+    builderFilters: builderFilters.length,
+    mergedFilters: mergedFilterState.length
+  });
 
   return (
     <div className={styles.homePage}>
       {/* 개발 상태 헤더 */}
       <div className={styles.pageHeader}>
         <div className={styles.titleGroup}>
-          <h1>Home Dashboard - Development Mode</h1>
+          <h1>Home Dashboard</h1>
           <div className={styles.devBadge}>
             <TestTube2 size={16} />
-            Testing Phase
+            Filter Integration Complete
           </div>
         </div>
         
@@ -94,43 +234,74 @@ const Home = () => {
         </div>
       </div>
 
-      {/* 임시 필터 정보 */}
-      <div className={styles.filtersContainer}>
-        <div className={styles.filtersLeft}>
-          <div className={styles.filterChip}>
-            Past 7 days
-          </div>
-          <div className={styles.filterChip}>
-            Environment: All
-          </div>
-          <div className={styles.filterChip}>
-            Aggregation: {mockData.agg}
-          </div>
+      {/* ===== 필터 섹션 (원본 Langfuse 레이아웃 매칭) ===== */}
+      <div className={styles.filterSection}>
+        {/* 1. 날짜 범위 필터 - "Sep 04, 25 : 13:22 - Sep 11, 25 : 13:22  Past 7 days" */}
+        <DateRangePicker
+          startDate={dateRange.startDate}
+          endDate={dateRange.endDate}
+          setStartDate={setStartDate}
+          setEndDate={setEndDate}
+          setBothDates={setBothDates}
+          onPresetChange={handleDateRangeChange}
+        />
+
+        {/* 2. 환경 필터 - "Env default langfuse-prompt-experiment" */}
+        <div className={styles.envFilterContainer}>
+          <span className={styles.envLabel}>Env</span>
+          <MultiSelectDropdown
+            options={environmentOptions}
+            value={selectedEnvironments}
+            onChange={setSelectedEnvironments}
+            placeholder="All environments"
+          />
         </div>
 
-        <div className={styles.filtersRight}>
-          <button 
-            className={styles.requestChartBtn}
-            onClick={() => setIsLoading(!isLoading)}
-          >
-            <BarChart2 size={20} />
-            {isLoading ? 'Stop Loading' : 'Test Loading'}
-          </button>
-        </div>
+        {/* 3. 고급 필터 빌더 - "Filters" 버튼 */}
+        <FilterControls
+          builderFilterProps={{
+            filters: builderFilters,
+            onFilterChange: debouncedFilterChange,
+            filterConfig: dynamicFilterConfig,
+          }}
+        />
+
+        {/* 필터 로딩 상태 */}
+        {filterOptionsLoading && (
+          <div className={styles.filterLoadingIndicator}>
+            <Loader size={16} className={styles.spinner} />
+            Loading...
+          </div>
+        )}
       </div>
 
-      {/* 대시보드 그리드 - 2개 컴포넌트 테스트 */}
+      {/* 필터 상태 디버그 정보 (개발용) */}
+      <div className={styles.filterDebugInfo}>
+        <details>
+          <summary>필터 상태 (개발용)</summary>
+          <div className={styles.debugDetails}>
+            <div><strong>Date Range:</strong> {dateRange.startDate.toLocaleDateString()} ~ {dateRange.endDate.toLocaleDateString()}</div>
+            <div><strong>Selected Environments:</strong> {selectedEnvironments.join(', ') || 'All'}</div>
+            <div><strong>Builder Filters:</strong> {builderFilters.filter(f => f.value).length}개 활성</div>
+            <div><strong>Total Merged Filters:</strong> {mergedFilterState.length}개</div>
+            <div><strong>Environment Options:</strong> {environmentOptions.join(', ')}</div>
+          </div>
+        </details>
+      </div>
+
+      {/* 대시보드 그리드 - 필터 적용된 차트들 */}
       <div className={styles.dashboardGrid}>
         
-        {/* 🧪 TracesBarListChart 테스트 영역 */}
+        {/* TracesBarListChart - 필터 적용 */}
         <div className={styles.testingCard}>
           <div className={styles.testingHeader}>
             <h2>
               <TestTube2 size={20} />
-              Testing: TracesBarListChart
+              Traces Chart
             </h2>
-            <div className={styles.testingBadge}>
-              Status: {testResults.TracesBarListChart}
+            <div className={`${styles.testingBadge} ${styles[testResults.TracesBarListChart]}`}>
+              {testResults.TracesBarListChart === 'success' && <CheckCircle size={16} />}
+              {testResults.TracesBarListChart}
             </div>
           </div>
           
@@ -138,25 +309,26 @@ const Home = () => {
             <TracesBarListChart
               className={styles.tracesChart}
               projectId={projectId}
-              globalFilterState={mockData.filterState}
-              fromTimestamp={mockData.dateRange.from}
-              toTimestamp={mockData.dateRange.to}
-              isLoading={isLoading}
+              globalFilterState={mergedFilterState}
+              fromTimestamp={dateRange.startDate}
+              toTimestamp={dateRange.endDate}
+              isLoading={isLoading || filterOptionsLoading}
               onError={handleTracesChartError}
               onSuccess={handleTracesChartSuccess}
             />
           </div>
         </div>
 
-        {/* 💰 ModelCostTable 테스트 영역 */}
+        {/* ModelCostTable - 필터 적용 */}
         <div className={styles.testingCard}>
           <div className={styles.testingHeader}>
             <h2>
               <TestTube2 size={20} />
-              Testing: ModelCostTable
+              Model Costs
             </h2>
-            <div className={styles.testingBadge}>
-              Status: {testResults.ModelCostTable}
+            <div className={`${styles.testingBadge} ${styles[testResults.ModelCostTable]}`}>
+              {testResults.ModelCostTable === 'success' && <CheckCircle size={16} />}
+              {testResults.ModelCostTable}
             </div>
           </div>
           
@@ -164,10 +336,11 @@ const Home = () => {
             <ModelCostTable
               className={styles.modelCostTable}
               projectId={projectId}
-              globalFilterState={mockData.filterState}
-              fromTimestamp={mockData.dateRange.from}
-              toTimestamp={mockData.dateRange.to}
-              isLoading={isLoading}
+              globalFilterState={mergedFilterState}
+              fromTimestamp={dateRange.startDate}
+              toTimestamp={dateRange.endDate}
+              isLoading={isLoading || filterOptionsLoading}
+              onSuccess={handleModelCostSuccess}
             />
           </div>
         </div>
@@ -175,46 +348,67 @@ const Home = () => {
         {/* 향후 구현될 차트들 - 플레이스홀더 */}
         <div className={styles.placeholderCard}>
           <div className={styles.placeholderContent}>
-            <h3>📊 Traces by Time</h3>
+            <h3>Traces by Time</h3>
             <p>TracesAndObservationsTimeSeriesChart</p>
-            <small>구현 예정 (3단계)</small>
+            <small>구현 예정 - 필터 연동 준비됨</small>
           </div>
         </div>
 
         <div className={styles.placeholderCard}>
           <div className={styles.placeholderContent}>
-            <h3>🤖 Model Usage</h3>
+            <h3>Model Usage</h3>
             <p>ModelUsageChart</p>
-            <small>구현 예정 (3단계)</small>
+            <small>구현 예정 - 필터 연동 준비됨</small>
           </div>
         </div>
 
         <div className={styles.placeholderCard}>
           <div className={styles.placeholderContent}>
-            <h3>👤 User Consumption</h3>
+            <h3>User Consumption</h3>
             <p>UserChart</p>
-            <small>구현 예정 (3단계)</small>
+            <small>구현 예정 - 필터 연동 준비됨</small>
           </div>
         </div>
 
         <div className={styles.placeholderCard}>
           <div className={styles.placeholderContent}>
-            <h3>📈 Scores</h3>
+            <h3>Scores</h3>
             <p>ScoresTable</p>
-            <small>구현 예정 (3단계)</small>
+            <small>구현 예정 - 필터 연동 준비됨</small>
           </div>
         </div>
+      </div>
+
+      {/* 테스트 컨트롤 패널 */}
+      <div className={styles.testControls}>
+        <button 
+          className={styles.testButton}
+          onClick={() => setIsLoading(!isLoading)}
+        >
+          <BarChart2 size={16} />
+          {isLoading ? 'Stop Loading Test' : 'Start Loading Test'}
+        </button>
+        
+        <button 
+          className={styles.testButton}
+          onClick={loadFilterOptions}
+          disabled={filterOptionsLoading}
+        >
+          {filterOptionsLoading ? <Loader size={16} className={styles.spinner} /> : '🔄'}
+          Reload Filter Options
+        </button>
       </div>
 
       {/* 개발 정보 패널 */}
       <div className={styles.devInfo}>
         <details>
-          <summary>🔧 개발 정보</summary>
+          <summary>개발 정보</summary>
           <div className={styles.devDetails}>
             <div><strong>Project ID:</strong> {projectId}</div>
-            <div><strong>Date Range:</strong> {mockData.dateRange.from.toLocaleDateString()} ~ {mockData.dateRange.to.toLocaleDateString()}</div>
-            <div><strong>Filter State:</strong> {JSON.stringify(mockData.filterState)}</div>
-            <div><strong>Current Phase:</strong> TracesBarListChart + ModelCostTable 테스트</div>
+            <div><strong>Date Range:</strong> {dateRange.startDate.toLocaleDateString()} ~ {dateRange.endDate.toLocaleDateString()}</div>
+            <div><strong>Active Filters:</strong> {mergedFilterState.length}개</div>
+            <div><strong>Current Phase:</strong> 필터 시스템 완성 + 차트 연동</div>
+            <div><strong>Filter Options:</strong> {filterOptionsLoading ? 'Loading...' : 'Loaded'}</div>
           </div>
         </details>
       </div>
