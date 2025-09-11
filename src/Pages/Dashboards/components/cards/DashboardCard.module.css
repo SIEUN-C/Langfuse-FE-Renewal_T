@@ -115,7 +115,7 @@
   }
   
   .dashboardCardHeader {
-      padding: 16px;
+      padding: 18px;
   }
   
   .dashboardCardContent {
@@ -123,7 +123,7 @@
   }
   
   .dashboardCardTitle {
-      font-size: 16px;
+      font-size: 18px;
   }
   
   .dashboardCardDescription {
@@ -141,7 +141,7 @@
 }
 
 .dashboardCard.compact .dashboardCardHeader {
-  padding: 16px;
+  padding: 18px;
 }
 
 .dashboardCard.compact .dashboardCardContent {

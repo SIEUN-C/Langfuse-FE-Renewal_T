@@ -37,10 +37,6 @@ const Home = () => {
   
   // ===== 기본 상태 =====
   const [isLoading, setIsLoading] = useState(false);
-  const [testResults, setTestResults] = useState({
-    TracesBarListChart: 'testing',
-    ModelCostTable: 'testing'
-  });
 
   // ===== 날짜 범위 상태 (기본: 최근 7일) =====
   const [dateRange, setDateRange] = useState({
@@ -163,30 +159,6 @@ const Home = () => {
     setBuilderFilters(newFilters);
   }, 300);
 
-  // ===== 컴포넌트 테스트 상태 업데이트 =====
-  const updateTestStatus = (component, status) => {
-    setTestResults(prev => ({
-      ...prev,
-      [component]: status
-    }));
-  };
-
-  // ===== 차트 에러/성공 핸들링 =====
-  const handleTracesChartError = (error) => {
-    console.error('TracesBarListChart 에러:', error);
-    updateTestStatus('TracesBarListChart', 'error');
-  };
-
-  const handleTracesChartSuccess = () => {
-    console.log('TracesBarListChart 로딩 성공');
-    updateTestStatus('TracesBarListChart', 'success');
-  };
-
-  const handleModelCostSuccess = () => {
-    console.log('ModelCostTable 로딩 성공');
-    updateTestStatus('ModelCostTable', 'success');
-  };
-
   // ===== 초기 필터 옵션 로딩 =====
   useEffect(() => {
     loadFilterOptions();
@@ -220,7 +192,7 @@ const Home = () => {
           <h1>Home Dashboard</h1>
           <div className={styles.devBadge}>
             <TestTube2 size={16} />
-            Filter Integration Complete
+            Clean Layout Version
           </div>
         </div>
         
@@ -236,7 +208,7 @@ const Home = () => {
 
       {/* ===== 필터 섹션 (원본 Langfuse 레이아웃 매칭) ===== */}
       <div className={styles.filterSection}>
-        {/* 1. 날짜 범위 필터 - "Sep 04, 25 : 13:22 - Sep 11, 25 : 13:22  Past 7 days" */}
+        {/* 1. 날짜 범위 필터 */}
         <DateRangePicker
           startDate={dateRange.startDate}
           endDate={dateRange.endDate}
@@ -246,7 +218,7 @@ const Home = () => {
           onPresetChange={handleDateRangeChange}
         />
 
-        {/* 2. 환경 필터 - "Env default langfuse-prompt-experiment" */}
+        {/* 2. 환경 필터 */}
         <div className={styles.envFilterContainer}>
           <span className={styles.envLabel}>Env</span>
           <MultiSelectDropdown
@@ -257,7 +229,7 @@ const Home = () => {
           />
         </div>
 
-        {/* 3. 고급 필터 빌더 - "Filters" 버튼 */}
+        {/* 3. 고급 필터 빌더 */}
         <FilterControls
           builderFilterProps={{
             filters: builderFilters,
@@ -289,61 +261,28 @@ const Home = () => {
         </details>
       </div>
 
-      {/* 대시보드 그리드 - 필터 적용된 차트들 */}
+      {/* ===== 대시보드 그리드 - 깔끔한 카드 레이아웃 ===== */}
       <div className={styles.dashboardGrid}>
         
-        {/* TracesBarListChart - 필터 적용 */}
-        <div className={styles.testingCard}>
-          <div className={styles.testingHeader}>
-            <h2>
-              <TestTube2 size={20} />
-              Traces Chart
-            </h2>
-            <div className={`${styles.testingBadge} ${styles[testResults.TracesBarListChart]}`}>
-              {testResults.TracesBarListChart === 'success' && <CheckCircle size={16} />}
-              {testResults.TracesBarListChart}
-            </div>
-          </div>
-          
-          <div className={styles.chartWrapper}>
-            <TracesBarListChart
-              className={styles.tracesChart}
-              projectId={projectId}
-              globalFilterState={mergedFilterState}
-              fromTimestamp={dateRange.startDate}
-              toTimestamp={dateRange.endDate}
-              isLoading={isLoading || filterOptionsLoading}
-              onError={handleTracesChartError}
-              onSuccess={handleTracesChartSuccess}
-            />
-          </div>
-        </div>
+        {/* TracesBarListChart - DashboardCard로 자동 래핑됨 */}
+        <TracesBarListChart
+          className={styles.tracesChart}
+          projectId={projectId}
+          globalFilterState={mergedFilterState}
+          fromTimestamp={dateRange.startDate}
+          toTimestamp={dateRange.endDate}
+          isLoading={isLoading || filterOptionsLoading}
+        />
 
-        {/* ModelCostTable - 필터 적용 */}
-        <div className={styles.testingCard}>
-          <div className={styles.testingHeader}>
-            <h2>
-              <TestTube2 size={20} />
-              Model Costs
-            </h2>
-            <div className={`${styles.testingBadge} ${styles[testResults.ModelCostTable]}`}>
-              {testResults.ModelCostTable === 'success' && <CheckCircle size={16} />}
-              {testResults.ModelCostTable}
-            </div>
-          </div>
-          
-          <div className={styles.chartWrapper}>
-            <ModelCostTable
-              className={styles.modelCostTable}
-              projectId={projectId}
-              globalFilterState={mergedFilterState}
-              fromTimestamp={dateRange.startDate}
-              toTimestamp={dateRange.endDate}
-              isLoading={isLoading || filterOptionsLoading}
-              onSuccess={handleModelCostSuccess}
-            />
-          </div>
-        </div>
+        {/* ModelCostTable - DashboardCard로 자동 래핑됨 */}
+        <ModelCostTable
+          className={styles.modelCostTable}
+          projectId={projectId}
+          globalFilterState={mergedFilterState}
+          fromTimestamp={dateRange.startDate}
+          toTimestamp={dateRange.endDate}
+          isLoading={isLoading || filterOptionsLoading}
+        />
 
         {/* 향후 구현될 차트들 - 플레이스홀더 */}
         <div className={styles.placeholderCard}>
@@ -407,7 +346,7 @@ const Home = () => {
             <div><strong>Project ID:</strong> {projectId}</div>
             <div><strong>Date Range:</strong> {dateRange.startDate.toLocaleDateString()} ~ {dateRange.endDate.toLocaleDateString()}</div>
             <div><strong>Active Filters:</strong> {mergedFilterState.length}개</div>
-            <div><strong>Current Phase:</strong> 필터 시스템 완성 + 차트 연동</div>
+            <div><strong>Current Phase:</strong> 깔끔한 카드 레이아웃 완성</div>
             <div><strong>Filter Options:</strong> {filterOptionsLoading ? 'Loading...' : 'Loaded'}</div>
           </div>
         </details>

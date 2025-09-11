@@ -4,7 +4,6 @@ import TotalMetric from './TotalMetric';
 import NoDataOrLoading from './NoDataOrLoading';
 import ExpandListButton from './ExpandListButton';
 import { widgetAPI } from '../../services/dashboardApi';
-import { compactNumberFormatter } from '../../utils/numbers';
 
 // BarList 구현
 const BarList = ({ data, valueFormatter, showAnimation = true, color = "indigo" }) => {
@@ -22,7 +21,7 @@ const BarList = ({ data, valueFormatter, showAnimation = true, color = "indigo" 
   };
 
   return (
-    <div style={{ marginTop: '24px' }}>
+    <div style={{ marginTop: '20px' }}>
       {data.map((item, index) => {
         const percentage = maxValue > 0 ? (item.value / maxValue) * 100 : 0;
         
@@ -32,28 +31,28 @@ const BarList = ({ data, valueFormatter, showAnimation = true, color = "indigo" 
             style={{
               display: 'flex',
               alignItems: 'center',
-              marginBottom: '8px',
-              padding: '4px 0'
+              marginBottom: '12px',
+              padding: '0'
             }}
           >
             <div style={{
-              minWidth: '120px',
+              minWidth: '200px',
               fontSize: '14px',
               color: '#f3f4f6',
-              fontWeight: '500',
+              fontWeight: '400',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap'
+              whiteSpace: 'nowrap',
+              paddingRight: '16px'
             }}>
               {item.name}
             </div>
             
             <div style={{
               flex: 1,
-              margin: '0 12px',
-              height: '20px',
+              height: '24px',
               backgroundColor: '#374151',
-              borderRadius: '4px',
+              borderRadius: '12px',
               overflow: 'hidden',
               position: 'relative'
             }}>
@@ -62,19 +61,20 @@ const BarList = ({ data, valueFormatter, showAnimation = true, color = "indigo" 
                   width: `${percentage}%`,
                   height: '100%',
                   backgroundColor: getBarColor(color),
-                  borderRadius: '4px',
+                  borderRadius: '12px',
                   transition: showAnimation ? 'width 0.8s ease-out' : 'none',
-                  opacity: 0.8
+                  opacity: 0.9
                 }}
               />
             </div>
             
             <div style={{
-              minWidth: '60px',
+              minWidth: '40px',
               textAlign: 'right',
               fontSize: '14px',
               color: '#9ca3af',
-              fontWeight: '500'
+              fontWeight: '500',
+              paddingLeft: '16px'
             }}>
               {valueFormatter ? valueFormatter(item.value) : item.value}
             </div>
@@ -85,10 +85,6 @@ const BarList = ({ data, valueFormatter, showAnimation = true, color = "indigo" 
   );
 };
 
-/**
- * TracesBarListChart 컴포넌트 - 수정된 버전
- * 대시보드 상세페이지와 동일한 쿼리 구조 사용
- */
 export const TracesBarListChart = ({
   className,
   projectId,
@@ -112,13 +108,6 @@ export const TracesBarListChart = ({
       setApiError(null);
 
       try {
-        console.log('🔍 TracesBarListChart API 호출:', {
-          projectId,
-          globalFilterState,
-          fromTimestamp: fromTimestamp.toISOString(),
-          toTimestamp: toTimestamp.toISOString()
-        });
-
         // 총 Traces 개수 조회 쿼리
         const totalTracesQuery = {
           view: "traces",
@@ -133,7 +122,6 @@ export const TracesBarListChart = ({
         };
 
         const totalResult = await widgetAPI.executeQuery(projectId, totalTracesQuery);
-        console.log('📊 Total traces 결과:', totalResult);
 
         // Name별 Traces 개수 조회 쿼리
         const tracesQuery = {
@@ -149,32 +137,23 @@ export const TracesBarListChart = ({
         };
 
         const tracesResult = await widgetAPI.executeQuery(projectId, tracesQuery);
-        console.log('📊 Grouped traces 결과:', tracesResult);
 
         // API 응답 처리
         if (totalResult.success && Array.isArray(totalResult.data)) {
           setTotalTracesData(totalResult.data);
-          console.log('✅ Total traces 데이터 설정 완료');
-        } else {
-          console.warn('⚠️ Total traces 데이터 형식이 예상과 다름:', totalResult);
         }
 
         if (tracesResult.success && Array.isArray(tracesResult.data)) {
           setTracesData(tracesResult.data);
-          console.log('✅ Grouped traces 데이터 설정 완료');
-        } else {
-          console.warn('⚠️ Grouped traces 데이터 형식이 예상과 다름:', tracesResult);
         }
 
         // 에러 처리
         if (!totalResult.success || !tracesResult.success) {
           const errorMsg = totalResult.error || tracesResult.error || 'Unknown API error';
           setApiError(errorMsg);
-          console.error('❌ API 에러:', errorMsg);
         }
 
       } catch (error) {
-        console.error('❌ TracesBarListChart API 호출 실패:', error);
         setApiError(error.message);
       } finally {
         setApiLoading(false);
@@ -187,13 +166,11 @@ export const TracesBarListChart = ({
   // 데이터 변환
   const transformedTraces = React.useMemo(() => {
     if (!tracesData || !Array.isArray(tracesData)) {
-      console.log('📊 변환할 tracesData가 없음:', tracesData);
       return [];
     }
 
     const transformed = tracesData.map((item) => {
       if (!item || typeof item !== 'object') {
-        console.warn('⚠️ 잘못된 trace 아이템:', item);
         return null;
       }
 
@@ -205,11 +182,8 @@ export const TracesBarListChart = ({
       };
     }).filter(Boolean);
 
-    console.log('🔄 Traces 데이터 변환 완료:', {
-      원본: tracesData.length,
-      변환후: transformed.length,
-      샘플: transformed.slice(0, 3)
-    });
+    // 값 기준 내림차순 정렬
+    transformed.sort((a, b) => b.value - a.value);
 
     return transformed;
   }, [tracesData]);
@@ -229,11 +203,6 @@ export const TracesBarListChart = ({
     const firstItem = totalTracesData[0];
     const count = firstItem?.count_count || firstItem?.count || firstItem?.value || 0;
     
-    console.log('📊 총 Traces 개수:', {
-      totalTracesData,
-      extractedCount: count
-    });
-
     return Number(count);
   }, [totalTracesData]);
 
@@ -248,7 +217,7 @@ export const TracesBarListChart = ({
     >
       <>
         <TotalMetric
-          metric={compactNumberFormatter(totalCount)}
+          totalCount={totalCount}
           description="Total traces tracked"
         />
         
@@ -283,7 +252,6 @@ export const TracesBarListChart = ({
           }
         />
         
-        {/* 에러 표시 */}
         {apiError && (
           <div style={{
             marginTop: '12px',
@@ -295,19 +263,6 @@ export const TracesBarListChart = ({
           }}>
             Error: {apiError}
           </div>
-        )}
-
-        {/* 개발 디버그 정보 */}
-        {import.meta.env.DEV && (
-          <details style={{ marginTop: '12px', fontSize: '12px', color: '#64748b' }}>
-            <summary style={{ cursor: 'pointer' }}>🔧 Debug Info</summary>
-            <div style={{ marginTop: '8px', fontFamily: 'monospace' }}>
-              <div>Total Count: {totalCount}</div>
-              <div>Transformed Items: {transformedTraces.length}</div>
-              <div>Displayed Items: {adjustedData.length}</div>
-              <div>Date Range: {fromTimestamp.toISOString().split('T')[0]} ~ {toTimestamp.toISOString().split('T')[0]}</div>
-            </div>
-          </details>
         )}
       </>
     </DashboardCard>
