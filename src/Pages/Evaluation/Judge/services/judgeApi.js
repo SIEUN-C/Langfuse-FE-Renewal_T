@@ -1,7 +1,9 @@
 // src/Pages/Evaluation/Judge/services/judgeApi.js
 
 // 1. 'trpc' 대신 'trpcQuery' 함수를 직접 import 하는 부분 (이전 단계에서 완료)
-import { trpcQuery } from "../../../Playground/services/trpc.client";
+// 주석: 기존 trpcQuery 옆에 trpcMutation을 추가로 import하여
+//       'trpcMutation is not defined' 오류를 해결합니다.
+import { trpcQuery, trpcMutation } from "../../../Playground/services/trpc.client";
 
 
 
@@ -66,3 +68,16 @@ export const getEvaluatorConfigById = ({ projectId, id }) => {
   });
 };
 // --------------------------------------------------------------------
+
+// ... (기존의 다른 API 함수들은 그대로 둡니다)
+
+/**
+ * 특정 Evaluator 설정을 삭제합니다.
+ */
+export const deleteEvalJob = ({ projectId, evalConfigId }) => {
+  // 주석: 이제 trpcMutation 함수를 정상적으로 사용할 수 있습니다.
+  return trpcMutation("evals.deleteEvalJob", {
+    projectId,
+    evalConfigId,
+  });
+};
