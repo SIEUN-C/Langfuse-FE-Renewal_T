@@ -27,36 +27,64 @@ export const StatusBadge = ({ status }) => {
 
 
 
-// --- 수정: FilterDisplay가 datasetMap을 사용하도록 변경 ---
+// ========================[핵심 수정: FilterDisplay 컴포넌트 수정]========================
+// 주석: 기존에는 'Dataset' 컬럼만 처리하던 로직을 모든 종류의 필터를 표시할 수 있도록 수정했습니다.
+//       - 'Dataset'의 경우: 기존처럼 ID를 이름으로 변환하여 보여줍니다.
+//       - 그 외 모든 경우 (trace 필터 등): '컬럼 연산자 값' 형태로 유연하게 표시합니다.
 const FilterDisplay = ({ filter, datasetMap }) => {
-  if (!filter || !Array.isArray(filter) || filter.length === 0) {
-    return null;
-  }
-  // --- 추가: datasetMap이 아직 로딩 중일 수 있으므로 안전장치 추가 ---
-  if (!datasetMap || datasetMap.size === 0) {
-    return null;
-  }
+    // 주석: 필터 데이터가 없거나 비어있으면 아무것도 렌더링하지 않습니다.
+    if (!filter || !Array.isArray(filter) || filter.length === 0) {
+      return null;
+    }
 
-  return (
-    <div>
-      {filter.map((item) => {
-        if (item.column === 'Dataset' && Array.isArray(item.value)) {
-          return item.value.map(datasetId => {
-            const datasetName = datasetMap.get(datasetId) || datasetId;
-            return (
-              <span key={datasetId} className={styles.filterTag}>
-                Dataset any of [{datasetName}]
-              </span>
-            );
-          });
-        }
-        return null;
-      })}
-    </div>
-  );
-};
-// ----------------------------------------------------
-
+    // 주석: 필터 값을 예쁘게 포맷하는 함수. 배열이면 대괄호로 감싸고, 아니면 그대로 반환합니다.
+    const renderFilterValue = (value) => {
+      if (Array.isArray(value)) {
+        return `[${value.join(", ")}]`;
+      }
+      if (typeof value === 'string' && value.length > 20) {
+        return `"${value.substring(0, 20)}..."`;
+      }
+      return value;
+    };
+  
+    return (
+      <div>
+        {/* 주석: 모든 필터 항목을 순회하며 태그를 생성합니다. */}
+        {filter.map((item, index) => {
+          // 주석: 컬럼이 'Dataset'인 경우, datasetMap을 사용하여 ID를 이름으로 변환합니다.
+          if (item.column === 'Dataset' && Array.isArray(item.value)) {
+            // 주석: datasetMap이 아직 로딩되지 않았을 수 있으므로, ID를 그대로 표시하는 안전장치를 둡니다.
+            if (!datasetMap || datasetMap.size === 0) {
+                return (
+                    <span key={index} className={styles.filterTag}>
+                      {`Dataset ${item.operator} ${renderFilterValue(item.value)}`}
+                    </span>
+                  );
+            }
+            // 주석: 각 데이터셋 ID에 대해 이름으로 변환된 태그를 생성합니다.
+            return item.value.map(datasetId => {
+              const datasetName = datasetMap.get(datasetId) || datasetId;
+              return (
+                <span key={`${index}-${datasetId}`} className={styles.filterTag}>
+                  {`Dataset ${item.operator} [${datasetName}]`}
+                </span>
+              );
+            });
+          }
+  
+          // 주석: 'Dataset'이 아닌 다른 모든 컬럼(trace 관련 필터 포함)을 위한 일반적인 처리 방식입니다.
+          //       ex) "name contains my-trace" 또는 "scores_avg > 0.8"
+          return (
+            <span key={index} className={styles.filterTag}>
+              {`${item.column} ${item.operator} ${renderFilterValue(item.value)}`}
+            </span>
+          );
+        })}
+      </div>
+    );
+  };
+// ========================[핵심 수정 끝]========================
 
 
 
