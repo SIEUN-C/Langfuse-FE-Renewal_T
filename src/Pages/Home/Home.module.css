@@ -1,6 +1,6 @@
-/* src/Pages/Home/Home.module.css - 완전 버전 */
+/* src/Pages/Home/Home.module.css - 간소화 버전 */
 
-/* ===== 메인 컨테이너 ===== */
+/* ===== 메인 컨테이너만 필요 ===== */
 .homePage {
   padding: 24px;
   color: #f8fafc;
@@ -86,7 +86,6 @@
   padding: 16px;
 }
 
-/* ===== 환경 필터 컨테이너 ===== */
 .envFilterContainer {
   display: flex;
   align-items: center;
@@ -100,7 +99,6 @@
   white-space: nowrap;
 }
 
-/* MultiSelectDropdown이 들어갈 환경 필터 영역 */
 .envFilterContainer > div {
   min-width: 200px;
 }
@@ -153,7 +151,9 @@
   margin-bottom: 4px;
 }
 
-/* ===== 대시보드 그리드 ===== */
+/* ===== 🎯 핵심: 그리드 레이아웃만 정의 ===== */
+/* DashboardCard가 나머지는 다 해줌! */
+
 .dashboardGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
@@ -161,41 +161,29 @@
   margin-bottom: 24px;
 }
 
-/* ===== 테스트 카드 스타일 ===== */
-.testingCard {
-  background-color: #1e293b;
-  border: 1px solid #334155;
-  border-radius: 8px;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  min-height: 300px;
+/* LatencyTables 섹션 - 간단한 제목만 */
+.latencyTablesSection {
+  margin-bottom: 24px;
 }
 
-.testingHeader {
+.sectionHeader {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 12px;
   margin-bottom: 16px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #334155;
 }
 
-.testingHeader h2 {
-  font-size: 16px;
+.sectionHeader h2 {
+  font-size: 20px;
   font-weight: 600;
-  color: #f1f5f9;
   margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  color: #f1f5f9;
 }
 
-.testingBadge {
-  background-color: #1e40af;
-  color: #3b82f6;
-  border: 1px solid #3b82f6;
+.sectionBadge {
+  background-color: #065f46;
+  color: #10b981;
+  border: 1px solid #10b981;
   border-radius: 4px;
   padding: 4px 8px;
   font-size: 11px;
@@ -205,34 +193,16 @@
   gap: 4px;
 }
 
-.testingBadge.success {
-  background-color: #065f46;
-  color: #10b981;
-  border-color: #10b981;
+/* LatencyTables 그리드 - 3개 테이블 배치만 */
+.latencyTablesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+  gap: 20px;
 }
 
-.testingBadge.error {
-  background-color: #7f1d1d;
-  color: #ef4444;
-  border-color: #ef4444;
-}
-
-.testingBadge.testing {
-  background-color: #1e40af;
-  color: #3b82f6;
-  border-color: #3b82f6;
-}
-
-.chartWrapper {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 200px;
-}
-
-.tracesChart,
-.modelCostTable {
-  flex-grow: 1;
+/* LatencyChart 섹션 */
+.latencyChartSection {
+  margin-bottom: 24px;
 }
 
 /* ===== 플레이스홀더 카드 ===== */
@@ -361,6 +331,11 @@
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 16px;
   }
+
+  .latencyTablesGrid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
 }
 
 /* 모바일 크기 (768px 이하) */
@@ -400,8 +375,19 @@
     gap: 12px;
   }
 
-  .testingCard {
-    min-height: 250px;
+  .latencyTablesGrid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .sectionHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .sectionHeader h2 {
+    font-size: 18px;
   }
 
   .testControls {
@@ -427,11 +413,6 @@
     padding: 8px;
   }
 
-  .testingCard {
-    padding: 12px;
-    min-height: 200px;
-  }
-
   .placeholderCard {
     padding: 16px;
     min-height: 150px;
@@ -439,5 +420,13 @@
 
   .placeholderContent h3 {
     font-size: 16px;
+  }
+
+  .sectionHeader h2 {
+    font-size: 16px;
+  }
+
+  .latencyTablesGrid {
+    gap: 8px;
   }
 }

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 /**
- * 탭 컴포넌트
+ * 탭 컴포넌트 - CSS 충돌 완전 해결 버전
  * @param {Object} props
  * @param {Array} props.tabs - 탭 배열
  * @param {string} props.tabs[].tabTitle - 탭 제목
@@ -18,12 +18,7 @@ const TabComponent = ({ tabs }) => {
   return (
     <div>
       {/* 모바일용 셀렉트 */}
-      <div style={{ 
-        display: 'block',
-        '@media (min-width: 640px)': {
-          display: 'none'
-        }
-      }}>
+      <div className="mobile-select" style={{ display: 'none' }}>
         <label 
           htmlFor="tabs"
           style={{
@@ -47,11 +42,12 @@ const TabComponent = ({ tabs }) => {
             display: 'block',
             width: '100%',
             borderRadius: '6px',
-            border: '1px solid #d1d5db',
-            backgroundColor: 'white',
+            border: '1px solid #374151',
+            backgroundColor: '#1f2937',
+            color: '#e5e7eb',
             padding: '8px 12px',
             paddingRight: '40px',
-            fontSize: '1rem',
+            fontSize: '14px',
             outline: 'none'
           }}
           value={selectedIndex}
@@ -66,13 +62,8 @@ const TabComponent = ({ tabs }) => {
       </div>
 
       {/* 데스크톱용 탭 */}
-      <div style={{
-        display: 'none',
-        '@media (min-width: 640px)': {
-          display: 'block'
-        }
-      }}>
-        <div style={{ borderBottom: '1px solid #e5e7eb' }}>
+      <div className="desktop-tabs">
+        <div style={{ borderBottom: '1px solid #374151' }}>
           <nav
             style={{
               marginBottom: '-1px',
@@ -81,44 +72,53 @@ const TabComponent = ({ tabs }) => {
             }}
             aria-label="Tabs"
           >
-            {tabs.map((tab, index) => (
-              <a
-                key={tab.tabTitle}
-                style={{
-                  cursor: 'pointer',
-                  whiteSpace: 'nowrap',
-                  borderBottom: '2px solid',
-                  borderBottomColor: index === selectedIndex ? '#3b82f6' : 'transparent',
-                  color: index === selectedIndex ? '#3b82f6' : '#6b7280',
-                  padding: '8px 4px',
-                  fontSize: '0.875rem',
-                  fontWeight: '500',
-                  textDecoration: 'none',
-                  transition: 'all 0.2s'
-                }}
-                aria-current={index === selectedIndex ? "page" : undefined}
-                onClick={() => {
-                  setSelectedIndex(index);
-                  capture("dashboard:chart_tab_switch", {
-                    tabLabel: tab.tabTitle,
-                  });
-                }}
-                onMouseEnter={(e) => {
-                  if (index !== selectedIndex) {
-                    e.target.style.borderBottomColor = '#d1d5db';
-                    e.target.style.color = '#374151';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (index !== selectedIndex) {
-                    e.target.style.borderBottomColor = 'transparent';
-                    e.target.style.color = '#6b7280';
-                  }
-                }}
-              >
-                {tab.tabTitle}
-              </a>
-            ))}
+            {tabs.map((tab, index) => {
+              const isSelected = index === selectedIndex;
+              
+              return (
+                <button
+                  key={tab.tabTitle}
+                  style={{
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                    color: isSelected ? '#3b82f6' : '#9ca3af',
+                    padding: '8px 4px',
+                    fontSize: '12px',
+                    fontWeight: '500',
+                    textDecoration: 'none',
+                    transition: 'all 0.2s',
+                    backgroundColor: 'transparent',
+                    // 모든 border 속성을 개별적으로 정의 (충돌 완전 방지)
+                    borderTop: 'none',
+                    borderLeft: 'none',
+                    borderRight: 'none',
+                    borderBottom: `2px solid ${isSelected ? '#3b82f6' : 'transparent'}`,
+                    outline: 'none'
+                  }}
+                  aria-current={isSelected ? "page" : undefined}
+                  onClick={() => {
+                    setSelectedIndex(index);
+                    capture("dashboard:chart_tab_switch", {
+                      tabLabel: tab.tabTitle,
+                    });
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isSelected) {
+                      e.target.style.borderBottom = '2px solid #6b7280';
+                      e.target.style.color = '#d1d5db';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isSelected) {
+                      e.target.style.borderBottom = '2px solid transparent';
+                      e.target.style.color = '#9ca3af';
+                    }
+                  }}
+                >
+                  {tab.tabTitle}
+                </button>
+              );
+            })}
           </nav>
         </div>
       </div>
@@ -127,7 +127,7 @@ const TabComponent = ({ tabs }) => {
       <div style={{
         marginTop: '16px',
         display: 'flex',
-        height: '75%',
+        height: 'auto',
         flexDirection: 'column'
       }}>
         {tabs[selectedIndex]?.content}

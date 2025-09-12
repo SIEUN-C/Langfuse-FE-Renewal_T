@@ -1,178 +1,177 @@
 /* DashboardTable.module.css */
 
-.dashboard-table-container {
+.dashboardTableContainer {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
 /* 테이블 래퍼 */
-.table-wrapper {
-  margin-top: 20px; /* 16px → 20px */
+.tableWrapper {
+  margin-top: 10px;
 }
 
-.table-scroll-container {
+.tableScrollContainer {
   overflow-x: auto;
 }
 
-.table-inner-container {
+.tableInnerContainer {
   display: inline-block;
   min-width: 100%;
   align-items: middle;
 }
 
 /* 테이블 스타일 */
-.dashboard-table {
+.dashboardTable {
   min-width: 100%;
   border-collapse: collapse;
   background-color: transparent;
 }
 
 /* 테이블 헤더 */
-.table-header {
+.tableHeader {
   background-color: transparent;
 }
 
-.table-header-cell {
+.tableHeaderCell {
   white-space: nowrap;
-  padding: 14px 16px 14px 0; /* 12px → 14px (더 넓은 패딩) */
+  padding: 14px 16px 14px 0;
   text-align: left;
-  font-size: 12px; /* 11px → 12px */
-  font-weight: 500; /* 600 → 500 (조금 더 얇게) */
-  color: #e5e7eb; /* #ffffff → #e5e7eb (조금 더 회색) */
-  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 500;
+  color: #e5e7eb;
   letter-spacing: 0.05em;
-  border-bottom: 1px solid #374151; /* #333 → #374151 (조금 더 밝은 회색) */
+  border-bottom: 1px solid #374151;
 }
 
-.table-header-cell:first-child {
+.tableHeaderCell:first-child {
   padding-left: 0;
 }
 
 /* 테이블 바디 */
-.table-body {
+.tableBody {
   background-color: transparent;
-  border-top: none; /* 헤더와 바디 사이 구분선 제거 */
+  border-top: none;
 }
 
-.table-row {
-  border-bottom: 1px solid #1f2937; /* #2a2a2a → #1f2937 (더 은은한 구분선) */
+.tableRow {
+  border-bottom: 1px solid #1f2937;
   transition: background-color 0.15s ease;
 }
 
-.table-row:hover {
-  background-color: rgba(55, 65, 81, 0.1); /* 호버 색상 조정 */
+.tableRow:hover {
+  background-color: rgba(55, 65, 81, 0.1);
 }
 
-.table-row:last-child {
-  border-bottom: none; /* 마지막 행의 하단 구분선 제거 */
+.tableRow:last-child {
+  border-bottom: none;
 }
 
-.table-cell {
+.tableCell {
   white-space: nowrap;
-  padding: 14px 16px 14px 0; /* 8px → 14px (헤더와 동일한 패딩) */
-  font-size: 14px; /* 12px → 14px */
-  color: #f3f4f6; /* #cccccc → #f3f4f6 (더 밝은 텍스트) */
-  font-weight: 400; /* 기본 폰트 두께 */
+  padding: 14px 16px 14px 0;
+  font-size: 12px;
+  color: #f3f4f6;
+  font-weight: 300;
 }
 
-.table-cell:first-child {
+.tableCell:first-child {
   padding-left: 0;
 }
 
 /* Expand/Collapse 버튼 */
-.expand-button-container {
-  margin-top: 16px; /* 12px → 16px */
+.expandButtonContainer {
+  margin-top: 16px;
   display: flex;
   justify-content: center;
 }
 
-.expand-button {
+.expandButton {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 16px; /* 6px 12px → 8px 16px */
+  padding: 8px 16px;
   background-color: transparent;
-  border: 1px solid #374151; /* #444 → #374151 */
+  border: 1px solid #374151;
   border-radius: 6px;
-  color: #d1d5db; /* #cccccc → #d1d5db */
-  font-size: 12px; /* 11px → 12px */
+  color: #d1d5db;
+  font-size: 12px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
-.expand-button:hover {
-  background-color: #374151; /* #333 → #374151 */
-  border-color: #4b5563; /* #555 → #4b5563 */
-  color: #f9fafb; /* #ffffff → #f9fafb */
+.expandButton:hover {
+  background-color: #374151;
+  border-color: #4b5563;
+  color: #f9fafb;
 }
 
-.expand-button:active {
+.expandButton:active {
   transform: translateY(1px);
 }
 
-.expand-button-text {
+.expandButtonText {
   line-height: 1;
 }
 
-.expand-button-icon {
+.expandButtonIcon {
   width: 14px;
   height: 14px;
   transition: transform 0.2s ease;
 }
 
 /* 셀 정렬 클래스들 (외부에서 사용) */
-.cell-left {
+.cellLeft {
   text-align: left;
 }
 
-.cell-right {
+.cellRight {
   text-align: right;
 }
 
-.cell-center {
+.cellCenter {
   text-align: center;
 }
 
 /* 반응형 */
 @media (max-width: 768px) {
-  .table-header-cell {
-    padding: 10px 12px 10px 0; /* 8px → 10px */
-    font-size: 11px; /* 10px → 11px */
+  .tableHeaderCell {
+    padding: 10px 12px 10px 0;
+    font-size: 11px;
   }
   
-  .table-cell {
-    padding: 10px 12px 10px 0; /* 6px → 10px */
-    font-size: 12px; /* 11px → 12px */
+  .tableCell {
+    padding: 10px 12px 10px 0;
+    font-size: 12px;
   }
   
-  .expand-button {
-    padding: 6px 12px; /* 4px 8px → 6px 12px */
-    font-size: 11px; /* 10px → 11px */
+  .expandButton {
+    padding: 6px 12px;
+    font-size: 11px;
   }
   
-  .expand-button-icon {
+  .expandButtonIcon {
     width: 12px;
     height: 12px;
   }
 }
 
 /* 스크롤바 스타일링 (Webkit) */
-.table-scroll-container::-webkit-scrollbar {
+.tableScrollContainer::-webkit-scrollbar {
   height: 6px;
 }
 
-.table-scroll-container::-webkit-scrollbar-track {
-  background: #1f2937; /* #1a1a1a → #1f2937 */
+.tableScrollContainer::-webkit-scrollbar-track {
+  background: #1f2937;
   border-radius: 3px;
 }
 
-.table-scroll-container::-webkit-scrollbar-thumb {
-  background: #374151; /* #444 → #374151 */
+.tableScrollContainer::-webkit-scrollbar-thumb {
+  background: #374151;
   border-radius: 3px;
 }
 
-.table-scroll-container::-webkit-scrollbar-thumb:hover {
-  background: #4b5563; /* #555 → #4b5563 */
+.tableScrollContainer::-webkit-scrollbar-thumb:hover {
+  background: #4b5563;
 }

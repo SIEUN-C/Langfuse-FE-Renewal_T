@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
-import WidgetCard from '../WidgetCard';
+// src/Pages/Dashboards/components/charts/UserChart.jsx
+import React, { useState, useEffect, useMemo } from 'react';
+import { DashboardCard } from '../cards/DashboardCard';
 import { compactNumberFormatter } from '../../utils/numbers';
 import TabComponent from './TabsComponent';
 import TotalMetric from './TotalMetric';
 import { totalCostDashboardFormatted } from '../../utils/dashboard-utils';
 import NoDataOrLoading from './NoDataOrLoading';
+import { widgetAPI } from '../../services/dashboardApi';
+import { mapLegacyUiTableFilterToView } from '../../utils/widget-utils';
 
 // ExpandListButton 컴포넌트 (재사용)
 const ExpandListButton = ({ 
@@ -26,20 +29,20 @@ const ExpandListButton = ({
         width: '100%',
         padding: '8px 16px',
         marginTop: '12px',
-        border: '1px solid #d1d5db',
-        backgroundColor: 'white',
-        color: '#374151',
+        border: '1px solid #374151',
+        backgroundColor: '#1f2937',
+        color: '#e5e7eb',
         borderRadius: '4px',
         cursor: 'pointer',
-        fontSize: '14px',
+        fontSize: '13px',
         fontWeight: '500',
         transition: 'all 0.2s'
       }}
       onMouseEnter={(e) => {
-        e.target.style.backgroundColor = '#f9fafb';
+        e.target.style.backgroundColor = '#374151';
       }}
       onMouseLeave={(e) => {
-        e.target.style.backgroundColor = 'white';
+        e.target.style.backgroundColor = '#1f2937';
       }}
     >
       {isExpanded ? 'Show less' : expandText}
@@ -54,7 +57,7 @@ const ExpandListButton = ({
   );
 };
 
-// BarList 컴포넌트 (재사용)
+// BarList 컴포넌트 - TracesBarListChart와 동일한 디자인
 const BarList = ({ data, valueFormatter, showAnimation = true, color = "indigo" }) => {
   const maxValue = Math.max(...data.map(item => item.value));
   
@@ -70,7 +73,7 @@ const BarList = ({ data, valueFormatter, showAnimation = true, color = "indigo" 
   };
 
   return (
-    <div style={{ marginTop: '8px' }}>
+    <div style={{ marginTop: '16px' }}>
       {data.map((item, index) => {
         const percentage = maxValue > 0 ? (item.value / maxValue) * 100 : 0;
         
@@ -80,52 +83,57 @@ const BarList = ({ data, valueFormatter, showAnimation = true, color = "indigo" 
             style={{
               display: 'flex',
               alignItems: 'center',
-              marginBottom: '8px',
-              padding: '4px 0'
+              marginBottom: '10px',
+              position: 'relative'
             }}
           >
-            {/* 사용자 이름 */}
-            <div style={{
-              minWidth: '120px',
-              fontSize: '14px',
-              color: '#374151',
-              fontWeight: '500',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap'
-            }}>
-              {item.name}
-            </div>
-            
-            {/* 바 컨테이너 */}
+            {/* 막대 배경 */}
             <div style={{
               flex: 1,
-              margin: '0 12px',
-              height: '20px',
-              backgroundColor: '#f3f4f6',
-              borderRadius: '4px',
+              height: '32px', 
+              borderRadius: '6px', 
               overflow: 'hidden',
               position: 'relative'
             }}>
-              {/* 실제 바 */}
+              {/* 채워진 막대 */}
               <div
                 style={{
                   width: `${percentage}%`,
                   height: '100%',
                   backgroundColor: getBarColor(color),
-                  borderRadius: '4px',
+                  borderRadius: '6px',
                   transition: showAnimation ? 'width 0.8s ease-out' : 'none',
-                  opacity: 0.8
+                  opacity: 0.5,
+                  position: 'relative'
                 }}
               />
+              
+              {/* 막대 안의 텍스트 */}
+              <div style={{
+                position: 'absolute',
+                left: '8px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                color: '#ffffff',
+                fontSize: '13px',
+                fontWeight: '400',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                maxWidth: 'calc(100% - 32px)',
+                zIndex: 2
+              }}>
+                {item.name}
+              </div>
             </div>
             
-            {/* 값 */}
+            {/* 오른쪽 숫자 */}
             <div style={{
-              minWidth: '80px',
+              minWidth: '10px',
               textAlign: 'right',
+              marginLeft: '20px',
               fontSize: '14px',
-              color: '#6b7280',
+              color: '#9ca3af',
               fontWeight: '500'
             }}>
               {valueFormatter ? valueFormatter(item.value) : item.value}
@@ -139,7 +147,6 @@ const BarList = ({ data, valueFormatter, showAnimation = true, color = "indigo" 
 
 /**
  * 사용자 소비량 차트 컴포넌트
- * 사용자별 토큰 비용과 트레이스 개수를 바 차트로 표시
  * @param {Object} props
  * @param {string} props.className - CSS 클래스
  * @param {string} props.projectId - 프로젝트 ID
@@ -156,9 +163,14 @@ const UserChart = ({
   toTimestamp,
   isLoading = false,
 }) => {
+  // 상태 관리
   const [isExpanded, setIsExpanded] = useState(false);
+  const [userCostData, setUserCostData] = useState(null);
+  const [userTracesData, setUserTracesData] = useState(null);
+  const [apiLoading, setApiLoading] = useState(false);
+  const [apiError, setApiError] = useState(null);
 
-  // TODO: 실제 API 연동 필요
+  // 디버깅용 로그
   console.log('UserChart props:', {
     projectId,
     globalFilterState,
@@ -167,55 +179,144 @@ const UserChart = ({
     isLoading
   });
 
-  // Mock 사용자 비용 데이터
-  const mockUserCostData = [
-    { userId: 'john.doe@example.com', sum_totalCost: 45.67, count_count: 1234 },
-    { userId: 'jane.smith@example.com', sum_totalCost: 38.92, count_count: 987 },
-    { userId: 'alice.johnson@example.com', sum_totalCost: 29.45, count_count: 756 },
-    { userId: 'bob.wilson@example.com', sum_totalCost: 23.18, count_count: 543 },
-    { userId: 'charlie.brown@example.com', sum_totalCost: 18.73, count_count: 432 },
-    { userId: 'diana.prince@example.com', sum_totalCost: 15.29, count_count: 321 },
-    { userId: 'eve.adams@example.com', sum_totalCost: 12.84, count_count: 276 },
-    { userId: 'frank.miller@example.com', sum_totalCost: 9.67, count_count: 198 },
-    { userId: 'grace.lee@example.com', sum_totalCost: 7.42, count_count: 156 },
-    { userId: 'henry.ford@example.com', sum_totalCost: 5.91, count_count: 123 },
-    { userId: 'iris.chen@example.com', sum_totalCost: 4.38, count_count: 89 },
-    { userId: 'jack.ryan@example.com', sum_totalCost: 3.15, count_count: 67 }
-  ];
+  // API 호출
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!projectId || isLoading) return;
 
-  // Mock 트레이스 데이터 (동일한 사용자들)
-  const mockTracesData = mockUserCostData.map(user => ({
-    userId: user.userId,
-    count_count: user.count_count
-  }));
+      setApiLoading(true);
+      setApiError(null);
+
+      try {
+        // 필터 변환
+        const convertedFilters = mapLegacyUiTableFilterToView('traces', globalFilterState || []);
+        console.log('UserChart converted filters:', convertedFilters);
+
+        // 사용자별 비용 데이터 조회 쿼리
+        const userCostQuery = {
+          view: "traces",
+          dimensions: [{ field: "userId" }],
+          metrics: [
+            { measure: "totalCost", aggregation: "sum" },
+            { measure: "count", aggregation: "count" }
+          ],
+          filters: convertedFilters,
+          timeDimension: null,
+          fromTimestamp: fromTimestamp.toISOString(),
+          toTimestamp: toTimestamp.toISOString(),
+          orderBy: [{ field: "sum_totalCost", direction: "desc" }],
+          chartConfig: { row_limit: 50, type: "TABLE" }
+        };
+
+        console.log('UserChart cost query:', userCostQuery);
+
+        // 사용자별 트레이스 개수 쿼리
+        const userTracesQuery = {
+          view: "traces",
+          dimensions: [{ field: "userId" }],
+          metrics: [{ measure: "count", aggregation: "count" }],
+          filters: convertedFilters,
+          timeDimension: null,
+          fromTimestamp: fromTimestamp.toISOString(),
+          toTimestamp: toTimestamp.toISOString(),
+          orderBy: [{ field: "count_count", direction: "desc" }],
+          chartConfig: { row_limit: 50, type: "TABLE" }
+        };
+
+        console.log('UserChart traces query:', userTracesQuery);
+
+        // 두 개의 쿼리를 병렬로 실행
+        const [costResult, tracesResult] = await Promise.all([
+          widgetAPI.executeQuery(projectId, userCostQuery),
+          widgetAPI.executeQuery(projectId, userTracesQuery)
+        ]);
+
+        console.log('UserChart API responses:', { costResult, tracesResult });
+
+        // API 응답 처리
+        if (costResult.success && Array.isArray(costResult.data)) {
+          setUserCostData(costResult.data);
+        }
+
+        if (tracesResult.success && Array.isArray(tracesResult.data)) {
+          setUserTracesData(tracesResult.data);
+        }
+
+        // 에러 처리
+        if (!costResult.success || !tracesResult.success) {
+          const errorMsg = costResult.error || tracesResult.error || 'Unknown API error';
+          setApiError(errorMsg);
+        }
+
+      } catch (error) {
+        console.error('UserChart API error:', error);
+        setApiError(error.message);
+      } finally {
+        setApiLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [projectId, globalFilterState, fromTimestamp, toTimestamp, isLoading]);
 
   // 데이터 변환
-  const transformedCost = mockUserCostData
-    .filter((item) => item.userId !== undefined)
-    .map((item) => ({
-      name: item.userId,
-      value: Number(item.sum_totalCost) || 0,
-    }));
+  const transformedCost = useMemo(() => {
+    if (!userCostData || !Array.isArray(userCostData)) {
+      return [];
+    }
 
-  const transformedNumberOfTraces = mockTracesData
-    .filter((item) => item.userId !== undefined)
-    .map((item) => ({
-      name: item.userId,
-      value: Number(item.count_count) || 0,
-    }));
+    return userCostData
+      .map((item) => {
+        if (!item || typeof item !== 'object') {
+          return null;
+        }
+
+        const userId = item.userId || item.user_id || "Unknown";
+        const costValue = item.sum_totalCost || item.totalCost || item.cost || 0;
+        
+        return {
+          name: userId,
+          value: Number(costValue),
+        };
+      })
+      .filter(Boolean)
+      .sort((a, b) => b.value - a.value);
+  }, [userCostData]);
+
+  const transformedTraces = useMemo(() => {
+    if (!userTracesData || !Array.isArray(userTracesData)) {
+      return [];
+    }
+
+    return userTracesData
+      .map((item) => {
+        if (!item || typeof item !== 'object') {
+          return null;
+        }
+
+        const userId = item.userId || item.user_id || "Unknown";
+        const countValue = item.count_count || item.count || item.value || 0;
+        
+        return {
+          name: userId,
+          value: Number(countValue),
+        };
+      })
+      .filter(Boolean)
+      .sort((a, b) => b.value - a.value);
+  }, [userTracesData]);
 
   // 총합 계산
-  const totalCost = mockUserCostData.reduce(
-    (acc, curr) => acc + (Number(curr.sum_totalCost) || 0),
-    0,
-  );
+  const totalCost = useMemo(() => {
+    return transformedCost.reduce((acc, curr) => acc + curr.value, 0);
+  }, [transformedCost]);
 
-  const totalTraces = mockTracesData.reduce(
-    (acc, curr) => acc + (Number(curr.count_count) || 0),
-    0,
-  );
+  const totalTraces = useMemo(() => {
+    return transformedTraces.reduce((acc, curr) => acc + curr.value, 0);
+  }, [transformedTraces]);
 
   const maxNumberOfEntries = { collapsed: 5, expanded: 20 };
+  const isCurrentlyLoading = isLoading || apiLoading;
 
   const localUsdFormatter = (value) => totalCostDashboardFormatted(value);
 
@@ -229,24 +330,27 @@ const UserChart = ({
       totalMetric: totalCostDashboardFormatted(totalCost),
       metricDescription: "Total cost",
       formatter: localUsdFormatter,
+      isEmpty: transformedCost.length === 0,
     },
     {
       tabTitle: "Count of Traces",
       data: isExpanded
-        ? transformedNumberOfTraces.slice(0, maxNumberOfEntries.expanded)
-        : transformedNumberOfTraces.slice(0, maxNumberOfEntries.collapsed),
+        ? transformedTraces.slice(0, maxNumberOfEntries.expanded)
+        : transformedTraces.slice(0, maxNumberOfEntries.collapsed),
       totalMetric: totalTraces
         ? compactNumberFormatter(totalTraces)
         : compactNumberFormatter(0),
       metricDescription: "Total traces",
+      formatter: (number) => Intl.NumberFormat("en-US").format(number).toString(),
+      isEmpty: transformedTraces.length === 0,
     },
   ];
 
   return (
-    <WidgetCard
+    <DashboardCard
       className={className}
       title="User consumption"
-      isLoading={isLoading}
+      isLoading={isCurrentlyLoading}
     >
       <TabComponent
         tabs={data.map((item) => {
@@ -254,10 +358,10 @@ const UserChart = ({
             tabTitle: item.tabTitle,
             content: (
               <>
-                {item.data.length > 0 ? (
+                {!item.isEmpty ? (
                   <>
                     <TotalMetric
-                      metric={item.totalMetric}
+                      totalCount={item.totalMetric}
                       description={item.metricDescription}
                     />
                     <BarList
@@ -269,7 +373,7 @@ const UserChart = ({
                   </>
                 ) : (
                   <NoDataOrLoading
-                    isLoading={isLoading}
+                    isLoading={isCurrentlyLoading}
                     description="Consumption per user is tracked by passing their ids on traces."
                     href="https://langfuse.com/docs/observability/features/users"
                   />
@@ -279,19 +383,39 @@ const UserChart = ({
           };
         })}
       />
-      <ExpandListButton
-        isExpanded={isExpanded}
-        setExpanded={setIsExpanded}
-        totalLength={transformedCost.length}
-        maxLength={maxNumberOfEntries.collapsed}
-        expandText={
-          transformedCost.length > maxNumberOfEntries.expanded
-            ? `Show top ${maxNumberOfEntries.expanded}`
-            : "Show all"
-        }
-      />
-    </WidgetCard>
+      
+      {/* 확장 버튼 - 데이터가 있을 때만 표시 */}
+      {(transformedCost.length > 0 || transformedTraces.length > 0) && (
+        <ExpandListButton
+          isExpanded={isExpanded}
+          setExpanded={setIsExpanded}
+          totalLength={Math.max(transformedCost.length, transformedTraces.length)}
+          maxLength={maxNumberOfEntries.collapsed}
+          expandText={
+            Math.max(transformedCost.length, transformedTraces.length) > maxNumberOfEntries.expanded
+              ? `Show top ${maxNumberOfEntries.expanded}`
+              : "Show all"
+          }
+        />
+      )}
+
+      {/* 에러 표시 - apiError가 null이 아닐 때만 표시 */}
+      {apiError && (
+        <div
+          style={{
+            marginTop: "12px",
+            padding: "8px",
+            backgroundColor: "#7f1d1d",
+            color: "#fca5a5",
+            borderRadius: "4px",
+            fontSize: "14px",
+          }}
+        >
+          Error: {apiError}
+        </div>
+      )}
+    </DashboardCard>
   );
 };
 
-export default UserChart; 
+export default UserChart;
