@@ -53,8 +53,8 @@ export default function PageHeader({
       return false;
     }
   }, [urlOrgId, orgIdFromStore]);
-  const isMinimalHeader = isSetupPath && !hasOrgContext; // 🔧 누락되던 부분 복구
-  const showStaticOrgCrumb = isRootSetup || isMinimalHeader;
+  const isMinimalHeader = isSetupPath && !hasOrgContext;
+  const showStaticOrgCrumb = isMinimalHeader;
 
   // 현재 경로의 projectId
   const routePid = useMemo(() => {
@@ -229,7 +229,7 @@ export default function PageHeader({
                     }}
                   >
                     <span>
-                     {isOrgSettingsPage
+                     {(isOrgSettingsPage || isSetupPath)
                        ? "Organization"
                        : (orgNameFromStore || currentOrg?.name || orgName)}
                    </span>
@@ -271,7 +271,7 @@ export default function PageHeader({
                   )}
                 </div>
 
-                {!isProjectSelectPage && (
+                {!isProjectSelectPage && !isOrgSettingsPage && !isSetupPath && (
                   <>
                     <span className={styles.separator} aria-hidden>
                       /
@@ -285,7 +285,7 @@ export default function PageHeader({
 
           <div className={styles.topRight}>
             {/* 기본 rightActions (데이터셋 등) */}
-            {!isSetupPath && !isProjectSelectPage && rightActions}
+            {!isSetupPath && !isProjectSelectPage && !isOrgSettingsPage && rightActions}
           </div>
         </div>
       </div>
