@@ -14,7 +14,7 @@ const TotalMetric = ({ totalCount, description }) => {
         fontWeight: '500',
         color: '#f8fafc'
       }}>
-        {compactNumberFormatter(totalCount)}
+        {totalCount}
       </div>
       
       <div style={{

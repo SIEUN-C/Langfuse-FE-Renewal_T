@@ -122,16 +122,20 @@ export default function App() {
 
   if (isLoading) return <div>Loading...</div>;
 
-  /** 홈(index) 분기 */
-  function HomeIndex() {
-    const loc = useLocation();
-    const hasOrg = !!localStorage.getItem("orgId");
-    const hasSearch = new URLSearchParams(loc.search).has("search");
+ /** 홈(index) 분기 */
+function HomeIndex() {
+  const loc = useLocation();
+  const hasOrg = !!localStorage.getItem("orgId");
+  const hasSearch = new URLSearchParams(loc.search).has("search");
 
-    if (hasOrg) return <Navigate to="/home" replace />;  // Home으로
-    if (hasSearch) return <SelectProjectPage />;         // /?search면 프로젝트 선택
-    return <Navigate to="/?search" replace />;           // 그 외엔 ?search 붙여서 이동
+  if (hasOrg) {
+    // 기본 프로젝트 ID가 있다면 해당 프로젝트로, 없다면 프로젝트 선택 페이지로
+    const defaultProjectId = localStorage.getItem("defaultProjectId") || "cmetl60sf0006oe07y8dfsun2";
+    return <Navigate to={`/project/${defaultProjectId}`} replace />;
   }
+  if (hasSearch) return <SelectProjectPage />;         // /?search면 프로젝트 선택
+  return <Navigate to="/?search" replace />;           // 그 외엔 ?search 붙여서 이동
+}
 
   return (
     <Routes>
