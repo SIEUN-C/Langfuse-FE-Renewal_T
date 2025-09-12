@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import './DashboardTable.module.css';
+import styles from './DashboardTable.module.css';
 import { NoDataOrLoading } from '../charts/NoDataOrLoading';
 
 /**
@@ -24,18 +24,18 @@ const ExpandListButton = ({
   }
 
   return (
-    <div className="expand-button-container">
+    <div className={styles.expandButtonContainer}>
       <button 
-        className="expand-button"
+        className={styles.expandButton}
         onClick={handleToggle}
       >
-        <span className="expand-button-text">
+        <span className={styles.expandButtonText}>
           {isExpanded ? `Show top ${maxLength}` : expandText}
         </span>
         {isExpanded ? (
-          <ChevronUp className="expand-button-icon" />
+          <ChevronUp className={styles.expandButtonIcon} />
         ) : (
-          <ChevronDown className="expand-button-icon" />
+          <ChevronDown className={styles.expandButtonIcon} />
         )}
       </button>
     </div>
@@ -64,21 +64,21 @@ export const DashboardTable = ({
   const [isExpanded, setExpanded] = useState(false);
 
   return (
-    <div className="dashboard-table-container">
+    <div className={styles.dashboardTableContainer}>
       {children}
       
       {rows.length > 0 ? (
-        <div className="table-wrapper">
-          <div className="table-scroll-container">
-            <div className="table-inner-container">
-              <table className="dashboard-table">
-                <thead className="table-header">
+        <div className={styles.tableWrapper}>
+          <div className={styles.tableScrollContainer}>
+            <div className={styles.tableInnerContainer}>
+              <table className={styles.dashboardTable}>
+                <thead className={styles.tableHeader}>
                   <tr>
                     {headers.map((header, i) => (
                       <th
                         key={i}
                         scope="col"
-                        className="table-header-cell"
+                        className={styles.tableHeaderCell}
                       >
                         {header}
                       </th>
@@ -86,7 +86,7 @@ export const DashboardTable = ({
                   </tr>
                 </thead>
 
-                <tbody className="table-body">
+                <tbody className={styles.tableBody}>
                   {rows
                     .slice(
                       0,
@@ -97,11 +97,11 @@ export const DashboardTable = ({
                         : undefined,
                     )
                     .map((row, i) => (
-                      <tr key={i} className="table-row">
+                      <tr key={i} className={styles.tableRow}>
                         {row.map((cell, j) => (
                           <td
                             key={j}
-                            className="table-cell"
+                            className={styles.tableCell}
                           >
                             {cell}
                           </td>

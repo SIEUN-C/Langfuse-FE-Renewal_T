@@ -1,4 +1,9 @@
-import React, { useState, useEffect } from "react";
+// src/Pages/Evaluation/Judge/JudgePage.jsx
+
+// ========================[수정 시작]========================
+// 주석: fetchData 함수를 useEffect 밖에서도 사용하기 위해 useCallback을 import 합니다.
+import React, { useState, useEffect, useCallback } from "react";
+// ========================[수정 끝]========================
 import styles from "./JudgePage.module.css";
 import EvaluatorsTable from "./components/EvaluatorsTable";
 import EvaluatorLibrary from "./components/EvaluatorLibrary";
@@ -6,10 +11,13 @@ import EvaluationDetail from "./EvaluationDetail";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import useProjectId from "hooks/useProjectId";
 import { Pencil } from 'lucide-react';
-// --- 수정: 2개의 API 함수를 import 합니다. ---
-import { getAllEvaluatorConfigs, getAllDatasetMeta } from "./services/judgeApi";
+// ========================[수정 시작]========================
+// 주석: deleteEvalJob API와 새로 만든 모달, Toast 컴포넌트를 import합니다.
+import { getAllEvaluatorConfigs, getAllDatasetMeta, deleteEvalJob } from "./services/judgeApi";
+import DeleteConfirmationModal from './components/DeleteConfirmationModal';
+import Toast from '../../../components/Toast/Toast'; // Toast 컴포넌트 경로
+// ========================[수정 끝]========================
 import { getDefaultModel } from './services/libraryApi';
-// -------------------------------------------------------------
 
 
 const JudgePage = () => {
@@ -24,105 +32,126 @@ const JudgePage = () => {
   const peekId = searchParams.get('peek')
   const [defaultModel, setDefaultModel] = useState(null);
 
+
+// ========================[수정 시작]========================
+  // 주석: 삭제 모달과 Toast 메시지를 위한 state를 추가합니다.
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [evaluatorToDelete, setEvaluatorToDelete] = useState(null);
+  const [toast, setToast] = useState(null); // { type: 'success'|'error', message: string }
+  // ========================[수정 끝]========================
+
+
+
+
+  // ========================[수정 시작 (2/2)]========================
+  // 주석: fetchData 함수를 useEffect 밖으로 꺼내고 useCallback으로 감쌌습니다.
+  //       이렇게 하면 다른 함수(handleConfirmDelete)에서도 이 함수를 호출할 수 있게 되어
+  //       'fetchData is not defined' 오류가 해결됩니다.
+  const fetchData = useCallback(async () => {
+    if (!projectId) {
+      setIsLoading(false);
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const [evaluatorsResponse, datasetsResponse, modelResponse] = await Promise.all([
+        getAllEvaluatorConfigs({ projectId }),
+        getAllDatasetMeta({ projectId }),
+        getDefaultModel(projectId),
+      ]);
+
+      const configs = evaluatorsResponse.configs ?? [];
+      setEvaluators(configs);
+
+      const datasets = datasetsResponse ?? [];
+      const newDatasetMap = new Map();
+      datasets.forEach(dataset => newDatasetMap.set(dataset.id, dataset.name));
+      setDatasetMap(newDatasetMap);
+
+      setDefaultModel(modelResponse);
+
+    } catch (error) {
+      console.error("데이터를 가져오는 중 에러 발생:", error);
+      setEvaluators([]);
+      setDatasetMap(new Map());
+    } finally {
+      setIsLoading(false);
+    }
+  }, [projectId]); // projectId가 바뀔 때만 함수가 새로 생성됩니다.
+  // ========================[수정 끝 (2/2)]========================
+
   useEffect(() => {
-    // --- 수정: 두 API를 동시에 호출하도록 로직 변경 ---
-    const fetchData = async () => {
-      if (!projectId) {
-        setIsLoading(false);
-        return;
-      }
-      setIsLoading(true);
-
-      try {
-        // 두 API를 동시에 호출하여 성능을 높입니다.
-        const [evaluatorsResponse, datasetsResponse, modelResponse] = await Promise.all([
-          getAllEvaluatorConfigs({ projectId }),
-          getAllDatasetMeta({ projectId }),
-          getDefaultModel(projectId),
-        ]);
-
-        // Evaluator 목록을 상태에 저장합니다.
-        const configs = evaluatorsResponse.configs ?? [];
-        setEvaluators(configs);
-
-        // 데이터셋 목록을 Map 형태로 변환하여 상태에 저장합니다. (ID로 이름을 쉽게 찾기 위함)
-        const datasets = datasetsResponse ?? [];
-        const newDatasetMap = new Map();
-        datasets.forEach(dataset => newDatasetMap.set(dataset.id, dataset.name));
-        setDatasetMap(newDatasetMap);
-
-        setDefaultModel(modelResponse);
-
-      } catch (error) {
-        console.error("데이터를 가져오는 중 에러 발생:", error);
-        setEvaluators([]);
-        setDatasetMap(new Map());
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     if (activeTab === "running") {
       fetchData();
     }
-    // ---------------------------------------------
-  }, [activeTab, projectId]);
+  }, [activeTab, fetchData]); // useEffect의 의존성 배열에 fetchData를 추가합니다.
 
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
+  
+  const handleOpenDeleteModal = (evaluator) => {
+    setEvaluatorToDelete(evaluator);
+    setIsDeleteModalOpen(true);
+  };
 
+  const handleCloseDeleteModal = () => {
+    setIsDeleteModalOpen(false);
+    setEvaluatorToDelete(null);
+  };
 
-  // --- ✨ 확인 요청: 최종 데이터를 확인하기 위해 이 console.log를 추가해주세요 ---
-  console.log("테이블에 전달되는 최종 데이터 (evaluators):", evaluators);
-  // -------------------------------------------------------------------
-
-
-
-
-
-
-
-  // detail 이동
-  // const handleRowClick = (row) => {
-  //   setSearchParams({ peek: row.id });
-  // };
+  const handleConfirmDelete = async () => {
+    if (!evaluatorToDelete) return;
+    try {
+      await deleteEvalJob({
+        projectId,
+        evalConfigId: evaluatorToDelete.id,
+      });
+      handleCloseDeleteModal();
+      showToast('Running evaluator deleted');
+      fetchData(); // 이제 정상적으로 호출됩니다.
+    } catch (error) {
+      console.error("삭제 중 에러 발생:", error);
+      showToast('Failed to delete evaluator', 'error');
+    }
+  };
 
   const handleRowClick = (row) => {
     const next = new URLSearchParams(searchParams);
-    next.set('peek', row.id);   // ← 반드시 config id
+    next.set('peek', row.id);
     setSearchParams(next, { replace: true });
   };
 
-  // detail close
   const handleClosePanel = () => {
     searchParams.delete('peek');
     setSearchParams(searchParams);
   }
-
-  // set up evaluator로 이동
-  const handleSetupEvaluator = () => {
-    navigate(`setup`);
-  };
-
-  // default evaluation model로 이동
-  const handleOpenDefaultModel = () => {
-    navigate(`default-model`)
-  };
-
-  const handleCustomEvaluator = () => {
-    navigate(`custom`)
-  }
+  
+  const handleSetupEvaluator = () => navigate(`setup`);
+  const handleOpenDefaultModel = () => navigate(`default-model`);
+  const handleCustomEvaluator = () => navigate(`custom`);
 
   return (
     <div className={styles.pageLayout}>
+      {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
+      
       <div className={styles.mainContent}>
+        {/* ========================[수정 시작: 실수로 누락했던 헤더와 탭 복원]======================== */}
         <header className={styles.header}>
           <h1 className={styles.title}>LLM-as-a-judge</h1>
 
           <div className={styles.actions}>
-            {defaultModel && (
+            {defaultModel ? (
               <button onClick={handleOpenDefaultModel} className={styles.iconButton}>
-                {defaultModel.provider} / {defaultModel.model}  <Pencil size={16} />
+                {defaultModel.provider} / {defaultModel.model} <Pencil size={16} />
+              </button>
+            ) : (
+              <button onClick={handleOpenDefaultModel} className={styles.iconButton}>
+                No default model set <Pencil size={16} />
               </button>
             )}
+
             <button onClick={handleCustomEvaluator} className={styles.setupButton}>
               + Custom Evaluator
             </button>
@@ -133,29 +162,30 @@ const JudgePage = () => {
         </header>
 
         <nav className={styles.tabs}>
-          <button
-            className={`${styles.tab} ${activeTab === "running" ? styles.active : ""}`}
-            onClick={() => setActiveTab("running")}
-          >
-            Running Evaluators
-          </button>
-          <button
-            className={`${styles.tab} ${activeTab === "library" ? styles.active : ""}`}
-            onClick={() => setActiveTab("library")}
-          >
-            Evaluator Library
-          </button>
+            <button
+                className={`${styles.tab} ${activeTab === "running" ? styles.active : ""}`}
+                onClick={() => setActiveTab("running")}
+            >
+                Running Evaluators
+            </button>
+            <button
+                className={`${styles.tab} ${activeTab === "library" ? styles.active : ""}`}
+                onClick={() => setActiveTab("library")}
+            >
+                Evaluator Library
+            </button>
         </nav>
+        {/* ========================[수정 끝]======================== */}
 
         <main className={styles.content}>
           {activeTab === "running" ? (
-            // --- ✨ 바로 이 부분입니다! 기존 EvaluatorsTable에 datasetMap을 추가해주세요 ---
             <EvaluatorsTable
               data={evaluators}
               onRowClick={handleRowClick}
               isLoading={isLoading}
               datasetMap={datasetMap}
-              projectId={projectId} //eunju projectId 추가 
+              projectId={projectId}
+              onDeleteClick={handleOpenDeleteModal}
             />
           ) : (
             <EvaluatorLibrary />
@@ -168,6 +198,13 @@ const JudgePage = () => {
           <EvaluationDetail onClose={handleClosePanel} />
         </div>
       )}
+
+      <DeleteConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={handleCloseDeleteModal}
+        evaluator={evaluatorToDelete}
+        onConfirm={handleConfirmDelete}
+      />
     </div>
   );
 };

@@ -103,3 +103,60 @@
   background-color: #334155;
   border-color: #475569;
 }
+
+/* ... (기존의 모든 스타일은 그대로 둡니다) ... */
+
+/* ========================[추가 시작]======================== */
+/* 주석: Actions 드롭다운 메뉴를 위한 스타일입니다. */
+
+/* .rowActions에 relative 포지션을 추가하여 드롭다운의 기준점이 되게 합니다. */
+.rowActions {
+  position: relative;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.dropdownMenu {
+  position: absolute;
+  top: calc(100% + 4px); /* 버튼 바로 아래에 위치 */
+  right: 0;
+  z-index: 10;
+  background-color: #334155;
+  border: 1px solid #475569;
+  border-radius: 6px;
+  width: 120px;
+  padding: 4px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+}
+
+.dropdownItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  width: 100%;
+  border: none;
+  background: none;
+  color: #cbd5e1;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.dropdownItem:hover {
+  background-color: #475569;
+}
+
+.deleteItem {
+  color: #f87171; /* 삭제 버튼 텍스트는 빨간색으로 */
+}
+
+.deleteItem:hover {
+  background-color: #ef4444;
+  color: white;
+}
+/* ========================[추가 끝]======================== */
