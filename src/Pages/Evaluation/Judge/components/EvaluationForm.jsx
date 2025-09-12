@@ -209,7 +209,7 @@ export default function EvaluationForm({
                 projectId,
                 evalTemplateId: template?.latestId ?? template?.id,
                 scoreName: (scoreName || template?.name || "").trim(),
-                target: "live",
+                target: "trace",
                 filter: filterText,
                 mappingRows: rowsForPreview,
                 samplingPct,
@@ -217,6 +217,7 @@ export default function EvaluationForm({
                 runsOnNew,
                 runsOnExisting,
             }, templateVars);
+            console.log('[createJob payload]', payload); // 1회 확인용
             onSubmit?.(payload);
         } else if (mode === "edit") {
             // edit 모드는 '폼 상태' 그대로 넘김
@@ -347,7 +348,7 @@ export default function EvaluationForm({
                 )}
 
                 <div className={styles.fieldsetRow}>
-                    <label className={styles.smallLabel}>Sampling (0–1)</label>
+                    <label className={styles.smallLabel}>Sampling</label>
                     <div className={styles.sliderRow}>
                         <input
                             type="range"
@@ -368,6 +369,7 @@ export default function EvaluationForm({
                         className={styles.input}
                         type="number"
                         min={0}
+                        step={1}
                         value={delaySec}
                         onChange={(e) => setDelaySec(e.target.value)}
                         disabled={isReadOnly}

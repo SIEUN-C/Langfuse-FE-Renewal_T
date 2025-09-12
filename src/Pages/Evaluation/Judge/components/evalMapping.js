@@ -99,35 +99,67 @@ export function fillPrompt(promptText, varValues) {
 }
 
 // createJob payload 빌더 (trace-only 가정)
-export function toCreatePayload(
-    {
-        projectId, evalTemplateId, scoreName,
-        target = "live",
-        filter = "[]",
-        mappingRows = [],
-        samplingPct = 100,
-        delaySec = 30,
-        runsOnNew = true,
-        runsOnExisting = false,
-    },
-    templateVars = []
-) {
-    const parsedFilter = safeParseArray(filter);
-    const variableMapping = mappingObjFromRows(mappingRows, templateVars);
-    return {
+export function toCreatePayload(form, templateVars = []) {
+    const {
         projectId,
         evalTemplateId,
         scoreName,
-        target: "trace",
-        filter: parsedFilter,
-        variableMapping,
-        sampling: Math.max(0, Math.min(1, Number((samplingPct / 100).toFixed(3)))),
-        delay: Math.max(0, Number(delaySec)) * 1000, // ms
-        timeScope:
-            runsOnNew && runsOnExisting ? "BOTH"
-                : runsOnNew ? "NEW"
-                    : runsOnExisting ? "EXISTING"
-                        : "NEW",
+        target,           // 'trace' | 'dataset' 만 허용
+        filter,           // UI JSON string ("[]")
+        mappingRows = [],
+        samplingPct = 100,
+        delaySec = 0,
+        runsOnNew = true,
+        runsOnExisting = false,
+    } = form;
+
+    // ✔ 배열 timeScope
+    const timeScope = [
+        ...(runsOnNew ? ['NEW'] : []),
+        ...(runsOnExisting ? ['EXISTING'] : []),
+    ];
+    if (timeScope.length === 0) timeScope.push('NEW');
+
+    // 2) sampling(0~1), delay(ms)
+    const sampling = Math.max(0, Math.min(1, (Number(samplingPct) || 0) / 100));
+    const delay = Math.max(0, Number(delaySec) || 0) * 1000; // ✅ ms
+
+    // 3) filter: UI → BE 정규화
+    let filterBE = [];
+    try {
+        const ui = JSON.parse(filter || '[]');
+        if (Array.isArray(ui)) {
+            // 이미 있는 normalizeFilters를 재사용
+            filterBE = normalizeFilters(ui).map(f =>
+                f?.column === 'Dataset' ? { ...f, column: 'datasetId' } : f
+            );
+        }
+    } catch { /* 빈 필터 */ }
+
+    // ✔ BE 'variableMapping' 스키마(업데이트와 동일)를 재사용해 create용 'mapping' 만들기
+    const mapping = (mappingRows || []).map((r, i) => {
+        const tv = r.templateVar || templateVars[i] || `var${i + 1}`;
+        const lfObj = r.object === 'dataset' ? 'dataset_item' : 'trace';
+        return {
+            templateVariable: tv,
+            objectName: lfObj === 'trace' ? null : (r.objectName ?? null),
+            langfuseObject: lfObj,                         // 'trace' | 'dataset_item'
+            selectedColumnId: String(r.objectVariable || 'input'),
+            jsonSelector: r.jsonPath || null,
+        };
+    });
+
+    // ✔ 플랫 스키마로 반환 (config 감싸지 않음 / 키 이름 정확히)
+    return {
+        projectId,
+        evalTemplateId,
+        scoreName: (scoreName || '').trim(),
+        target: target === 'dataset' ? 'dataset' : 'trace',
+        filter: filterBE,
+        mapping,          // ← 중요!
+        sampling: sampling > 0 ? sampling : 0.001, // 스키마가 (0,1] 이라 0 보호
+        delay,            // ✅ milliseconds
+        timeScope,        // 배열
     };
 }
 
@@ -176,14 +208,21 @@ export function toUpdateConfigFromForm(form, template) {
     })();
 
     const variableMapping = mappingArrayFromRows(mappingRows, vars);
-    const delayMs = Math.max(0, Number(delaySec)) * 1000;
+    const delay = Math.max(0, Number(delaySec)) * 1000; // ✅ ms
+
+    const timeScope = [
+        ...(runsOnNew ? ['NEW'] : []),
+        ...(runsOnExisting ? ['EXISTING'] : []),
+    ];
+    if (timeScope.length === 0) timeScope.push('NEW');
 
     return {
         ...(scoreName ? { scoreName: scoreName.trim() } : {}),
         filter,
         variableMapping,
         sampling: Math.max(0, Math.min(1, Number((samplingPct / 100).toFixed(3)))),
-        delayMs,
+        delay,       // ✅ milliseconds
+        timeScope,   // ← 반영되게 같이 보냄
     };
 }
 

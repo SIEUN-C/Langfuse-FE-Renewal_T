@@ -69,11 +69,10 @@ export default function SetupEvaluator() {
     }
   };
 
-  const handleSubmit = async (formValues) => {
-    const payload = toCreatePayload(formValues, projectId, currentTemplate);
-    await createJob(payload);
-    // 생성 후 목록으로
-    navigate('/llm-as-a-judge'); // 라우트에 맞게 조정 가능
+  const handleSubmit = async (payloadFromForm) => {
+    // payloadFromForm는 EvaluationForm의 toCreatePayload가 만든 최종 payload
+    await createJob(payloadFromForm);
+    navigate('/llm-as-a-judge');
   };
 
   // ---------- Step 1 ----------
@@ -191,67 +190,67 @@ export default function SetupEvaluator() {
   return null;
 }
 
-const toCreatePayload = (form, projectId, template) => {
-  // --- 1) filter: 문자열/배열 모두 허용, 최종은 배열 ---
-  let parsedFilter = [];
-  try {
-    if (typeof form.filter === "string") {
-      const raw = form.filter.trim();
-      parsedFilter = raw ? JSON.parse(raw) : [];
-    } else if (Array.isArray(form.filter)) {
-      parsedFilter = form.filter;
-    }
-  } catch {
-    parsedFilter = [];
-  }
-  if (!Array.isArray(parsedFilter)) parsedFilter = [];
+// const toCreatePayload = (form, projectId, template) => {
+//   // --- 1) filter: 문자열/배열 모두 허용, 최종은 배열 ---
+//   let parsedFilter = [];
+//   try {
+//     if (typeof form.filter === "string") {
+//       const raw = form.filter.trim();
+//       parsedFilter = raw ? JSON.parse(raw) : [];
+//     } else if (Array.isArray(form.filter)) {
+//       parsedFilter = form.filter;
+//     }
+//   } catch {
+//     parsedFilter = [];
+//   }
+//   if (!Array.isArray(parsedFilter)) parsedFilter = [];
 
-  // --- 2) variable mapping: rows | array | object 모두 수용 후 표준 스키마로 변환 ---
-  let rows = [];
-  if (Array.isArray(form.variableMappingRows)) {
-    rows = form.variableMappingRows;
-  } else if (Array.isArray(form.variableMapping)) {
-    rows = form.variableMapping;
-  } else if (form.variableMapping && typeof form.variableMapping === "object") {
-    rows = Object.entries(form.variableMapping).map(([templateVar, v]) => ({
-      templateVar,
-      object: v.object || v.source || "trace",
-      objectVariable: v.objectVariable || v.variable || "input",
-      jsonPath: v.jsonPath || v.path || ""
-    }));
-  }
+//   // --- 2) variable mapping: rows | array | object 모두 수용 후 표준 스키마로 변환 ---
+//   let rows = [];
+//   if (Array.isArray(form.variableMappingRows)) {
+//     rows = form.variableMappingRows;
+//   } else if (Array.isArray(form.variableMapping)) {
+//     rows = form.variableMapping;
+//   } else if (form.variableMapping && typeof form.variableMapping === "object") {
+//     rows = Object.entries(form.variableMapping).map(([templateVar, v]) => ({
+//       templateVar,
+//       object: v.object || v.source || "trace",
+//       objectVariable: v.objectVariable || v.variable || "input",
+//       jsonPath: v.jsonPath || v.path || ""
+//     }));
+//   }
 
-  // UI의 'dataset'을 BE 스키마의 'dataset_item'으로 치환
-  const toLangfuseObject = (obj) => (obj === "dataset" ? "dataset_item" : obj);
+//   // UI의 'dataset'을 BE 스키마의 'dataset_item'으로 치환
+//   const toLangfuseObject = (obj) => (obj === "dataset" ? "dataset_item" : obj);
 
-  // BE가 기대하는 스키마로 rename: templateVariable / langfuseObject / selectedColumnId
-  const mapping = (rows || [])
-    .filter(r => r && r.templateVar) // 템플릿 변수 없는 행 제거
-    .map(r => ({
-      templateVariable: r.templateVar,
-      langfuseObject: toLangfuseObject(r.object),       // 'trace' | 'dataset_item' | …
-      selectedColumnId: r.objectVariable,               // 'input' | 'output'
-      ...(r.jsonPath ? { jsonPath: r.jsonPath } : {})
-    }));
+//   // BE가 기대하는 스키마로 rename: templateVariable / langfuseObject / selectedColumnId
+//   const mapping = (rows || [])
+//     .filter(r => r && r.templateVar) // 템플릿 변수 없는 행 제거
+//     .map(r => ({
+//       templateVariable: r.templateVar,
+//       langfuseObject: toLangfuseObject(r.object),       // 'trace' | 'dataset_item' | …
+//       selectedColumnId: r.objectVariable,               // 'input' | 'output'
+//       ...(r.jsonPath ? { jsonPath: r.jsonPath } : {})
+//     }));
 
-  // --- 3) timeScope: 배열로 만들어야 함 ---
-  let timeScope = [];
-  if (form.runsOnNew) timeScope.push("NEW");
-  if (form.runsOnExisting) timeScope.push("EXISTING");
-  if (timeScope.length === 0) timeScope = ["EXISTING"]; // 기본값
+//   // --- 3) timeScope: 배열로 만들어야 함 ---
+//   let timeScope = [];
+//   if (form.runsOnNew) timeScope.push("NEW");
+//   if (form.runsOnExisting) timeScope.push("EXISTING");
+//   if (timeScope.length === 0) timeScope = ["EXISTING"]; // 기본값
 
-  // --- 4) target: 'live'|'dataset' -> 'trace'|'dataset'
-  const target = form.target === "live" ? "trace" : "dataset";
+//   // --- 4) target: 'live'|'dataset' -> 'trace'|'dataset'
+//   const target = form.target === "live" ? "trace" : "dataset";
 
-  return {
-    projectId,
-    evalTemplateId: template.latestId ?? template.id,
-    scoreName: form.scoreName?.trim(),
-    target,                      // 'trace' | 'dataset'
-    filter: parsedFilter,        // 배열
-    mapping,                     // <-- 표준 스키마
-    sampling: Number(form.sampling ?? 1),                         // 0~1
-    delay: Math.max(0, Math.floor(Number(form.delaySec ?? 0) * 1000)), // 초→ms
-    timeScope,                  // <-- 배열
-  };
-};
+//   return {
+//     projectId,
+//     evalTemplateId: template.latestId ?? template.id,
+//     scoreName: form.scoreName?.trim(),
+//     target,                      // 'trace' | 'dataset'
+//     filter: parsedFilter,        // 배열
+//     mapping,                     // <-- 표준 스키마
+//     sampling: Number(form.sampling ?? 1),                         // 0~1
+//     delay: Math.max(0, Math.floor(Number(form.delaySec ?? 0) * 1000)), // 초→ms
+//     timeScope,                  // <-- 배열
+//   };
+// };

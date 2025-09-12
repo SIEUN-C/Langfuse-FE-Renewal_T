@@ -25,23 +25,24 @@ import styles from './EvaluationView.module.css';
 // --- 추가: 방금 새로 만든 사이드 패널 컴포넌트를 import 합니다 ---
 import { ColumnVisibilityPanel } from './components/ColumnVisibilityPanel';
 //---------------------------------------------------------------
+import { computeFinalStatus } from '../Judge/components/evalstatus'; //To update Evaluator status_finished 
 
 
 const EvaluationView = () => {
-  const { evaluationId } = useParams(); 
+  const { evaluationId } = useParams();
   const { projectId } = useProjectId();
 
-   // ========================[수정 시작 (3/7)]========================
+  // ========================[수정 시작 (3/7)]========================
   // 주석: useNavigate hook을 초기화합니다.
   const navigate = useNavigate();
   // ========================[수정 끝 (3/7)]========================
-  
+
   const [jobs, setJobs] = useState([]);
-   // --- ✨ 추가: Evaluator 설정 정보를 저장할 state ---
+  // --- ✨ 추가: Evaluator 설정 정보를 저장할 state ---
   const [evaluatorConfig, setEvaluatorConfig] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-// ========================[수정 시작 (4/7)]========================
+  // ========================[수정 시작 (4/7)]========================
   // 주석: 전체 Evaluator ID 목록과 현재 보고 있는 Evaluator의 인덱스를 저장할 state를 추가합니다.
   const [evaluatorIds, setEvaluatorIds] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(-1);
@@ -53,8 +54,8 @@ const EvaluationView = () => {
   const [columnVisibility, setColumnVisibility] = useState({});
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   // ------------------------------------------------------------------------------------------------
-  
- // ========================[수정 시작 (1/4)]========================
+
+  // ========================[수정 시작 (1/4)]========================
   // 주석: Row height 상태와 드롭다운 메뉴의 열림 상태를 관리할 state를 추가합니다.
   const [rowHeight, setRowHeight] = useState('small'); // 'small', 'medium', 'large'
   const [isRowHeightMenuOpen, setIsRowHeightMenuOpen] = useState(false);
@@ -85,9 +86,12 @@ const EvaluationView = () => {
           getAllEvaluatorConfigs({ projectId }) // 전체 목록 가져오기
         ]);
         // ========================[수정 끝 (5/7)]========================
-        
-        setJobs(jobsResponse.data || []); 
-        setEvaluatorConfig(configResponse); // 주석: 가져온 Evaluator 설정 정보를 state에 저장합니다.
+
+        setJobs(jobsResponse.data || []);
+        //        setEvaluatorConfig(configResponse); // 주석: 가져온 Evaluator 설정 정보를 state에 저장합니다. _ eunju20250912 아래처럼 소스 수정
+        const finalStatus = configResponse?.finalStatus || computeFinalStatus(configResponse);
+        setEvaluatorConfig({ ...configResponse, finalStatus });
+
 
         // ========================[수정 시작 (6/7)]========================
         // 주석: 가져온 전체 목록에서 ID만 추출하여 배열로 만들고,
@@ -99,7 +103,7 @@ const EvaluationView = () => {
 
       } catch (error) {
         console.error("Failed to fetch evaluation data:", error);
-        setJobs([]); 
+        setJobs([]);
         setEvaluatorConfig(null);
       } finally {
         setIsLoading(false);
@@ -125,7 +129,7 @@ const EvaluationView = () => {
   // ========================[수정 끝 (3/4)]========================
 
 
-// 주석: useReactTable은 이제 렌더링이 아닌 '상태 관리' 용도로만 사용합니다.
+  // 주석: useReactTable은 이제 렌더링이 아닌 '상태 관리' 용도로만 사용합니다.
   const table = useReactTable({
     data: jobs,
     columns,
@@ -164,11 +168,11 @@ const EvaluationView = () => {
     }
   };
   // ========================[수정 끝 (7/7)]========================
-  
+
   return (
     <div className={styles.container}>
-       {/* --- ✨ 수정: 기존 h1 태그를 새로운 헤더 UI 구조로 변경합니다 --- */}
-       <div className={styles.headerContainer}>
+      {/* --- ✨ 수정: 기존 h1 태그를 새로운 헤더 UI 구조로 변경합니다 --- */}
+      <div className={styles.headerContainer}>
         <div className={styles.headerRow}>
           <div className={styles.headerLeft}>
             <span className={styles.evaluatorBadge}>🪄 Evaluator</span>
@@ -180,7 +184,7 @@ const EvaluationView = () => {
           {/* --- ✨ 수정: headerRight 부분에 UI 요소들을 추가합니다 --- */}
           <div className={styles.headerRight}>
             <span className={styles.resultCount}>✅ {jobs.length} results</span>
-              {/* ========================[수정 시작]======================== */}
+            {/* ========================[수정 시작]======================== */}
             {/*
               * 수정 내용:
               * 1. 표시할 상태 값 변경:
@@ -204,17 +208,17 @@ const EvaluationView = () => {
               </span>
             )}
             {/* ========================[수정 끝]======================== */}
-           {/* --- ✨ 수정: 버튼에 onClick 핸들러와 disabled 속성을 추가합니다 --- */}
+            {/* --- ✨ 수정: 버튼에 onClick 핸들러와 disabled 속성을 추가합니다 --- */}
             <div className={styles.navButtonGroup}>
-              <button 
-                className={styles.navButton} 
+              <button
+                className={styles.navButton}
                 onClick={handleNavigatePrev}
                 disabled={currentIndex <= 0} // 첫 번째 항목이면 비활성화
               >
                 <ChevronUp size={16} /> K
               </button>
-              <button 
-                className={styles.navButton} 
+              <button
+                className={styles.navButton}
                 onClick={handleNavigateNext}
                 disabled={currentIndex >= evaluatorIds.length - 1} // 마지막 항목이면 비활성화
               >
@@ -232,42 +236,42 @@ const EvaluationView = () => {
             </button>
           </div>
           <div className={styles.headerRight}>
-             {/* --- 수정: Columns 버튼에 onClick 이벤트와 동적 텍스트를 추가합니다 --- */}
+            {/* --- 수정: Columns 버튼에 onClick 이벤트와 동적 텍스트를 추가합니다 --- */}
             <button className={styles.columnButton} onClick={() => setIsPanelOpen(true)}>
               <Columns size={16} />
               {/* --- 수정: 버튼 텍스트도 table 인스턴스를 사용합니다. --- */}
               Columns {table.getVisibleLeafColumns().length}/{columns.length}
             </button>
             {/* ========================[수정 시작 (4/4)]======================== */}
-                {/* 주석: LayoutGrid 버튼을 드롭다운 컨테이너로 감싸고, 클릭 이벤트를 연결합니다. */}
-                <div className={styles.dropdownContainer} ref={rowHeightMenuRef}>
-                    <button className={styles.iconButton} onClick={() => setIsRowHeightMenuOpen(!isRowHeightMenuOpen)}>
-                        <LayoutGrid size={16} />
-                    </button>
-                    {isRowHeightMenuOpen && (
-                        <div className={styles.dropdownMenu}>
-                            <div className={styles.dropdownHeader}>Row height</div>
-                            <div className={styles.dropdownItem} onClick={() => { setRowHeight('small'); setIsRowHeightMenuOpen(false); }}>
-                                <span>Small</span>
-                                {rowHeight === 'small' && <Check size={16} />}
-                            </div>
-                            <div className={styles.dropdownItem} onClick={() => { setRowHeight('medium'); setIsRowHeightMenuOpen(false); }}>
-                                <span>Medium</span>
-                                {rowHeight === 'medium' && <Check size={16} />}
-                            </div>
-                            <div className={styles.dropdownItem} onClick={() => { setRowHeight('large'); setIsRowHeightMenuOpen(false); }}>
-                                <span>Large</span>
-                                {rowHeight === 'large' && <Check size={16} />}
-                            </div>
-                        </div>
-                    )}
+            {/* 주석: LayoutGrid 버튼을 드롭다운 컨테이너로 감싸고, 클릭 이벤트를 연결합니다. */}
+            <div className={styles.dropdownContainer} ref={rowHeightMenuRef}>
+              <button className={styles.iconButton} onClick={() => setIsRowHeightMenuOpen(!isRowHeightMenuOpen)}>
+                <LayoutGrid size={16} />
+              </button>
+              {isRowHeightMenuOpen && (
+                <div className={styles.dropdownMenu}>
+                  <div className={styles.dropdownHeader}>Row height</div>
+                  <div className={styles.dropdownItem} onClick={() => { setRowHeight('small'); setIsRowHeightMenuOpen(false); }}>
+                    <span>Small</span>
+                    {rowHeight === 'small' && <Check size={16} />}
+                  </div>
+                  <div className={styles.dropdownItem} onClick={() => { setRowHeight('medium'); setIsRowHeightMenuOpen(false); }}>
+                    <span>Medium</span>
+                    {rowHeight === 'medium' && <Check size={16} />}
+                  </div>
+                  <div className={styles.dropdownItem} onClick={() => { setRowHeight('large'); setIsRowHeightMenuOpen(false); }}>
+                    <span>Large</span>
+                    {rowHeight === 'large' && <Check size={16} />}
+                  </div>
                 </div>
-                {/* ========================[수정 끝 (4/4)]======================== */}
+              )}
             </div>
+            {/* ========================[수정 끝 (4/4)]======================== */}
+          </div>
         </div>
       </div>
-       
-        {/* ========================[수정 시작]======================== */}
+
+      {/* ========================[수정 시작]======================== */}
       {/* 주석: 바로 이 부분이 너비 고정 문제 해결의 핵심입니다.
         <DataTable> 컴포넌트를 <div className={styles.tableWrapper}>로 감싸줍니다.
         이렇게 해야 .module.css 파일에 있는 '.tableWrapper table' 스타일이 적용되어
