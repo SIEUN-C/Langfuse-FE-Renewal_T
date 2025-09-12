@@ -58,9 +58,11 @@ export default function SelectProjectPage() {
     if (org) dispatch(setOrganization({ id: org.id, name: org.name }));
   };
 
-  const gotoProjectTrace = (proj) => {
+  // ✅ 프로젝트 홈으로 이동 (기존 메뉴가 그대로 보이도록)
+  const gotoProjectHome = (proj) => {
     syncAndRemember(proj);
-    nav(`/project/${proj.id}/trace`);
+    // 쿼리스트링 승계 없이 /project/:id 로 이동 → Layout이 풀 메뉴 렌더
+    nav(`/project/${proj.id}`);
   };
 
   const gotoProjectSettings = (proj) => {
@@ -70,7 +72,7 @@ export default function SelectProjectPage() {
 
   if (loading) return <div className={commonStyles.container}>Loading...</div>;
 
-  // ✅ 1) 조직이 하나도 없을 때: Get Started 카드(라이트 레이아웃을 우리 다크 톤으로)
+  // ✅ 1) 조직이 하나도 없을 때: Get Started 카드
   if (orgs.length === 0) {
     const card = {
       border: "1px solid #334155",
@@ -139,7 +141,7 @@ export default function SelectProjectPage() {
     );
   }
 
-  // ✅ 2) orgId 없음 → 모든 조직 섹션(어두운 카드들) 렌더
+  // ✅ 2) orgId 없음 → 모든 조직 섹션 렌더
   if (!orgId) {
     return (
       <div className={commonStyles.container} style={{ paddingTop: 24 }}>
@@ -318,7 +320,8 @@ export default function SelectProjectPage() {
                           } catch {}
                           dispatch(setProject({ id: project.id, name: project.name || null }));
                           dispatch(setOrganization({ id: org.id, name: org.name }));
-                          nav(`/project/${project.id}/trace`);
+                          // ✅ 프로젝트 홈으로 이동 → 기존 메뉴 노출
+                          nav(`/project/${project.id}`);
                         }}
                       >
                         Go to project
@@ -456,7 +459,7 @@ export default function SelectProjectPage() {
                   e.currentTarget.style.backgroundColor = "transparent";
                   e.currentTarget.style.borderColor = "#475569";
                 }}
-                onClick={() => gotoProjectTrace(p)}
+                onClick={() => gotoProjectHome(p)} // ✅ 홈으로
               >
                 Go to project
               </button>

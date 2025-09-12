@@ -27,30 +27,32 @@ export default function Layout({ session }) {
   const location = useLocation();
   const navigate = useNavigate();
 
- // /setup 또는 /?search 여부: 사이드바는 그대로, 메뉴만 숨김
+  // ✅ 최소 크롬: 이제 /setup 경로에서만 적용
   const isSetupPath = useMemo(
     () => location.pathname === "/setup" || location.pathname.startsWith("/setup"),
     [location.pathname]
   );
-  const isSearchQuery = useMemo(() => {
-    try {
-      const sp = new URLSearchParams(location.search);
-      return sp.has("search");
-    } catch {
-      return false;
-    }
-  }, [location.search]);
-  const isMinimalChrome = isSetupPath || isSearchQuery; // ← 둘 다 동일 처리
+  const isMinimalChrome = isSetupPath;
 
-  // 현재 활성 프로젝트 ID (세션 검증 포함)
+  // 프로젝트가 꼭 필요한 경로에서만 세션 기반 자동 선택 허용
+  const needsProject = useMemo(() => {
+    const p = location.pathname;
+    const needPrefixes = [
+      /^\/project\//,
+      /^\/playground(\/|$)/,
+      /^\/dashboards(\/|$)/,
+      /^\/widgets(\/|$)/,
+      /^\/settings(\/|$)/,
+    ];
+    return needPrefixes.some((re) => re.test(p));
+  }, [location.pathname]);
+
   const { projectId: activeProjectId } = useProjectId({
     location,
-    validateAgainstSession: true,
+    validateAgainstSession: needsProject,
   });
 
-  // 헤더에 뿌릴 조직/프로젝트/배지
   const { orgName, projectName, envBadge } = useHeaderMeta(activeProjectId);
-
   const [headerConfig, setHeaderConfig] = useState({});
 
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -107,111 +109,108 @@ export default function Layout({ session }) {
     }
   };
 
- // Layout.jsx의 mainMenuSections 부분만 수정
-
-const mainMenuSections = [
-  {
-    title: null,
-    items: [
-      { 
-        label: "Home", 
-        icon: <Home size={18} />, 
-        path: activeProjectId ? `/project/${activeProjectId}` : "/home" 
-      }
-    ],
-  },
-  {
-    title: "Dashboards",
-    items: [
-      { label: "Dashboards", icon: <LayoutDashboard size={18} />, path: "/dashboards" }
-    ],
-  },
-  {
-    title: "Observability",
-    items: [
-      { label: "Tracing", icon: <Activity size={18} />, path: "/trace" },
-      { label: "Sessions", icon: <MessageCircleCode size={18} />, path: "/sessions" },
-    ],
-  },
-  {
-    title: "Prompt Management",
-    items: [
-      { label: "Prompts", icon: <FlaskConical size={18} />, path: "/prompts" },
-      { label: "Playground", icon: <SquareStack size={18} />, path: "/playground" },
-    ],
-  },
-  {
-    title: "Evaluation",
-    items: [
-      { label: "LLM-as-a-Judge", icon: <Lightbulb size={18} />, path: "/llm-as-a-judge" },
-      { label: "Datasets", icon: <Database size={18} />, path: "/datasets" },
-    ],
-  },
-];
+  // ─────────────────────────────
+  // ★ 기존 메뉴 (그대로 유지)
+  // ─────────────────────────────
+  const mainMenuSections = [
+    {
+      title: null,
+      items: [
+        {
+          label: "Home",
+          icon: <Home size={18} />,
+          path: activeProjectId ? `/project/${activeProjectId}` : "/home",
+        },
+      ],
+    },
+    {
+      title: "Dashboards",
+      items: [{ label: "Dashboards", icon: <LayoutDashboard size={18} />, path: "/dashboards" }],
+    },
+    {
+      title: "Observability",
+      items: [
+        { label: "Tracing", icon: <Activity size={18} />, path: "/trace" },
+        { label: "Sessions", icon: <MessageCircleCode size={18} />, path: "/sessions" },
+      ],
+    },
+    {
+      title: "Prompt Management",
+      items: [
+        { label: "Prompts", icon: <FlaskConical size={18} />, path: "/prompts" },
+        { label: "Playground", icon: <SquareStack size={18} />, path: "/playground" },
+      ],
+    },
+    {
+      title: "Evaluation",
+      items: [
+        { label: "LLM-as-a-Judge", icon: <Lightbulb size={18} />, path: "/llm-as-a-judge" },
+        { label: "Datasets", icon: <Database size={18} />, path: "/datasets" },
+      ],
+    },
+  ];
 
   const bottomMenu = [{ label: "Settings", icon: <Settings size={18} />, path: "/settings" }];
 
-// Layout.jsx의 isPathActive 함수 최종 수정
+  // ─────────────────────────────
+  // ★ /setup 전용 "Organizations" 메뉴 (추가)
+  // ─────────────────────────────
+  const orgIdForSetup = useMemo(() => {
+    try {
+      const fromLS = localStorage.getItem("orgId");
+      if (fromLS) return fromLS;
+    } catch {}
+    const orgs = session?.user?.organizations || [];
+    return orgs.length ? orgs[0].id : "";
+  }, [session]);
 
-const isPathActive = (path) => {
-  const currentPath = location.pathname;
-  
-  // Home 경로는 정확히 일치할 때만 (하위 경로 제외)
-  if (path.includes("/project/")) {
-    return currentPath === path; // 정확히 일치할 때만
-  }
-  
-  // 다른 페이지들은 포함 여부로 확인
-  if (path === "/playground") {
-    return currentPath.includes("/playground");
-  }
-  
-  if (path === "/dashboards") {
-    return currentPath.includes("/dashboards");
-  }
-  
-  if (path === "/trace") {
-    return currentPath.includes("/trace");
-  }
-  
-  if (path === "/sessions") {
-    return currentPath.includes("/sessions");
-  }
-  
-  if (path === "/prompts") {
-    return currentPath.includes("/prompts");
-  }
-  
-  if (path === "/llm-as-a-judge") {
-    return currentPath.includes("/llm-as-a-judge");
-  }
-  
-  if (path === "/datasets") {
-    return currentPath.includes("/datasets");
-  }
-  
-  if (path === "/settings") {
-    return currentPath.includes("/settings");
-  }
-  
-  // 기본 매칭
-  return !!matchPath({ path, end: path === "/" }, currentPath);
-};
+  const setupMenuSections = [
+    {
+      title: null,
+      items: [
+        {
+          label: "Organizations",
+          icon: <LayoutDashboard size={18} />,
+          path: orgIdForSetup ? `/org/${orgIdForSetup}/settings` : "/setup",
+        },
+      ],
+    },
+  ];
 
-const navClass = (path) => () => {  // { isActive } 제거
-  const finalIsActive = isPathActive(path);
-  return `${styles.menuItem} ${finalIsActive ? styles.active : ""} ${collapsed ? styles.iconOnly : ""}`.trim();
-};
+  const isPathActive = (path) => {
+    const currentPath = location.pathname;
+    if (path.includes("/project/")) return currentPath === path;
+    if (path === "/playground") return currentPath.includes("/playground");
+    if (path === "/dashboards") return currentPath.includes("/dashboards");
+    if (path === "/trace") return currentPath.includes("/trace");
+    if (path === "/sessions") return currentPath.includes("/sessions");
+    if (path === "/prompts") return currentPath.includes("/prompts");
+    if (path === "/llm-as-a-judge") return currentPath.includes("/llm-as-a-judge");
+    if (path === "/datasets") return currentPath.includes("/datasets");
+    if (path === "/settings") return currentPath.includes("/settings");
+    return !!matchPath({ path, end: path === "/" }, currentPath);
+  };
+
+  const navClass = (path) => () => {
+    const finalIsActive = isPathActive(path);
+    return `${styles.menuItem} ${finalIsActive ? styles.active : ""} ${collapsed ? styles.iconOnly : ""}`.trim();
+  };
 
   const sectionActive = (section) => section.items.some(({ path }) => isPathActive(path));
 
-  // /project/:id/... 인 경우 공통 prefix 제거해서 라우트 매칭 통일
   const stripProjectPrefix = (p) => {
     const m = p.match(/^\/project\/[^/]+(\/.*)?$/);
     return m ? m[1] || "/" : p;
   };
 
+  // 🔧 헤더 타이틀 규칙 수정
   const pageTitle = useMemo(() => {
+    // 명시적 경로 우선
+    if (location.pathname === "/setup") return "Setup";
+    if (/^\/org\/[^/]+\/settings(\/|$)?/.test(location.pathname)) return "Organizations";
+    if (/^\/organization\/[^/]+\/setup(\/|$)?/.test(location.pathname)) return "Setup";
+    if (/^\/project\/[^/]+\/setup(\/|$)?/.test(location.pathname)) return projectName || "Project";
+    // 나머지는 기존 규칙
     const p = stripProjectPrefix(location.pathname);
     if (p === "/") return "Home";
     if (p.startsWith("/llm-as-a-judge")) return "LLM-as-a-Judge";
@@ -243,12 +242,10 @@ const navClass = (path) => () => {  // { isActive } 제거
     return null;
   }, [location.pathname, navigate]);
 
-  // 헤더 우측 액션 최종 묶음
   const headerRightActionsCombined = headerConfig.rightActions ?? headerRightActionsDefault;
 
   return (
     <div className={styles.layout}>
-      {/* ✅ 사이드바는 항상 표시 */}
       <aside className={`${styles.sidebar} ${collapsed ? styles.sidebarCollapsed : ""}`}>
         <div className={styles.header}>
           <div className={styles.logoArea}>
@@ -267,44 +264,45 @@ const navClass = (path) => () => {  // { isActive } 제거
         </div>
 
         <div className={styles.menuWrapper}>
-          {/* /setup 또는 /?search에서는 메뉴 목록 숨김 */}
-          {!isMinimalChrome  && (
-            <ul className={styles.menu} role="menu" aria-label="Main navigation">
-              {mainMenuSections.map((section, i) => (
-                <li key={i}>
-                  {section.title && !collapsed && (
-                    <div
-                      className={`${styles.sectionTitle} ${
-                        sectionActive(section) ? styles.sectionTitleActive : ""
-                      }`}
-                    >
-                      {section.title}
-                    </div>
-                  )}
-                  {section.items.map((item) => (
-                    <NavLink
-                      key={item.label}
-                      to={item.path}
-                      className={navClass(item.path)}
-                      end={item.path === "/"}
-                      title={collapsed ? item.label : undefined}
-                      aria-label={collapsed ? item.label : undefined}
-                      role="menuitem"
-                    >
-                      {item.icon}
-                      {!collapsed && <span>{item.label}</span>}
-                    </NavLink>
-                  ))}
-                  {i < mainMenuSections.length - 1 && <div className={styles.sectionDivider}></div>}
-                </li>
-              ))}
-            </ul>
-          )}
+          {/* /setup 에서는 Organizations 단일 메뉴만, 그 외는 기존 메뉴 전체 */}
+          <ul className={styles.menu} role="menu" aria-label="Main navigation">
+            {(isMinimalChrome ? setupMenuSections : mainMenuSections).map((section, i) => (
+              <li key={i}>
+                {section.title && !collapsed && (
+                  <div
+                    className={`${styles.sectionTitle} ${
+                      sectionActive(section) ? styles.sectionTitleActive : ""
+                    }`}
+                  >
+                    {section.title}
+                  </div>
+                )}
+                {section.items.map((item) => (
+                  <NavLink
+                    key={item.label}
+                    to={item.path}
+                    className={navClass(item.path)}
+                    end={item.path === "/"}
+                    title={collapsed ? item.label : undefined}
+                    aria-label={collapsed ? item.label : undefined}
+                    role="menuitem"
+                  >
+                    {item.icon}
+                    {!collapsed && <span>{item.label}</span>}
+                  </NavLink>
+                ))}
+                {/* setup 메뉴는 단일 섹션이므로 divider 생략; 기존 메뉴 렌더 시에는 divider 유지 */}
+                {!isMinimalChrome && i < mainMenuSections.length - 1 && (
+                  <div className={styles.sectionDivider}></div>
+                )}
+              </li>
+            ))}
+          </ul>
         </div>
 
         <div>
-          {/* /setup 또는 /?search에서는 하단 Settings 메뉴도 숨김, 로그인 정보는 표시 */}
-          {!isMinimalChrome  && (
+          {/* setup 에서는 하단 Settings 숨김, 그 외엔 기존처럼 표시 */}
+          {!isMinimalChrome && (
             <ul className={`${styles.menu} ${styles.bottomMenu}`} role="menu" aria-label="Secondary navigation">
               {bottomMenu.map((item) => (
                 <NavLink
@@ -322,7 +320,6 @@ const navClass = (path) => () => {  // { isActive } 제거
             </ul>
           )}
 
-          {/* 👇 로그인 정보(아바타/이메일/드롭다운)는 항상 표시 */}
           <div ref={userMenuRef} className={styles.userMenuContainer}>
             {isUserMenuOpen && !collapsed && (
               <div className={styles.userMenuPopover}>
@@ -352,10 +349,7 @@ const navClass = (path) => () => {  // { isActive } 제거
                   <div className={styles.userMenuToggle}>
                     <ChevronDown
                       size={14}
-                      style={{
-                        transform: isUserMenuOpen ? "rotate(180deg)" : "none",
-                        transition: "transform 0.2s",
-                      }}
+                      style={{ transform: isUserMenuOpen ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}
                     />
                   </div>
                 </>
@@ -365,7 +359,6 @@ const navClass = (path) => () => {  // { isActive } 제거
         </div>
       </aside>
 
-      {/* 메인 영역은 그대로 */}
       <main className={styles.mainContainer}>
         <PageHeader
           orgName={orgName}
@@ -374,8 +367,7 @@ const navClass = (path) => () => {  // { isActive } 제거
           title={headerConfig.title ?? pageTitle}
           onToggleSidebar={() => setCollapsed((prev) => !prev)}
           flushLeft
-          // /setup 또는 /?search에서는 우측 액션 숨김
-          rightActions={isMinimalChrome  ? null : headerRightActionsCombined}
+          rightActions={isMinimalChrome ? null : headerRightActionsCombined}
           sessionLoader={fetchSession}
           currentProjectId={activeProjectId}
         />

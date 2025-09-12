@@ -31,6 +31,18 @@ export default function ProjectSwitcher({ currentProjectId }) {
     })();
   }, []);
 
+  // ⛔️ 다음 경로들에서는 스위처 숨김 (/, /setup, /org/:id/settings, /organization/:id/setup)
+  const hideSwitcher = useMemo(() => {
+    const p = location.pathname;
+    return (
+      p === "/" ||
+      p === "/setup" ||
+      /^\/org\/[^/]+\/settings(\/|$)?/.test(p) ||
+      /^\/organization\/[^/]+\/setup(\/|$)?/.test(p)
+    );
+  }, [location.pathname]);
+  if (hideSwitcher) return null;
+
   // 세션에서 org/projects 만들기 + 폴백 로직
   const { org, projects, currentProject } = useMemo(() => {
     const orgs = session?.user?.organizations || [];

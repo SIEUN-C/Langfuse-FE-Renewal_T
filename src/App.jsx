@@ -1,3 +1,4 @@
+// src/App.jsx
 import React, { useState, useEffect } from "react";
 import { Routes, Route, Navigate, useParams, useLocation, useSearchParams } from "react-router-dom";
 import Layout from "./layouts/Layout";
@@ -52,15 +53,10 @@ import Scores from "./Pages/Settings/Scores";
 import TraceProjectRedirect from "./Pages/Settings/test/TraceProjectRedirect";
 
 function SetupStepRouter() {
-  // 3000 패턴: /organization/:orgId/setup?orgstep=invite-members
-  const { orgId } = useParams(); // 필요하면 내부 로직에서 사용
+  const { orgId } = useParams();
   const search = new URLSearchParams(useLocation().search);
   const step = (search.get("orgstep") || "").toLowerCase();
-
-  // 초대 스텝이면 멤버 초대 화면, 그 외엔 조직 생성/개요 화면
-  if (step === "invite-members") {
-    return <SetupInviteMembers />;
-  }
+  if (step === "invite-members") return <SetupInviteMembers />;
   return <SetupOrganizationPage />;
 }
 
@@ -72,24 +68,6 @@ function LegacyKeysRedirect() {
   return <Navigate to={`/project/${projectId}/setup${q}`} replace />;
 }
 
-
-/** 🔑 projectId 변경 시 강제 리마운트 */
-function keyByProjectId(Component) {
-  return function KeyedByProjectId(props) {
-    const { projectId } = useParams();
-    return <Component key={projectId} {...props} />;
-  };
-}
-
-const SettingsPageKeyed = keyByProjectId(SettingsPage);
-const DashboardsKeyed = keyByProjectId(Dashboards);
-const DashboardNewKeyed = keyByProjectId(DashboardNew);
-const DashboardDetailKeyed = keyByProjectId(DashboardDetail);
-const WidgetsViewKeyed = keyByProjectId(WidgetsView);
-const NewWidgetKeyed = keyByProjectId(NewWidget);
-const PlaygroundKeyed = keyByProjectId(Playground);
-
-/** 조직 존재 가드 */
 function RequireOrg({ children }) {
   let hasOrg = false;
   try {
@@ -108,7 +86,10 @@ export default function App() {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const res = await fetch("/api/auth/session");
+        const res = await fetch("/api/auth/session", {
+          credentials: "include",
+          headers: { accept: "application/json" },
+        });
         const data = await res.json();
         if (data && Object.keys(data).length > 0) setSession(data);
       } catch {
@@ -122,16 +103,10 @@ export default function App() {
 
   if (isLoading) return <div>Loading...</div>;
 
-  /** 홈(index) 분기 */
+  // 로그인 후엔 무조건 /setup 으로
   function HomeIndex() {
-  const loc = useLocation();
-  const hasOrg = !!localStorage.getItem("orgId");
-  const hasSearch = new URLSearchParams(loc.search).has("search");
-
-  if (hasOrg) return <Navigate to="/home" replace />;  // Home으로
-  if (hasSearch) return <SelectProjectPage />;         // /?search면 프로젝트 선택
-  return <Navigate to="/?search" replace />;           // 그 외엔 ?search 붙여서 이동
-}
+    return <Navigate to="/setup" replace />;
+  }
 
   return (
     <Routes>
@@ -145,10 +120,14 @@ export default function App() {
         path="/"
         element={session ? <Layout session={session} /> : <Navigate to="/login" />}
       >
-        {/* 홈: 조직 없으면 /setup, 있으면 /HomeIndex */}
+        {/* ✅ index: 무조건 /setup 로 */}
         <Route index element={<HomeIndex />} />
 
-        {/* Tracing */}
+        {/* Setup / Org Onboarding */}
+        <Route path="setup" element={<SetupOrganizationPage />} />
+        <Route path="organization/:orgId/setup" element={<SetupStepRouter />} />
+
+        {/* Observability */}
         <Route path="trace" element={<RequireOrg><Tracing /></RequireOrg>} />
         <Route path="project/:projectId/traces/:traceId" element={<RequireOrg><TraceDetailPage /></RequireOrg>} />
 
@@ -162,110 +141,39 @@ export default function App() {
         <Route path="prompts/new" element={<RequireOrg><PromptsNew /></RequireOrg>} />
 
         {/* Playground */}
-        <Route path="project/:projectId/playground" element={<RequireOrg><PlaygroundKeyed /></RequireOrg>} />
+        <Route path="project/:projectId/playground" element={<RequireOrg><Playground /></RequireOrg>} />
         <Route path="playground" element={<ProjectGate />} />
 
         {/* Judge / Datasets */}
-        <Route
-          path="llm-as-a-judge"
-          element={
-            <RequireOrg>
-              <JudgePage />
-            </RequireOrg>
-          }
-        />
-        {/* <Route path="library" element={<EvaluatorLibrary />} /> */}
-        <Route
-          path="datasets"
-          element={
-            <RequireOrg>
-              <Dataset />
-            </RequireOrg>
-          }
-        />
-        <Route
-          path="llm-as-a-judge/setup"
-          element={
-            <RequireOrg>
-              <SetupEvaluator />
-            </RequireOrg>
-          }
-        />
-        {/* llm-as-a-judge 경로 추가 가능성 */}
-        {/* <Route path="llm-as-a-judge" element={<EvaluationDetail />} /> */}
-        <Route
-          path="llm-as-a-judge/default-model"
-          element={
-            <RequireOrg>
-              <DefaultEvaluationModel />
-            </RequireOrg>
-          }
-        />
-        <Route
-          path="llm-as-a-judge/:evaluationId"
-          element={
-            <RequireOrg>
-              <EvaluationView />
-            </RequireOrg>
-          }
-        />
-        <Route
-          path="llm-as-a-judge/templates/:templateId"
-          element={
-            <RequireOrg>
-              <Templates />
-            </RequireOrg>
-          }
-        />
-        <Route
-          path="llm-as-a-judge/evals/new/:templateId"
-          element={
-            <RequireOrg>
-              <UseEvaluator />
-            </RequireOrg>
-          }
-        />
-        <Route
-          path="llm-as-a-judge/custom"
-          element={
-            <RequireOrg>
-              <CustomEvaluator />
-            </RequireOrg>
-          }
-        />
-
+        <Route path="llm-as-a-judge" element={<RequireOrg><JudgePage /></RequireOrg>} />
+        <Route path="datasets" element={<RequireOrg><Dataset /></RequireOrg>} />
+        <Route path="llm-as-a-judge/setup" element={<RequireOrg><SetupEvaluator /></RequireOrg>} />
+        <Route path="llm-as-a-judge/default-model" element={<RequireOrg><DefaultEvaluationModel /></RequireOrg>} />
+        <Route path="llm-as-a-judge/:evaluationId" element={<RequireOrg><EvaluationView /></RequireOrg>} />
+        <Route path="llm-as-a-judge/templates/:templateId" element={<RequireOrg><Templates /></RequireOrg>} />
+        <Route path="llm-as-a-judge/evals/new/:templateId" element={<RequireOrg><UseEvaluator /></RequireOrg>} />
+        <Route path="llm-as-a-judge/custom" element={<RequireOrg><CustomEvaluator /></RequireOrg>} />
+        <Route path="llm-as-a-judge/edit/:templateId" element={<RequireOrg><CustomEvaluator /></RequireOrg>} />
         {/* Dashboards */}
-        <Route path="project/:projectId/dashboards" element={<RequireOrg><DashboardsKeyed /></RequireOrg>} />
-        <Route path="project/:projectId/dashboards/new" element={<RequireOrg><DashboardNewKeyed /></RequireOrg>} />
-        <Route path="project/:projectId/dashboards/:dashboardId" element={<RequireOrg><DashboardDetailKeyed /></RequireOrg>} />
+        <Route path="project/:projectId/dashboards" element={<RequireOrg><Dashboards /></RequireOrg>} />
+        <Route path="project/:projectId/dashboards/new" element={<RequireOrg><DashboardNew /></RequireOrg>} />
+        <Route path="project/:projectId/dashboards/:dashboardId" element={<RequireOrg><DashboardDetail /></RequireOrg>} />
 
         {/* Widgets */}
-        <Route path="project/:projectId/widgets" element={<RequireOrg><WidgetsViewKeyed /></RequireOrg>} />
-        <Route path="project/:projectId/widgets/new" element={<RequireOrg><NewWidgetKeyed /></RequireOrg>} />
+        <Route path="project/:projectId/widgets" element={<RequireOrg><WidgetsView /></RequireOrg>} />
+        <Route path="project/:projectId/widgets/new" element={<RequireOrg><NewWidget /></RequireOrg>} />
         <Route path="project/:projectId/widgets/:widgetId/edit" element={<RequireOrg><EditWidget /></RequireOrg>} />
         <Route path="project/:projectId/widgets/:widgetId" element={<RequireOrg><EditWidget /></RequireOrg>} />
-        <Route path="project/:projectId/dashboards/widgets/new" element={<RequireOrg><NewWidgetKeyed /></RequireOrg>} />
-
-        {/* 짧은 경로 Gate */}
+        <Route path="project/:projectId/dashboards/widgets/new" element={<RequireOrg><NewWidget /></RequireOrg>} />
         <Route path="dashboards" element={<ProjectGate />} />
         <Route path="widgets" element={<ProjectGate />} />
 
-        {/* Home 페이지 - projectId 기반 */}
-        <Route
-          path="project/:projectId"
-          element={
-            <RequireOrg>
-              <Home />
-            </RequireOrg>
-          }
-        />
-
-        {/* 짧은 경로용 Gate */}
-        <Route path="home" element={<ProjectGate />} />
+        {/* Home (projectId) */}
+        <Route path="project/:projectId" element={<RequireOrg><Home /></RequireOrg>} />
 
         {/* Settings */}
         <Route path="project/:projectId/trace" element={<RequireOrg><TraceProjectRedirect /></RequireOrg>} />
-        <Route path="project/:projectId/settings" element={<RequireOrg><SettingsPageKeyed /></RequireOrg>}>
+        <Route path="project/:projectId/settings" element={<RequireOrg><SettingsPage /></RequireOrg>}>
           <Route index element={<General />} />
           <Route path="general" element={<General />} />
           <Route path="api-keys" element={<ApiKeys />} />
@@ -278,17 +186,15 @@ export default function App() {
           <Route path="members" element={<Members />} />
         </Route>
 
-        {/* Setup Tracing (Step 4) */}
+        {/* Setup Tracing */}
         <Route path="project/:projectId/setup" element={<RequireOrg><SetupTracingPage /></RequireOrg>} />
-        
-        {/* 레거시 키 경로 리다이렉트 */}
+
+        {/* Legacy redirect */}
         <Route path="project/:projectId/keys" element={<RequireOrg><LegacyKeysRedirect /></RequireOrg>} />
 
-        {/* 프로젝트 선택/생성 */}
+        {/* Project select & Org settings (임시 유지) */}
         <Route path="settings/select-project" element={<SelectProjectPage />} />
         <Route path="projects/select" element={<Navigate to="/settings/select-project" replace />} />
-
-        {/* 조직 설정 (임시) */}
         <Route path="org/:orgId/settings" element={<SelectProjectPage />} />
 
         {/* 짧은 경로 */}
