@@ -119,6 +119,8 @@ const EvaluationDetail = ({ onClose }) => {
       const column = col === "datasetId" ? "Dataset" : col;
       return {
         column,
+        type: column === "Dataset" ? "stringOptions"
+          : (String(column).toLowerCase().includes("time") ? "datetime" : "string"),
         operator: f.operator || f.op || "=",
         value: f.value ?? "",
         ...(f.metaKey ? { metaKey: f.metaKey } : {}),

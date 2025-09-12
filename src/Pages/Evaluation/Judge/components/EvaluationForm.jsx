@@ -152,9 +152,15 @@ export default function EvaluationForm({
                         });
                     }
                     if (!Array.isArray(tmp)) throw new Error("Filter must be an array");
-                    // 원본 그대로 = UI형( type / operator / column 레이블 등 )
-                    parsedUI = tmp;
-                    // BE형으로 표준화(op/value/columnId 등)
+                    // UI singleFilter에 type 보강
+                    parsedUI = tmp.map(f => ({
+                        ...f,
+                        type:
+                            f.type ??
+                            (f.column === "Dataset"
+                                ? "stringOptions"
+                                : (String(f.column || "").toLowerCase().includes("time") ? "datetime" : "string")),
+                    }));
                     parsedBE = normalizeFilters(tmp).map(f =>
                         f?.column === 'Dataset' ? { ...f, column: 'datasetId' } : f
                     );

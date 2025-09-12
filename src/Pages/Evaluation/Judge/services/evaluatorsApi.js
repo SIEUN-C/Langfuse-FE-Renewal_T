@@ -132,7 +132,7 @@ async function listTracesForPreview({ projectId, filterBE, filterUI, page, limit
     const searchCombos = [
         { searchQuery: '', searchType: ['id'] },
         { searchQuery: '', searchType: ['full_text'] },
-        { searchQuery: '' }, // searchType 생략
+        { searchQuery: '', searchType: [] },
     ];
     for (const col of orderColumns) {
         for (const s of searchCombos) {
@@ -145,6 +145,7 @@ async function listTracesForPreview({ projectId, filterBE, filterUI, page, limit
                     filter: Array.isArray(filterUI) ? filterUI : [],
                     ...s,
                 };
+                if (!Array.isArray(inputUI.searchType)) inputUI.searchType = [];
                 const out = await trpcQuery('traces.all', inputUI, { silent: true });
                 LIST_CALL_CACHE.set(projectId, ({ projectId, filterUI, page, limit }) => ({
                     proc: 'traces.all',
