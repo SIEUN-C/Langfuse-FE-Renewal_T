@@ -27,12 +27,16 @@ export default function Layout({ session }) {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // ✅ 최소 크롬: 이제 /setup 경로에서만 적용
+  // 최소 크롬: /setup 및 /org/:id/settings 에서 적용
   const isSetupPath = useMemo(
     () => location.pathname === "/setup" || location.pathname.startsWith("/setup"),
     [location.pathname]
   );
-  const isMinimalChrome = isSetupPath;
+  const isOrgSettingsPath = useMemo(
+    () => /^\/org\/[^/]+\/settings(\/|$)?/.test(location.pathname),
+    [location.pathname]
+  );
+  const isMinimalChrome = isSetupPath || isOrgSettingsPath;
 
   // 프로젝트가 꼭 필요한 경로에서만 세션 기반 자동 선택 허용
   const needsProject = useMemo(() => {
