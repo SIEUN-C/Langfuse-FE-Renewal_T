@@ -321,6 +321,7 @@ export default function PromptsDetail() {
   // 메인 렌더링
   return (
     <div className={styles.container}>
+      <h3>{id}</h3>
       {/* 상단 탭 */}
       <div className={styles.tabs}>
         <button className={`${styles.tabButton} ${styles.active}`}>Versions</button>
@@ -375,9 +376,9 @@ export default function PromptsDetail() {
           <div className={styles.rightPanelHeader}>
             <div className={styles.versionInfo}>
               <span className={styles.versionNumber}># {selectedVersion.id}</span>
-              {selectedVersion?.commitMessage && (
+              {selectedVersion?.commitMessage ? (
                 <span className={styles.commitMessage}>{selectedVersion.commitMessage}</span>
-              )}
+              ) : (<span className={styles.commitMessage}>{id}</span>)}
               <div className={styles.labelsContainer}>
                 {selectedVersion.labels.map(label => (
                   <span key={label} className={label.toLowerCase() === 'production' ? styles.statusTagProd : styles.statusTagLatest}>
@@ -410,7 +411,7 @@ export default function PromptsDetail() {
               </div>
             </div>
           </div>
-          
+
           {/* 탭 영역 */}
           <div className={styles.detailTabs}>
             <div className={styles.detailTabButtons}>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { DataTable } from '../../../../components/DataTable/DataTable';
 import { getEvaluatorLibraryColumns } from './EvaluatorLibraryColumns';
 import { getTemplateEvaluators } from '../services/libraryApi'
@@ -6,7 +6,7 @@ import useProjectId from 'hooks/useProjectId';
 import { useNavigate } from 'react-router-dom';
 import Templates from '../Templates';
 import styles from './EvaluatorLibrary.module.css';
-import { Expand } from 'lucide-react';
+import { Expand, ChevronDown, ChevronUp } from 'lucide-react';
 
 const EvaluatorLibrary = () => {
   const columns = getEvaluatorLibraryColumns({
@@ -20,6 +20,10 @@ const EvaluatorLibrary = () => {
   const navigate = useNavigate();
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [selectedTemplateId, setSelectedTemplateId] = useState(null)
+  const currentIndex = useMemo(() => {
+    if (!selectedTemplateId) return -1;
+    return data.findIndex(item => item.id === selectedTemplateId);
+  }, [data, selectedTemplateId]);
 
   useEffect(() => {
     if (!projectId) {
@@ -44,6 +48,46 @@ const EvaluatorLibrary = () => {
     fetchData();
   }, [projectId]);
 
+  const handleNext = () => {
+    const currentIndex = data.findIndex(item => item.id === selectedTemplateId);
+    if (currentIndex < data.length - 1) {
+      const nextItem = data[currentIndex + 1];
+      setSelectedTemplateId(nextItem.id);
+    }
+  };
+
+  const handlePrevious = () => {
+    const currentIndex = data.findIndex(item => item.id === selectedTemplateId);
+    if (currentIndex > 0) {
+      const previousItem = data[currentIndex - 1];
+      setSelectedTemplateId(previousItem.id);
+    }
+  };
+
+  const closePanel = useCallback(() => {
+    setIsPanelOpen(false);
+  }, []);
+
+  useEffect(() => {
+    if (!isPanelOpen) return;
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'j') {
+        handleNext();
+      } else if (event.key === 'k') {
+        handlePrevious();
+      } else if (event.key === 'Escape') {
+        closePanel()
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isPanelOpen, handleNext, handlePrevious, closePanel]);
+
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -56,10 +100,6 @@ const EvaluatorLibrary = () => {
     setIsPanelOpen(true);
     setSelectedTemplateId(row.id);
   };
-
-  const closePanel = () => {
-    setIsPanelOpen(false);
-  }
 
   const handleExpand = () => {
     navigate(`./templates/${selectedTemplateId}`);
@@ -85,9 +125,23 @@ const EvaluatorLibrary = () => {
         <>
           <div className={styles.overlay} onClick={closePanel}></div>
           <div className={styles.sidePanelWrapper}>
+            <button
+              className={styles.chevronUpButton}
+              onClick={handlePrevious}
+              disabled={currentIndex === 0}
+            >
+              <ChevronUp /> K
+            </button>
+            <button
+              className={styles.chevronDownButton}
+              onClick={handleNext}
+              disabled={currentIndex >= data.length - 1}
+            >
+              <ChevronDown /> J
+            </button>
             <button className={styles.expandButton} onClick={handleExpand}><Expand /></button>
             <button className={styles.closeButton} onClick={closePanel}>X</button>
-            {selectedTemplateId && <Templates templateId={selectedTemplateId} mode='panel'/>}
+            {selectedTemplateId && <Templates key={selectedTemplateId} templateId={selectedTemplateId} mode='panel' />}
           </div>
         </>
       )}

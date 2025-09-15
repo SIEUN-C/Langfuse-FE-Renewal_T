@@ -136,12 +136,20 @@ const Templates = ({ templateId: propTemplateId, mode = 'full' }) => {
                   <label htmlFor="useDefaultModel">Use default evaluation model</label>
                 </div>
                 <div className={styles.modelInfo}>
-                  <span className={styles.modelName}>
-                    Current default model:{defaultModel.provider}/{defaultModel.model}
-                  </span>
-                  <button onClick={handleDefaultModel} className={styles.editButton}>
-                    <Pencil size={16} />
-                  </button>
+                  {defaultModel ? (
+                    <>
+                      <span className={styles.modelName}>
+                        Current default model: {defaultModel.provider}/{defaultModel.model}
+                      </span>
+                      <button onClick={handleDefaultModel} className={styles.editButton}>
+                        <Pencil size={16} />
+                      </button>
+                    </>
+                  ) : (
+                    <span className={styles.modelName}>
+                      No default model set
+                    </span>
+                  )}
                 </div>
               </div>
             </div>

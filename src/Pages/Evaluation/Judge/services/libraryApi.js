@@ -265,6 +265,33 @@ export const upsertDefaultModel = async (modelData) => {
   }
 };
 
+/**
+ * Default model 삭제
+ * @param {string} projectId
+ */
+export const deleteDefaultModel = async (projectId) => {
+  if (!projectId) {
+    throw new Error("projectId is required.");
+  }
+
+  try {
+    const payload = {
+      json: {
+        projectId: projectId,
+      },
+    };
+
+    const url = `/api/trpc/defaultLlmModel.deleteDefaultModel`;
+    const response = await axios.post(url, payload);
+
+    return response.data.result.data.json;
+
+  } catch (error) {
+    console.error("Failed to upsert default model via tRPC:", error);
+    throw new Error(error.response?.data?.error?.message || "Failed to delete default model.");
+  }
+};
+
 // /**
 //  * 모든 페이지의 모델 목록 전체를 가져옵니다.
 //  * @returns {Promise<Array<Object>>} 전체 모델 정보 배열

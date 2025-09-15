@@ -92,3 +92,67 @@
 .modelname {
   color: #6ee7b7;
 }
+
+.confirmOverlay {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  /* margin-left: 220px; */
+  /* background-color: rgba(0, 0, 0, 0.6); 더 어두운 배경 */
+  z-index: 1001; /* 기존 모달보다 위에 위치 */
+}
+
+.confirmModal {
+  /* position: fixed; */
+  background-color: #1a2436;
+  padding: 24px;
+  border-radius: 8px;
+  border: 1px solid #334155;
+  width: min(450px, 90vw);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.confirmModal h3 {
+  margin: 0;
+}
+
+.confirmInput {
+  width: 100%;
+  padding: 8px;
+  background-color: #0f1623;
+  border: 1px solid #334155;
+  border-radius: 4px;
+  color: #e7edf6;
+}
+
+.confirmActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.btn {
+  padding: 10px 16px;
+  font-weight: 600;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+.ghost {
+  background: transparent;
+  color: #c6d4ee;
+  border-color: #2a3853;
+}
+.ghost:hover {
+  border-color: #3b4e77;
+  color: #e7edf6;
+}
+.primary {
+  background: rgba(255, 0, 0, 0.594);
+  color: white;
+}
+.primary:hover { filter: brightness(1.06); }
