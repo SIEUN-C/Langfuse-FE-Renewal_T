@@ -7,7 +7,7 @@ import useProjectId from '../../hooks/useProjectId';
 import { fetchAllPromptNames, fetchVersionsForPrompt, fetchLlmConnections, fetchAllDatasetNames } from './NewExperimentModalApi';
 import Modal from '../../components/Modal/Modal';
 import NewLLMConnectionsForm from '../Settings/form/NewLLMConnectionsForm';
-import { saveLlmConnection } from '../../api/Settings/LLMApi';
+import { saveLlmConnection } from '../../api/settings/LLMApi';
 import { publicKey, secretKey } from '../../lib/langfuse';
 import ModelAdvancedSettingsPopover from './ModelAdvancedSettingsPopover';
 

@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { X, Maximize, Minimize, HardDrive } from 'lucide-react';
 import { fetchTraceDetails } from './TraceDetailApi.js';
-import { fetchObservationDetails } from './Observations/ObservationDetailApi.jsx';
+import { fetchObservationDetails } from './observations/ObservationDetailApi.jsx';
 import styles from './TraceDetailPanel.module.css';
 import TraceDetailView from './TraceDetailView.jsx';
 import TraceTimeline from './TraceTimeline.jsx';

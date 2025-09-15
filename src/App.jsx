@@ -3,54 +3,54 @@ import React, { useState, useEffect } from "react";
 import { Routes, Route, Navigate, useParams, useLocation, useSearchParams } from "react-router-dom";
 import Layout from "./layouts/Layout";
 
-import Login from "./pages/Login/LoginPage";
-import SignUpPage from "./pages/Login/SignUpPage";
-import SelectProjectPage from "./pages/Settings/SelectProjectPage";
-import SetupOrganizationPage from "./pages/Settings/SetupOrganizationPage";
-import SetupInviteMembers from "./pages/Settings/SetupInviteMembers";
-import SetupTracingPage from "./pages/Settings/SetupTracingPage";
+import Login from "./pages-temp/Login/LoginPage";
+import SignUpPage from "./pages-temp/Login/SignUpPage";
+import SelectProjectPage from "./pages-temp/Settings/SelectProjectPage";
+import SetupOrganizationPage from "./pages-temp/Settings/SetupOrganizationPage";
+import SetupInviteMembers from "./pages-temp/Settings/SetupInviteMembers";
+import SetupTracingPage from "./pages-temp/Settings/SetupTracingPage";
 
-import Home from "./pages/Home/Home";
+import Home from "./pages-temp/Home/Home";
 
-import Tracing from "./pages/Tracing/Tracing";
-import TraceDetailPage from "./pages/Tracing/TraceDetailPage";
-import Sessions from "./pages/Sessions/Sessions";
-import SessionDetail from "./pages/Sessions/SessionDetail";
+import Tracing from "./pages-temp/Tracing/Tracing";
+import TraceDetailPage from "./pages-temp/Tracing/TraceDetailPage";
+import Sessions from "./pages-temp/Sessions/Sessions";
+import SessionDetail from "./pages-temp/Sessions/SessionDetail";
 
-import Prompts from "./pages/Prompts/Prompts";
-import PromptsDetail from "./pages/Prompts/PromptsDetail";
-import PromptsNew from "./pages/Prompts/PromptsNew";
+import Prompts from "./pages-temp/Prompts/Prompts";
+import PromptsDetail from "./pages-temp/Prompts/PromptsDetail";
+import PromptsNew from "./pages-temp/Prompts/PromptsNew";
 
-import Playground from "./pages/Playground/Playground";
+import Playground from "./pages-temp/Playground/Playground";
 
 import ProjectGate from "./components/ProjectId/ProjectGate";
 
-import Dataset from "./pages/DataSets/DatasetsPage";
-import JudgePage from "./pages/Judge/JudgePage";
-import SetupEvaluator from "./pages/Judge/SetupEvaluator";
-import DefaultEvaluationModel from "pages/Judge/DefaultEvaluationModel";
-import EvaluationView from "pages/Judge/EvaluationView";
-import Templates from "pages/Judge/Templates";
-import CustomEvaluator from "pages/Judge/CustomEvaluator";
-import UseEvaluator from "pages/Judge/UseEvaluator";
+import Dataset from "./pages-temp/DataSets/DatasetsPage";
+import JudgePage from "./pages-temp/Judge/JudgePage";
+import SetupEvaluator from "./pages-temp/Judge/SetupEvaluator";
+import DefaultEvaluationModel from "pages-temp/Judge/DefaultEvaluationModel";
+import EvaluationView from "pages-temp/Judge/EvaluationView";
+import Templates from "pages-temp/Judge/Templates";
+import CustomEvaluator from "pages-temp/Judge/CustomEvaluator";
+import UseEvaluator from "pages-temp/Judge/UseEvaluator";
 
-import Dashboards from "./pages/Dashboards/Dashboards";
-import DashboardNew from "./pages/Dashboards/DashboardNew";
-import DashboardDetail from "./pages/Dashboards/DashboardDetail";
+import Dashboards from "./pages-temp/Dashboards/Dashboards";
+import DashboardNew from "./pages-temp/Dashboards/DashboardNew";
+import DashboardDetail from "./pages-temp/Dashboards/DashboardDetail";
 
-import { WidgetsView } from "./pages/Widget/pages/WidgetsView";
-import NewWidget from "./pages/Widget/pages/NewWidget";
-import EditWidget from "./pages/Widget/pages/EditWidget";
+import { WidgetsView } from "./pages-temp/Widget/pages/WidgetsView";
+import NewWidget from "./pages-temp/Widget/pages/NewWidget";
+import EditWidget from "./pages-temp/Widget/pages/EditWidget";
 
-import SettingsPage from "./pages/Settings/SettingsPage";
-import General from "./pages/Settings/General";
-import ApiKeys from "./pages/Settings/ApiKeys";
-import LLMConnections from "./pages/Settings/LLMConnections";
-import Models from "./pages/Settings/Models";
-import ModelDetail from "./pages/Settings/ModelDetail";
-import Members from "./pages/Settings/Members";
-import Scores from "./pages/Settings/Scores";
-import TraceProjectRedirect from "./pages/Settings/test/TraceProjectRedirect";
+import SettingsPage from "./pages-temp/Settings/SettingsPage";
+import General from "./pages-temp/Settings/General";
+import ApiKeys from "./pages-temp/Settings/ApiKeys";
+import LLMConnections from "./pages-temp/Settings/LLMConnections";
+import Models from "./pages-temp/Settings/Models";
+import ModelDetail from "./pages-temp/Settings/ModelDetail";
+import Members from "./pages-temp/Settings/Members";
+import Scores from "./pages-temp/Settings/Scores";
+import TraceProjectRedirect from "./pages-temp/Settings/test/TraceProjectRedirect";
 
 function SetupStepRouter() {
   const { orgId } = useParams();

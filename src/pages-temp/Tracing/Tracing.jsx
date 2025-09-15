@@ -16,16 +16,16 @@ import { createTrace, updateTrace } from './CreateTrace.jsx';
 import { langfuse } from '../../lib/langfuse.js';
 import { fetchTraces, deleteTrace } from './TracingApi.js';
 import { fetchTraceDetails } from './TraceDetailApi.js';
-import { getProjects } from '../../api/Settings/ProjectApi.js';
+import { getProjects } from '../../api/settings/ProjectApi.js';
 // --- ▼▼▼ [추가] filter ▼▼▼ ---
 import { tracingFilterConfig } from 'components/FilterControls/filterConfig';
-import { observationsFilterConfig } from './Observations/observationFilterConfig.js';
+import { observationsFilterConfig } from './observations/observationFilterConfig.js';
 // --- ▲▲▲ [추가] filter ▲▲▲ ---
 
 import RowDensityButton from "./RowDensityButton.jsx";
 
 // Observation 추가
-import ObservationsTab from './Observations/ObservationsTab.jsx';
+import ObservationsTab from './observations/ObservationsTab.jsx';
 
 // 토큰컬럼을 위한 추가 
 const pickField = (...xs) => xs.find(v => v !== undefined && v !== null);

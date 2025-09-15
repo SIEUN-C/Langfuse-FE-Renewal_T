@@ -1,6 +1,6 @@
 // src/Pages/Tracing/CreateTrace.jsx
 import { langfuse } from '../../lib/langfuse';
-import { getDefaultLlmConnection } from 'api/Settings/LLMApi';
+import { getDefaultLlmConnection } from 'api/settings/LLMApi';
 import { publicKey, secretKey } from '../../lib/langfuse';
 
 // Basic Auth를 위한 Base64 인코딩
