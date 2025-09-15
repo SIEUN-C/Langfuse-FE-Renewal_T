@@ -78,7 +78,7 @@ const DefaultEvaluationModel = () => {
                   </strong>
                 </p>
               ) : (
-                <p>Default model not found.</p>
+                <p>Default model not found</p>
               )}
             </div>
           </div>

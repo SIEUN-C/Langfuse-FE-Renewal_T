@@ -148,7 +148,7 @@ const JudgePage = () => {
               </button>
             ) : (
               <button onClick={handleOpenDefaultModel} className={styles.iconButton}>
-                No default model set <Pencil size={16} />
+                Default model not found <Pencil size={16} />
               </button>
             )}
 

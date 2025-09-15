@@ -163,7 +163,7 @@ const CustomEvaluator = () => {
                 </p>
               ) : (
                 // 데이터가 없거나 API 호출에 실패한 경우
-                <p>Default model not found.</p>
+                <p>Default model not found</p>
               )}</span>
               <button onClick={handleDefaultModel} className={styles.editButton}>
                 <Pencil size={16} />

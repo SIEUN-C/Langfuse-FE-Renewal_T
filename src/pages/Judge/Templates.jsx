@@ -146,9 +146,14 @@ const Templates = ({ templateId: propTemplateId, mode = 'full' }) => {
                       </button>
                     </>
                   ) : (
-                    <span className={styles.modelName}>
-                      No default model set
-                    </span>
+                    <>
+                      <span className={styles.modelName}>
+                        Default model not found
+                      </span>
+                      <button onClick={handleDefaultModel} className={styles.editButton}>
+                        <Pencil size={16} />
+                      </button>
+                    </>
                   )}
                 </div>
               </div>
