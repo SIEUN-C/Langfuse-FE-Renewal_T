@@ -5,7 +5,7 @@
       "Components/*": ["src/Components/*"],
       "atoms/*": ["src/Components/atoms/*"],
       "Library/*": ["src/Library/*"],
-      "Pages/*": ["src/pages-temp/*"],
+      "Pages/*": ["src/pages/*"],
       "Communicator/*": ["src/Communicators/*"]
     }
   },

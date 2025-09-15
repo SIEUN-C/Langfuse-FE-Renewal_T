@@ -1,7 +1,7 @@
 // src/components/PageHeader/ProjectSwitcher.jsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { fetchSession } from "../../pages-temp/Settings/lib/sessionOrg";
+import { fetchSession } from "../../pages/Settings/lib/sessionOrg";
 import { Settings as SettingsIcon, ChevronDown, Plus, Check } from "lucide-react";
 import styles from "./ProjectSwitcher.module.css";
 import { useDispatch, useSelector } from "react-redux";
