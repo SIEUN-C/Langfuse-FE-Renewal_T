@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import useProjectId from 'hooks/useProjectId';
-import { getTemplateById, getDefaultModel, getAllTemplateVersionsByName } from "./services/libraryApi";
+import { getTemplateById, getDefaultModel, getAllTemplateVersionsByName } from "./services/libraryApi.js";
 import styles from "./Templates.module.css";
-import FormPageLayout from "../../../components/Layouts/FormPageLayout.jsx";
-import FormGroup from "../../../components/Form/FormGroup.jsx";
-import CodeBlock from "../../../components/CodeBlock/CodeBlock.jsx";
+import FormPageLayout from "../../components/Layouts/FormPageLayout.jsx";
+import FormGroup from "../../components/Form/FormGroup.jsx";
+import CodeBlock from "../../components/CodeBlock/CodeBlock.jsx";
 import { ChevronLeft, ChevronRight, Pencil } from 'lucide-react';
 
 const Templates = ({ templateId: propTemplateId, mode = 'full' }) => {

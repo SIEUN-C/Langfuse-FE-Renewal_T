@@ -6,10 +6,10 @@ import { Plus, Copy } from "lucide-react";
 import { dashboardAPI } from "./services/dashboardApi.js";
 import { dashboardFilterConfig } from "../../components/FilterControls/filterConfig.js";
 import DashboardGrid from "../Widget/component/DashboardGrid.jsx";
-import DashboardFilterControls from "./components/DashboardFilterControls";
-import FilterControls from "../../components/FilterControls/FilterControls";
+import DashboardFilterControls from "./components/DashboardFilterControls.jsx";
+import FilterControls from "../../components/FilterControls/FilterControls.jsx";
 import { SelectWidgetDialog } from "../Widget/component/SelectWidgetDialog.jsx";
-import { useDebounce } from "./hooks/useDebounce";
+import { useDebounce } from "./hooks/useDebounce.js";
 import styles from "./DashboardDetail.module.css";
 import { v4 as uuidv4 } from "uuid";
 

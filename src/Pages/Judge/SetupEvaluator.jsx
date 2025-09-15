@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import useProjectId from 'hooks/useProjectId';
-import { templateNames, templateById, createJob } from '../Judge/services/evaluatorsApi';
+import { templateNames, templateById, createJob } from './services/evaluatorsApi';
 import EvaluationForm from './components/EvaluationForm';
 import styles from './SetupEvaluator.module.css';
 

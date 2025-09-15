@@ -3,7 +3,7 @@ import {
   listScoreConfigs,
   createScoreConfig,
   updateScoreConfigStatus,
-} from "./lib/ScoreApi.trpc";
+} from "./lib/ScoreApi.trpc.js";
 
 import React, {
   useCallback,
@@ -25,10 +25,10 @@ import {
 } from "lucide-react";
 import commonStyles from "./layout/SettingsCommon.module.css";
 import gridStyles from "./layout/SettingsGrid.module.css";
-import CustomPagination from "./CustomPagination";
-import ColumnMenu from "../../layouts/ColumnMenu";
+import CustomPagination from "./CustomPagination.jsx";
+import ColumnMenu from "../../layouts/ColumnMenu.jsx";
 import Modal from "../../components/Modal/Modal.jsx";
-import NewScoreForm from "./form/NewScoreForm";
+import NewScoreForm from "./form/NewScoreForm.jsx";
 
 import stylesScores from "./layout/Scores.module.css";
 

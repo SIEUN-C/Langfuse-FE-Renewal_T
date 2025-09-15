@@ -20,7 +20,7 @@ import PageHeader from "../components/PageHeader/PageHeader";
 
 import useProjectId from "../hooks/useProjectId";
 import useHeaderMeta from "../hooks/useHeaderMeta";
-import { fetchSession } from "../Pages/Settings/lib/sessionOrg";
+import { fetchSession } from "../pages/Settings/lib/sessionOrg";
 
 export default function Layout({ session }) {
   const [collapsed, setCollapsed] = useState(false);

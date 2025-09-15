@@ -12,22 +12,22 @@ import {
   isValidViewMeasureAggregation,
   getMeasuresForView,
   getDefaultAggregationForMeasure
-} from '../services/viewMappings';
+} from '../services/viewMappings.js';
 
 // ✅ Chart 컴포넌트 직접 import (EditWidget과 동일)
-import ChartPreview from '../components/ChartPreview';
+import ChartPreview from '../components/ChartPreview.jsx';
 
 // API 서비스 import
 import api from '../services/index.js';
 
 // 수정: 올바른 DateRangePicker import
-import DateRangePicker from "../components/DateRangePicker";
+import DateRangePicker from "../components/DateRangePicker.jsx";
 import { widgetFilterConfig } from '../../../components/FilterControls/filterConfig.js';
 
 // 공통 컴포넌트 imports
-import FiltersEditor from '../components/FiltersEditor';
-import IntegratedMetricsSelector from '../components/IntegratedMetricsSelector';
-import PivotControls from '../components/PivotControls';
+import FiltersEditor from '../components/FiltersEditor.jsx';
+import IntegratedMetricsSelector from '../components/IntegratedMetricsSelector.jsx';
+import PivotControls from '../components/PivotControls.jsx';
 
 // 아이콘 import
 import { 

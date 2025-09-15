@@ -3,9 +3,9 @@ import { useParams, useNavigate } from "react-router-dom";
 import useProjectId from "hooks/useProjectId";
 import styles from "./UseEvaluator.module.css"; // 없으면 Templates.module.css 재사용해도 됨
 import EvaluationForm from "./components/EvaluationForm.jsx";
-import { getTemplateById } from "./services/libraryApi";
-import { createJob, getPreviewRows } from "./services/evaluatorsApi";
-import { toCreatePayload } from '../Judge/components/evalMapping';
+import { getTemplateById } from "./services/libraryApi.js";
+import { createJob, getPreviewRows } from "./services/evaluatorsApi.js";
+import { toCreatePayload } from './components/evalMapping.js';
 
 
 

@@ -10,12 +10,12 @@ import commonStyles from './layout/SettingsCommon.module.css';
 import gridStyles from './layout/SettingsGrid.module.css';
 import styles from './layout/Models.module.css';
 
-import CustomPagination from './CustomPagination';
-import ColumnMenu from '../../layouts/ColumnMenu';
+import CustomPagination from './CustomPagination.jsx';
+import ColumnMenu from '../../layouts/ColumnMenu.jsx';
 import SidePanel from '../../components/SidePanel/SidePanel.jsx'
-import NewModelForm from './form/NewModelForm';
+import NewModelForm from './form/NewModelForm.jsx';
 
-import { listModelsPaged, getModel, createModel, deleteModel } from "./lib/ModelsApi.trpc";
+import { listModelsPaged, getModel, createModel, deleteModel } from "./lib/ModelsApi.trpc.js";
 
 // ──────────────────────────────────────
 // Cell Renderers

@@ -3,7 +3,7 @@ import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import styles from './PromptsDetail.module.css';
 import SearchInput from '../../components/SearchInput/SearchInput.jsx';
-import useProjectId from '../../hooks/useProjectId';
+import useProjectId from '../../hooks/useProjectId.js';
 import {
   Book,
   Clipboard,
@@ -22,7 +22,7 @@ import DuplicatePromptModal from './DuplicatePromptModal.jsx';
 import { duplicatePrompt } from './DuplicatePromptModalApi.js';
 import { fetchPromptVersions } from './PromptsDetailApi.js';
 import { deletePromptVersion, fetchPrompts } from './promptsApi.js';
-import NewExperimentModal from './NewExperimentModal';
+import NewExperimentModal from './NewExperimentModal.jsx';
 import SidePanel from '../../components/SidePanel/SidePanel.jsx';
 import Comments from '../../components/Comments/Comments.jsx';
 import { useComments } from '../../hooks/useComments.js';

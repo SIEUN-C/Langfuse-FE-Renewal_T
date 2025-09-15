@@ -15,7 +15,7 @@ import { Pencil } from 'lucide-react';
 // 주석: deleteEvalJob API와 새로 만든 모달, Toast 컴포넌트를 import합니다.
 import { getAllEvaluatorConfigs, getAllDatasetMeta, deleteEvalJob } from "./services/judgeApi";
 import DeleteConfirmationModal from './components/DeleteConfirmationModal';
-import Toast from '../../../components/Toast/Toast'; // Toast 컴포넌트 경로
+import Toast from '../../components/Toast/Toast'; // Toast 컴포넌트 경로
 // ========================[수정 끝]========================
 import { getDefaultModel } from './services/libraryApi';
 

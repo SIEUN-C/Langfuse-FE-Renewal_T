@@ -13,8 +13,8 @@ import {
 } from 'lucide-react';
 import { fetchPrompts, deletePrompt, updatePromptTags } from './promptsApi.js';
 import SearchInput from '../../components/SearchInput/SearchInput.jsx';
-import FilterControls from '../../components/FilterControls/FilterControls';
-import { promptsFilterConfig } from '../../components/FilterControls/filterConfig';
+import FilterControls from '../../components/FilterControls/FilterControls.jsx';
+import { promptsFilterConfig } from '../../components/FilterControls/filterConfig.js';
 import PromptsPagination from './components/PromptsPagination.jsx';
 
 //--- TagEditor 컴포넌트를 Prompts.jsx 파일 내부에 직접 정의 ---

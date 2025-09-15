@@ -7,14 +7,14 @@ import { useParams, useNavigate } from 'react-router-dom'; // useNavigate 추가
 // --- ✨ 추가: 새로운 아이콘들을 import 합니다 ---
 import { ChevronUp, ChevronDown, ChevronRight, Columns, LayoutGrid, Check } from 'lucide-react';// Check 아이콘 추가
 // --- 수정: 다시 기존 DataTable을 import합니다 ---
-import { DataTable } from '../../../components/DataTable/DataTable';
+import { DataTable } from '../../components/DataTable/DataTable';
 import {
   useReactTable,
   getCoreRowModel,
 } from '@tanstack/react-table';
 //-------------------------------------------------------
 import { getEvaluationViewColumns } from './components/EvaluationViewColumns';
-import useProjectId from '../../../hooks/useProjectId';
+import useProjectId from '../../hooks/useProjectId';
 // ========================[수정: 중복 import 제거]========================
 // 주석: 이전에 두 줄로 나뉘어 중복 선언되었던 import 구문을
 //       아래와 같이 한 줄로 정리하여 오류를 해결했습니다.
@@ -25,7 +25,7 @@ import styles from './EvaluationView.module.css';
 // --- 추가: 방금 새로 만든 사이드 패널 컴포넌트를 import 합니다 ---
 import { ColumnVisibilityPanel } from './components/ColumnVisibilityPanel';
 //---------------------------------------------------------------
-import { computeFinalStatus } from '../Judge/components/evalstatus'; //To update Evaluator status_finished 
+import { computeFinalStatus } from './components/evalstatus'; //To update Evaluator status_finished 
 
 
 const EvaluationView = () => {

@@ -1,6 +1,6 @@
 // import React from 'react';
 import React, { useMemo } from 'react'; //eunju 수정
-import { DataTable } from '../../../../components/DataTable/DataTable'; // DataTable 컴포넌트 경로
+import { DataTable } from '../../../components/DataTable/DataTable'; // DataTable 컴포넌트 경로
 import { getEvaluatorColumns } from './EvaluatorColumns'; // 방금 만든 컬럼 파일 import
 import styles from './EvaluatorsTable.module.css';
 // 주석: onDeleteClick을 props로 받도록 수정되었습니다.

@@ -4,12 +4,12 @@ import {Plus, Trash2} from 'lucide-react';
 import commonStyles from './layout/SettingsCommon.module.css';
 import gridStyles from './layout/SettingsGrid.module.css';
 import styles from './layout/Members.module.css';
-import CustomPagination from "./CustomPagination";
-import ColumnMenu from "../../layouts/ColumnMenu";
+import CustomPagination from "./CustomPagination.jsx";
+import ColumnMenu from "../../layouts/ColumnMenu.jsx";
 import NewMemberModal from './form/NewMemberModal.jsx';
-import NewMemberForm from './form/NewMemberForm';
-import useMembers from "./lib/useMembers";
-import useMemberInvites from "./lib/useMemberInvites";
+import NewMemberForm from './form/NewMemberForm.jsx';
+import useMembers from "./lib/useMembers.js";
+import useMemberInvites from "./lib/useMemberInvites.js";
 import RoleSelect from './form/RoleSelect.jsx';
 
 const COLUMN_DEFINITIONS = [

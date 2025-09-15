@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { DataTable } from '../../../../components/DataTable/DataTable';
+import { DataTable } from '../../../components/DataTable/DataTable';
 import { getEvaluatorLibraryColumns } from './EvaluatorLibraryColumns';
 import { getTemplateEvaluators } from '../services/libraryApi'
 import useProjectId from 'hooks/useProjectId';

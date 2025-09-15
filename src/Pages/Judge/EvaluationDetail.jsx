@@ -3,11 +3,11 @@ import { useSearchParams } from 'react-router-dom';
 import EvaluationForm from './components/EvaluationForm';
 import styles from './EvaluationDetail.module.css';
 import useProjectId from 'hooks/useProjectId';
-import { rowsFromConfigMapping, buildVarValuesFromTrace, fillPrompt } from "../Judge/components/evalMapping";
-import { toUpdateConfigFromForm } from "../Judge/components/evalMapping";
+import { rowsFromConfigMapping, buildVarValuesFromTrace, fillPrompt } from "./components/evalMapping";
+import { toUpdateConfigFromForm } from "./components/evalMapping";
 import { useMemo } from "react";
-import { toScopeArray, computeFinalStatus, isEditable } from '../Judge/components/evalstatus';
-import { getEvaluatorConfigById } from '../Judge/services/judgeApi';
+import { toScopeArray, computeFinalStatus, isEditable } from './components/evalstatus';
+import { getEvaluatorConfigById } from './services/judgeApi';
 import { updateEvalJob } from './services/evaluatorsApi';
 
 

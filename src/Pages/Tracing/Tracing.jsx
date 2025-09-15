@@ -8,18 +8,18 @@ import SearchInput from 'components/SearchInput/SearchInput';
 import FilterControls from 'components/FilterControls/FilterControls';
 import TraceDetailPanel from './TraceDetailPanel.jsx';
 import { useEnvironmentFilter } from '../../hooks/useEnvironmentFilter.js';
-import { useTimeRangeFilter } from '../../hooks/useTimeRangeFilter';
+import { useTimeRangeFilter } from '../../hooks/useTimeRangeFilter.js';
 import ColumnVisibilityModal from './ColumnVisibilityModal.jsx';
 import FilterButton from 'components/FilterButton/FilterButton';
 import { Columns, Plus, Edit, AlertCircle } from 'lucide-react';
 import { createTrace, updateTrace } from './CreateTrace.jsx';
-import { langfuse } from '../../lib/langfuse';
-import { fetchTraces, deleteTrace } from './TracingApi';
-import { fetchTraceDetails } from './TraceDetailApi';
-import { getProjects } from '../../api/Settings/ProjectApi';
+import { langfuse } from '../../lib/langfuse.js';
+import { fetchTraces, deleteTrace } from './TracingApi.js';
+import { fetchTraceDetails } from './TraceDetailApi.js';
+import { getProjects } from '../../api/Settings/ProjectApi.js';
 // --- ▼▼▼ [추가] filter ▼▼▼ ---
 import { tracingFilterConfig } from 'components/FilterControls/filterConfig';
-import { observationsFilterConfig } from './Observations/observationFilterConfig';
+import { observationsFilterConfig } from './Observations/observationFilterConfig.js';
 // --- ▲▲▲ [추가] filter ▲▲▲ ---
 
 import RowDensityButton from "./RowDensityButton.jsx";

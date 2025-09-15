@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import styles from "./Dashboards.module.css";
 import { dashboardAPI, dashboardUtils } from "./services/dashboardApi.js";
-import { EditDashboardDialog } from "./components/EditDashboardDialog";
+import { EditDashboardDialog } from "./components/EditDashboardDialog.jsx";
 
 /**
  * 액션 드롭다운 컴포넌트

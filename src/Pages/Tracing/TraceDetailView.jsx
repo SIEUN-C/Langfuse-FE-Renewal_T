@@ -3,12 +3,12 @@ import React, { useState } from 'react';
 import ReactDOM from 'react-dom'; // ReactDOM을 import 합니다.
 import styles from './TraceDetailView.module.css';
 import { Copy, List, Clipboard, Plus, SquarePen, ChevronDown, MessageSquare, Info } from 'lucide-react';
-import Toast from '../../components/Toast/Toast';
-import SidePanel from '../../components/SidePanel/SidePanel';
-import Comments from '../../components/Comments/Comments';
-import AddToDatasetModal from '../../components/AddToDatasetModal/AddToDatasetModal';
-import { useComments } from '../../hooks/useComments';
-import UsageBreakdown from './UsageBreakdown';
+import Toast from '../../components/Toast/Toast.jsx';
+import SidePanel from '../../components/SidePanel/SidePanel.jsx';
+import Comments from '../../components/Comments/Comments.jsx';
+import AddToDatasetModal from '../../components/AddToDatasetModal/AddToDatasetModal.jsx';
+import { useComments } from '../../hooks/useComments.js';
+import UsageBreakdown from './UsageBreakdown.jsx';
 import { parseMaybeJSONDeep, decodeUnicodeLiterals } from './utils/json.js'
 
 
