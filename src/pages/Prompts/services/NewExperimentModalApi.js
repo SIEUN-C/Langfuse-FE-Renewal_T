@@ -1,6 +1,6 @@
 // src/Pages/Prompts/NewExperimentModalApi.js
 
-import { langfuse } from '../../lib/langfuse';
+import { langfuse } from 'lib/langfuse';
 
 function unwrapTrpcJson(json) {
   return json?.result?.data?.json ?? json?.result?.data ?? json;

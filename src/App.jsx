@@ -17,9 +17,9 @@ import TraceDetailPage from "./pages/Tracing/TraceDetailPage";
 import Sessions from "./pages/Sessions/Sessions";
 import SessionDetail from "./pages/Sessions/SessionDetail";
 
-import Prompts from "./pages/Prompts/Prompts";
-import PromptsDetail from "./pages/Prompts/PromptsDetail";
-import PromptsNew from "./pages/Prompts/PromptsNew";
+import Prompts from "./pages/Prompts/pages/Prompts";
+import PromptsDetail from "./pages/Prompts/pages/PromptsDetail";
+import PromptsNew from "./pages/Prompts/pages/PromptsNew";
 
 import Playground from "./pages/Playground/Playground";
 

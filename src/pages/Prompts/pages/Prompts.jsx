@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import styles from './Prompts.module.css';
-import useProjectId from 'hooks/useProjectId';
+import useProjectId from 'hooks/useProjectId.js';
 import {
   Info,
   Plus,
@@ -11,11 +11,11 @@ import {
   Trash2,
   Tag,
 } from 'lucide-react';
-import { fetchPrompts, deletePrompt, updatePromptTags } from './promptsApi.js';
-import SearchInput from '../../components/SearchInput/SearchInput.jsx';
-import FilterControls from '../../components/FilterControls/FilterControls.jsx';
-import { promptsFilterConfig } from '../../components/FilterControls/filterConfig.js';
-import PromptsPagination from './components/PromptsPagination.jsx';
+import { fetchPrompts, deletePrompt, updatePromptTags } from '../services/promptsApi.js';
+import SearchInput from '../../../components/SearchInput/SearchInput.jsx';
+import FilterControls from '../../../components/FilterControls/FilterControls.jsx';
+import { promptsFilterConfig } from '../../../components/FilterControls/filterConfig.js';
+import PromptsPagination from '../components/PromptsPagination.jsx';
 
 //--- TagEditor 컴포넌트를 Prompts.jsx 파일 내부에 직접 정의 ---
 const TagEditor = ({ promptName, tags, onSave, onClose, anchorEl, projectId }) => {

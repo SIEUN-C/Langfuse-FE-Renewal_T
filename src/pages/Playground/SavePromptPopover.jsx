@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import styles from "./SavePromptPopover.module.css";
 import { Search, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { fetchPrompts } from "../Prompts/promptsApi";
+import { fetchPrompts } from "../Prompts/services/promptsApi";
 
 export default function SavePromptPopover({ onSaveAsNew }) {
   const navigate = useNavigate();

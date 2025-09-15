@@ -3,13 +3,13 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import styles from './NewExperimentModal.module.css';
 import { X, ChevronDown, Check, ExternalLink, Search } from 'lucide-react';
-import useProjectId from '../../hooks/useProjectId';
-import { fetchAllPromptNames, fetchVersionsForPrompt, fetchLlmConnections, fetchAllDatasetNames } from './NewExperimentModalApi';
-import Modal from '../../components/Modal/Modal';
-import NewLLMConnectionsForm from '../Settings/form/NewLLMConnectionsForm';
-import { saveLlmConnection } from '../../api/settings/LLMApi';
-import { publicKey, secretKey } from '../../lib/langfuse';
-import ModelAdvancedSettingsPopover from './ModelAdvancedSettingsPopover';
+import useProjectId from '../../../../hooks/useProjectId';
+import { fetchAllPromptNames, fetchVersionsForPrompt, fetchLlmConnections, fetchAllDatasetNames } from '../../services/NewExperimentModalApi';
+import Modal from '../../../../components/Modal/Modal';
+import NewLLMConnectionsForm from '../../../Settings/form/NewLLMConnectionsForm';
+import { saveLlmConnection } from '../../../../api/settings/LLMApi';
+import { publicKey, secretKey } from '../../../../lib/langfuse';
+import ModelAdvancedSettingsPopover from '../ModelAdvancedSettingsPopover';
 
 const NewExperimentModal = ({ isOpen, onClose, onSubmit, promptName, promptVersion }) => {
   const [experimentName, setExperimentName] = useState('');

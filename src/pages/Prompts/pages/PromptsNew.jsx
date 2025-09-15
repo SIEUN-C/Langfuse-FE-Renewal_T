@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import styles from './PromptsNew.module.css';
 import { Book } from 'lucide-react';
-import PromptsReference from './PromptsReference.jsx';
-import ChatBox from '../../components/ChatBox/ChatBox.jsx';
-import LineNumberedTextarea from '../../components/LineNumberedTextarea/LineNumberedTextarea.jsx'; // --- 1. [수정] 기존 LineNumberedTextarea import 제거 ---
-import CodeBlock from '../../components/CodeBlock/CodeBlock.jsx'; // --- 2. [수정] CodeBlock 컴포넌트 import 추가 ---
-import FormPageLayout from '../../components/Layouts/FormPageLayout.jsx';
-import FormGroup from '../../components/Form/FormGroup.jsx';
-import { createPromptOrVersion } from './PromptsNewApi.js';
+import PromptsReference from '../components/modals/PromptsReference.jsx';
+import ChatBox from '../../../components/ChatBox/ChatBox.jsx';
+import LineNumberedTextarea from '../../../components/LineNumberedTextarea/LineNumberedTextarea.jsx';
+import CodeBlock from '../../../components/CodeBlock/CodeBlock.jsx';
+import FormPageLayout from '../../../components/Layouts/FormPageLayout.jsx';
+import FormGroup from '../../../components/Form/FormGroup.jsx';
+import { createPromptOrVersion } from '../services/PromptsNewApi.js';
 import useProjectId from 'hooks/useProjectId';
 
 const PromptsNew = () => {
@@ -19,11 +19,10 @@ const PromptsNew = () => {
     const initialState = location.state || {};
     const [promptName, setPromptName] = useState(initialState.promptName || '');
     const [promptType, setPromptType] = useState(
-    (initialState.promptType && initialState.promptType.toLowerCase() === 'text') 
-    ? 'Text' 
-    : 'Chat'
+        (initialState.promptType && initialState.promptType.toLowerCase() === 'text')
+            ? 'Text'
+            : 'Chat'
     );
-
 
     // --- [수정 시작] ---
     // 'New Version' 모드로 진입 시, location.state로부터 받은 chatContent의 role 값을
@@ -47,7 +46,7 @@ const PromptsNew = () => {
 
     //const [chatContent, setChatContent] = useState(initialState.chatContent || []);
     // ▼▼▼ [최종 수정] textContent가 항상 문자열이 되도록 수정 ▼▼▼
-    const [textContent, setTextContent] = useState(
+    const [textContent, setTextContent] = useState(
         typeof initialState.textContent === 'string' ? initialState.textContent : ''
     );
     const [config, setConfig] = useState(initialState.config || '{\n  "temperature": 1\n}');
@@ -56,7 +55,7 @@ const PromptsNew = () => {
     const [isReferenceModalOpen, setIsReferenceModalOpen] = useState(false);
     const [variables, setVariables] = useState([]);
     const isNewVersionMode = initialState.isNewVersion || false;
-    
+
     // 오류 메시지 상태 추가
     const [saveError, setSaveError] = useState('');
 
@@ -76,7 +75,7 @@ const PromptsNew = () => {
         }
         setVariables([...new Set(allVars)]);
     }, [textContent, chatContent, promptType]);
-    
+
     const handleLabelChange = (e) => {
         const { name, checked } = e.target;
         setLabels((prev) => ({ ...prev, [name]: checked }));
@@ -175,7 +174,7 @@ const PromptsNew = () => {
                 {promptType === 'Text' ? (
                     <LineNumberedTextarea
                         id="prompt-content"
-                            value={textContent || ''}
+                        value={textContent || ''}
                         onChange={(e) => setTextContent(e.target.value)}
                         placeholder='Enter your text prompt here, e.g. "Summarize this: {{text}}"'
                         minHeight={200}
