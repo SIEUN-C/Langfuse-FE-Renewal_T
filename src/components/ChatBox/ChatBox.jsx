@@ -87,6 +87,13 @@ const autoResizeTextarea = (element) => {
 // ----- 1줄 컴포넌트 -----
 const Row = ({ row, index, moveRow, onChange, onRemove }) => {
     const ref = useRef(null);
+    const textareaRef = useRef(null);
+
+    useEffect(() => {
+        if (row.type === "message") {
+            autoResizeTextarea(textareaRef.current);
+        }
+    }, [row.content, row.type]);
 
     const [, drop] = useDrop({
         accept: "chat-row",
@@ -150,6 +157,7 @@ const Row = ({ row, index, moveRow, onChange, onRemove }) => {
             <div className={styles.inputCol}>
                 {isMsg ? (
                     <textarea
+                        ref={textareaRef}
                         className={styles.messageTextarea}
                         rows={1}
                         placeholder={

@@ -26,7 +26,6 @@ export default function VariablesPanel({ names, values, onChangeValue, onReset, 
                             />
                         </div>
                     ))}
-                    <button className={styles.toolButton} style={{ marginTop: 8 }} onClick={onReset}>Reset</button>
                 </div>
             )}
 
