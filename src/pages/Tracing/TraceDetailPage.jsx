@@ -7,11 +7,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 
-import { fetchTraceDetails } from './TraceDetailApi';
-import { fetchObservationDetails } from './observations/ObservationDetailApi';
-import TraceDetailView from './TraceDetailView';
-import TraceTimeline from './TraceTimeline';
-import styles from './TraceDetailPanel.module.css';
+import { fetchTraceDetails } from './services/TraceDetailApi';
+import { fetchObservationDetails } from './services/ObservationDetailApi';
+import TraceDetailView from './components/TraceDetailView';
+import TraceTimeline from './components/TraceTimeline';
+import styles from './components/TraceDetailPanel.module.css';
 
 // --- ✨ 추가: 토큰 사용량(usage) 계산을 위한 헬퍼 함수들 ---
 const pick = (...xs) => xs.find(v => v !== undefined && v !== null);

@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { X } from 'lucide-react';
-import { getObservationById } from './ObservationsApi';
-import { fetchTraceDetails } from '../TraceDetailApi';
-import TraceTimeline from '../TraceTimeline';
-import TraceDetailView from '../TraceDetailView';
-import styles from '../TraceDetailPanel.module.css';
+import { getObservationById } from '../services/ObservationApi';
+import { fetchTraceDetails } from '../services/TraceDetailApi';
+import TraceTimeline from '../components/TraceTimeline';
+import TraceDetailView from '../components/TraceDetailView';
+import styles from '../components/TraceDetailPanel.module.css';
 import normalizeForDetailView from '../utils/normalizeForDetailView';
 
 

@@ -1,5 +1,5 @@
 // src/Pages/Tracing/Observations/ObservationsApi.js
-import { trpcQuery } from '../services/trpc.client';
+import { trpcQuery } from './trpc.client';
 
 export async function listGenerations(req) {
     const safe = {

@@ -11,12 +11,12 @@ import {
   Trash2,
   Tag,
 } from 'lucide-react';
-import { fetchPrompts, deletePrompt, updatePromptTags } from '../services/promptsApi.js';
-import SearchInput from '../../../components/SearchInput/SearchInput.jsx';
-import FilterControls from '../../../components/FilterControls/FilterControls.jsx';
-import { promptsFilterConfig } from '../../../components/FilterControls/filterConfig.js';
-import PromptsPagination from '../components/PromptsPagination.jsx';
-import TagEditor from '../components/TagEditor.jsx'
+import { fetchPrompts, deletePrompt, updatePromptTags } from './services/PromptsApi.js';
+import SearchInput from '../../components/SearchInput/SearchInput.jsx';
+import FilterControls from '../../components/FilterControls/FilterControls.jsx';
+import { promptsFilterConfig } from '../../components/FilterControls/filterConfig.js';
+import PromptsPagination from './components/PromptsPagination.jsx';
+import TagEditor from './components/TagEditor.jsx'
 
 const Prompts = () => {
   const [prompts, setPrompts] = useState([]);

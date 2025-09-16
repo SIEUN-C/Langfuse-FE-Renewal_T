@@ -1,5 +1,5 @@
 // src/Pages/Tracing/TraceTimelineApi.jsx
-import { langfuse } from '../../lib/langfuse';
+import { langfuse } from 'lib/langfuse';
 
 /**
  * 특정 Trace에 속한 Observation 목록을 가져옵니다.

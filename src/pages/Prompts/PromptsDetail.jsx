@@ -2,8 +2,8 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import styles from './PromptsDetail.module.css';
-import SearchInput from '../../../components/SearchInput/SearchInput.jsx';
-import useProjectId from '../../../hooks/useProjectId.js';
+import SearchInput from '../../components/SearchInput/SearchInput.jsx';
+import useProjectId from '../../hooks/useProjectId.js';
 import {
   Book,
   Clipboard,
@@ -18,14 +18,14 @@ import {
   Tag,
   FileText,
 } from 'lucide-react';
-import DuplicatePromptModal from '../components/modals/DuplicatePromptModal.jsx';
-import { duplicatePrompt } from '../services/DuplicatePromptModalApi.js';
-import { fetchPromptVersions } from '../services/PromptsDetailApi.js';
-import { deletePromptVersion, fetchPrompts } from '../services/promptsApi.js';
-import NewExperimentModal from '../components/modals/NewExperimentModal.jsx';
-import SidePanel from '../../../components/SidePanel/SidePanel.jsx';
-import Comments from '../../../components/Comments/Comments.jsx';
-import { useComments } from '../../../hooks/useComments.js';
+import DuplicatePromptModal from './components/modals/DuplicatePromptModal.jsx';
+import { duplicatePrompt } from './services/DuplicatePromptModalApi.js';
+import { fetchPromptVersions } from './services/PromptsDetailApi.js';
+import { deletePromptVersion, fetchPrompts } from './services/PromptsApi.js';
+import NewExperimentModal from './components/modals/NewExperimentModal.jsx';
+import SidePanel from '../../components/SidePanel/SidePanel.jsx';
+import Comments from '../../components/Comments/Comments.jsx';
+import { useComments } from '../../hooks/useComments.js';
 
 // Reference 멘션 기능 컴포넌트
 const PromptContentViewer = ({ content }) => {

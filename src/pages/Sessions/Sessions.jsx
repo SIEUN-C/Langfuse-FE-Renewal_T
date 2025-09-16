@@ -2,7 +2,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import styles from './Sessions.module.css';
 import { Columns } from 'lucide-react';
-import ColumnVisibilityModal from '../Tracing/ColumnVisibilityModal.jsx';
+import ColumnVisibilityModal from '../Tracing/components/ColumnVisibilityModal.jsx';
 import { DataTable } from '../../components/DataTable/DataTable.jsx';
 import { sessionTableColumns } from './sessionColumns.jsx';
 import FilterButton from '../../components/FilterButton/FilterButton.jsx';

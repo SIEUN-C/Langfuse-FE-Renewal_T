@@ -1,5 +1,5 @@
 // src/pages/Tracing/TracingApi.js
-import { langfuse } from '../../lib/langfuse';
+import { langfuse } from 'lib/langfuse';
 
 /**
  * API 응답 값을 UI에 표시하기 안전한 문자열로 변환합니다.

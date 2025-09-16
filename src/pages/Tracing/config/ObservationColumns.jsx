@@ -1,6 +1,6 @@
 import React from 'react';
 import dayjs from 'dayjs';
-import IOCell from './ObservationIOCell'; // 경로/파일명 맞추기
+import IOCell from '../Observations/ObservationIocell'; // 경로/파일명 맞추기
 
 const msPretty = (ms) => {
     if (ms == null) return '—';

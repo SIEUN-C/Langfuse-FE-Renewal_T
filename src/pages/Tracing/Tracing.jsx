@@ -3,29 +3,29 @@ import ReactDOM from 'react-dom';
 import dayjs from 'dayjs';
 import styles from './Tracing.module.css';
 import { DataTable } from 'components/DataTable/DataTable';
-import { traceTableColumns as originalTraceTableColumns } from './traceColumns.jsx';
+import { traceTableColumns as originalTraceTableColumns } from './config/TraceColumns.jsx';
 import SearchInput from 'components/SearchInput/SearchInput';
 import FilterControls from 'components/FilterControls/FilterControls';
-import TraceDetailPanel from './TraceDetailPanel.jsx';
+import TraceDetailPanel from './components/TraceDetailPanel.jsx';
 import { useEnvironmentFilter } from '../../hooks/useEnvironmentFilter.js';
 import { useTimeRangeFilter } from '../../hooks/useTimeRangeFilter.js';
-import ColumnVisibilityModal from './ColumnVisibilityModal.jsx';
+import ColumnVisibilityModal from './components/ColumnVisibilityModal.jsx';
 import FilterButton from 'components/FilterButton/FilterButton';
 import { Columns, Plus, Edit, AlertCircle } from 'lucide-react';
 import { createTrace, updateTrace } from './CreateTrace.jsx';
 import { langfuse } from '../../lib/langfuse.js';
-import { fetchTraces, deleteTrace } from './TracingApi.js';
-import { fetchTraceDetails } from './TraceDetailApi.js';
+import { fetchTraces, deleteTrace } from './services/TracingApi.js';
+import { fetchTraceDetails } from './services/TraceDetailApi.js';
 import { getProjects } from '../../api/settings/ProjectApi.js';
 // --- ▼▼▼ [추가] filter ▼▼▼ ---
 import { tracingFilterConfig } from 'components/FilterControls/filterConfig';
-import { observationsFilterConfig } from './observations/observationFilterConfig.js';
+import { observationsFilterConfig } from './config/ObservationFilterConfig.js';
 // --- ▲▲▲ [추가] filter ▲▲▲ ---
 
-import RowDensityButton from "./RowDensityButton.jsx";
+import RowDensityButton from "./components/RowDensityButton.jsx";
 
 // Observation 추가
-import ObservationsTab from './observations/ObservationsTab.jsx';
+import ObservationsTab from './Observations/ObservationTab.jsx';
 
 // 토큰컬럼을 위한 추가 
 const pickField = (...xs) => xs.find(v => v !== undefined && v !== null);

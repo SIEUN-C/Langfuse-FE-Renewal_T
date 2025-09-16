@@ -1,6 +1,6 @@
 // src/Pages/Tracing/ObservationDetailApi.jsx
 
-import { trpcQuery } from '../services/trpc.client';
+import { trpcQuery } from './trpc.client';
 
 
 

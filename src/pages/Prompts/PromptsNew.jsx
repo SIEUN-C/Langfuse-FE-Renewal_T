@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import styles from './PromptsNew.module.css';
 import { Book } from 'lucide-react';
-import PromptsReference from '../components/modals/PromptsReference.jsx';
-import ChatBox from '../../../components/ChatBox/ChatBox.jsx';
-import LineNumberedTextarea from '../../../components/LineNumberedTextarea/LineNumberedTextarea.jsx';
-import CodeBlock from '../../../components/CodeBlock/CodeBlock.jsx';
-import FormPageLayout from '../../../components/Layouts/FormPageLayout.jsx';
-import FormGroup from '../../../components/Form/FormGroup.jsx';
-import { createPromptOrVersion } from '../services/PromptsNewApi.js';
+import PromptsReference from './components/modals/PromptsReference.jsx';
+import ChatBox from '../../components/ChatBox/ChatBox.jsx';
+import LineNumberedTextarea from '../../components/LineNumberedTextarea/LineNumberedTextarea.jsx';
+import CodeBlock from '../../components/CodeBlock/CodeBlock.jsx';
+import FormPageLayout from '../../components/Layouts/FormPageLayout.jsx';
+import FormGroup from '../../components/Form/FormGroup.jsx';
+import { createPromptOrVersion } from './services/PromptsNewApi.js';
 import useProjectId from 'hooks/useProjectId';
 
 const PromptsNew = () => {

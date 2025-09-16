@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Star } from 'lucide-react';
-import styles from './Tracing.module.css';
+import styles from '../Tracing.module.css';
 
 // 비용 포맷팅 헬퍼 함수
 const formatCost = (cost) => {

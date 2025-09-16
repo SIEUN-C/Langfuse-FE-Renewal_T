@@ -1,6 +1,6 @@
 // src/pages/Tracing/TraceDetailApi.js
 // https://api.reference.langfuse.com/#tag/trace/get/api/public/traces/{traceId}
-import { langfuse } from '../../lib/langfuse';
+import { langfuse } from 'lib/langfuse';
 
 /**
  * ID를 기반으로 단일 트레이스의 상세 정보를 가져옵니다.

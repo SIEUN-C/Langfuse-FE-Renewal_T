@@ -1,11 +1,11 @@
 // src/Pages/Tracing/Observations/ObservationsTab.jsx
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { DataTable } from 'components/DataTable/DataTable';
-import { makeObservationColumns } from './observationColumns';
-import { listGenerations, getObservationById } from './ObservationsApi';
-import { buildFilterStateWithRange, squeezeBuilderFilters, filterByTypeGroups } from './filterMapping';
+import { makeObservationColumns } from '../config/ObservationColumns';
+import { listGenerations, getObservationById } from '../services/ObservationApi';
+import { buildFilterStateWithRange, squeezeBuilderFilters, filterByTypeGroups } from '../utils/FilterMapping';
 import ObservationDetailPanel from './ObservationDetailPanel';
-import { SEARCH_MODE } from './searchModes';
+import { SEARCH_MODE } from '../config/SearchMode';
 
 const pick = (...vals) => vals.find(v => v !== undefined && v !== null);
 

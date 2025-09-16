@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import styles from './PromptsReference.module.css';
-import { fetchPromptLinkOptions } from '../../services/promptsApi'; // 이 API는 promptsApi.js에 있어야 합니다.
+import { fetchPromptLinkOptions } from '../../services/PromptsApi'; // 이 API는 promptsApi.js에 있어야 합니다.
 import { X, Clipboard, ExternalLink } from 'lucide-react';
 import useProjectId from 'hooks/useProjectId'; // [추가] useProjectId 훅을 import 합니다.
 

@@ -1,13 +1,13 @@
 // src/Pages/Tracing/TraceDetailPanel.jsx
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { X, Maximize, Minimize, HardDrive } from 'lucide-react';
-import { fetchTraceDetails } from './TraceDetailApi.js';
-import { fetchObservationDetails } from './observations/ObservationDetailApi.jsx';
+import { fetchTraceDetails } from '../services/TraceDetailApi.js';
+import { fetchObservationDetails } from '../services/ObservationDetailApi.js';
 import styles from './TraceDetailPanel.module.css';
 import TraceDetailView from './TraceDetailView.jsx';
 import TraceTimeline from './TraceTimeline.jsx';
-import { ChatMlArraySchema } from './utils/chatml.schema.js';
-import { parseMaybeJSONDeep, decodeUnicodeLiterals } from './utils/json.js'
+import { ChatMlArraySchema } from '../utils/chatml.schema.js';
+import { parseMaybeJSONDeep, decodeUnicodeLiterals } from '../utils/json.js'
 
 
 // ---------- 공통 정규화 유틸 ----------
