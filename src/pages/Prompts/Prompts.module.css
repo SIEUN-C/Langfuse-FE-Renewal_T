@@ -281,3 +281,53 @@
 .saveButton:hover {
   filter: brightness(1.1);
 }
+
+/* --- 삭제 확인 창을 위한 스타일 --- */
+
+/* 반투명한 검은색 배경 */
+.confirmationOverlay {
+  position: fixed; /* 다른 요소와 상관없이 화면을 기준으로 위치 */
+  top: 0;
+  left: 0;
+  width: 100vw; /* 화면 전체 너비 */
+  height: 100vh; /* 화면 전체 높이 */
+  background-color: rgba(0, 0, 0, 0.6); /* 반투명 배경 */
+  display: flex; /* 자식 요소를 중앙에 배치하기 위함 */
+  justify-content: center;
+  align-items: center;
+  z-index: 1000; /* 다른 모든 UI 위에 표시 */
+}
+
+/* 실제 흰색 대화 상자 */
+.confirmationContainer {
+  display: flex; /* 내부 요소 정렬을 위해 flex 사용 */
+  flex-direction: column; /* 세로 정렬 */
+  gap: 24px; /* 내부 여백 */
+  background-color: #1e293b; /* 대화 상자 배경색 */
+  padding: 24px;
+  border-radius: 8px;
+  min-width: 450px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+/* 확인/취소 버튼을 담는 영역 */
+.confirmationActions {
+  display: flex;
+  justify-content: flex-end; /* 버튼들을 오른쪽으로 정렬 */
+  gap: 12px;
+}
+
+/* 취소 버튼 스타일 */
+.cancelButton {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: 1px solid #334155;
+  background-color: #0f172a;
+  color: #f1f5f9;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.cancelButton:hover {
+  filter: brightness(1.2);
+}

@@ -1,5 +1,18 @@
-// Prompts.jsx 최상단 또는 컴포넌트 외부에 정의
-const promptTableColumns = [
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { FileText, Tag } from 'lucide-react';
+import styles from '../Prompts.module.css'; // 스타일 파일 경로가 맞는지 확인해주세요.
+
+// 숫자 포맷팅 유틸리티 함수 (별도의 파일로 분리하거나 Prompts.jsx에서 가져와도 됩니다)
+const formatObservations = (num) => {
+  if (num > 999) {
+    return `${(num / 1000).toFixed(1)}k`;
+  }
+  return num;
+};
+
+// handleTagClick 함수를 파라미터로 받는 함수를 export 합니다.
+export const getPromptsColumns = ({ onTagClick }) => [
   {
     header: 'Name',
     accessor: (prompt) => (
@@ -35,7 +48,8 @@ const promptTableColumns = [
     header: 'Tags',
     accessor: (prompt) => (
       <div className={styles.tagsCell}>
-        <button className={styles.iconButton} onClick={(e) => { e.stopPropagation(); handleTagClick(e, prompt); }}>
+        {/* 파라미터로 받은 onTagClick 함수를 사용합니다. */}
+        <button className={styles.iconButton} onClick={(e) => onTagClick(e, prompt)}>
           {prompt.tags && prompt.tags.length > 0 ? (
             prompt.tags.map(tag => (
               <span key={tag} className={styles.tagPill}>{tag}</span>

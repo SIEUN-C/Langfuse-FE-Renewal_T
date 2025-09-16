@@ -15,9 +15,10 @@ import { fetchPrompts, deletePrompt, updatePromptTags } from './services/Prompts
 import SearchInput from '../../components/SearchInput/SearchInput.jsx';
 import FilterControls from '../../components/FilterControls/FilterControls.jsx';
 import { promptsFilterConfig } from '../../components/FilterControls/filterConfig.js';
-import PromptsPagination from './components/PromptsPagination.jsx';
 import TagEditor from './components/TagEditor.jsx'
 import { useFilteredPrompts } from './hooks/useFilteredPrompts.js'
+import { DataTable } from '../../components/DataTable/DataTable.jsx'
+import { getPromptsColumns } from './components/PromptsColumns.jsx'
 
 const Prompts = () => {
   const [prompts, setPrompts] = useState([]);
@@ -31,11 +32,6 @@ const Prompts = () => {
   const { projectId } = useProjectId();
 
   const { filteredPrompts, searchInputProps, filterControlsProps } = useFilteredPrompts(prompts);
-
-  // 페이지네이션 상태 
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(50);
-  const pageSizes = [10, 20, 30, 50];
 
   useEffect(() => {
     if (!projectId) {
@@ -60,26 +56,6 @@ const Prompts = () => {
     loadPrompts();
   }, [projectId]);
 
-  // 페이지네이션된 데이터 계산 
-  const paginatedPrompts = useMemo(() => {
-    const startIndex = (currentPage - 1) * pageSize;
-    const endIndex = startIndex + pageSize;
-    return filteredPrompts.slice(startIndex, endIndex);
-  }, [filteredPrompts, currentPage, pageSize]);
-
-  const totalPages = Math.ceil(filteredPrompts.length / pageSize);
-
-  // 페이지 변경 핸들러
-  const handlePageChange = (newPage) => {
-    setCurrentPage(newPage);
-  };
-
-  // 페이지 크기 변경 핸들러 
-  const handlePageSizeChange = (newPageSize) => {
-    setPageSize(newPageSize);
-    setCurrentPage(1); // 페이지 크기 변경 시 첫 페이지로 이동
-  };
-
   const navigateToNewPrompts = () => {
     navigate("/prompts/new");
   };
@@ -91,9 +67,17 @@ const Prompts = () => {
     return num;
   };
 
-  const handleDeleteClick = (prompt) => {
-    setPromptToDelete(prev => (prev?.id === prompt.id ? null : prompt));
+  const handleDeleteClick = (promptId) => {
+    const promptToSet = prompts.find(p => String(p.id) === promptId);
+
+    if (promptToSet) {
+      setPromptToDelete(prev => (prev?.id === promptToSet.id ? null : promptToSet));
+    }
   };
+
+  const handleRowClick = (prompt) => {
+    navigate(`/prompts/${prompt.id}`);
+  }
 
   const handleTagClick = (e, prompt) => {
     e.stopPropagation();
@@ -119,13 +103,16 @@ const Prompts = () => {
     try {
       await deletePrompt(promptToDelete.name, projectId);
       setPrompts(currentPrompts => currentPrompts.filter(p => p.id !== promptToDelete.id));
-      console.log(`프롬프트 "${promptToDelete.name}"가 성공적으로 삭제되었습니다.`);
       setPromptToDelete(null);
     } catch (error) {
       alert(error.message);
       console.error(error);
     }
   };
+
+  const columns = useMemo(() => getPromptsColumns({
+    onTagClick: handleTagClick,
+  }), [handleTagClick]);
 
   return (
     <div className={styles.container}>
@@ -146,110 +133,53 @@ const Prompts = () => {
           <SearchInput {...searchInputProps}
           />
         </div>
-        <FilterControls {...filterControlsProps}/>
+        <FilterControls {...filterControlsProps} />
       </div>
 
       <div className={styles.contentArea}>
-        <div className={styles.tableContainer}>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Versions</th>
-                <th>Type</th>
-                <th>Latest Version Created At <ChevronDown size={14} /></th>
-                <th>Number of Observations</th>
-                <th>Tags</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {isLoading ? (
-                <tr><td colSpan={7} style={{ textAlign: 'center' }}>Loading prompts...</td></tr>
-              ) : error ? (
-                <tr><td colSpan={7} style={{ textAlign: 'center', color: 'red' }}>{error}</td></tr>
-              ) : paginatedPrompts.length === 0 ? (
-                <tr><td colSpan={7} style={{ textAlign: 'center' }}>No prompts found</td></tr>
-              ) : (
-                paginatedPrompts.map((prompt) => (
-                  <React.Fragment key={prompt.id}>
-                    <tr>
-                      <td>
-                        <div className={styles.nameCell}>
-                          <FileText size={18} />
-                          <Link to={`/prompts/${prompt.id}`} className={styles.promptLink}>
-                            {prompt.name}
-                          </Link>
-                        </div>
-                      </td>
-                      <td>{prompt.versions}</td>
-                      <td>{prompt.type}</td>
-                      <td>{prompt.latestVersionCreatedAt}</td>
-                      <td><div className={styles.observationCell}>{formatObservations(prompt.observations)}</div></td>
-                      <td>
-                        <div className={styles.tagsCell}>
-                          <button className={styles.iconButton} onClick={(e) => handleTagClick(e, prompt)}>
-                            {prompt.tags && prompt.tags.length > 0 ? (
-                              prompt.tags.map(tag => (
-                                <span key={tag} className={styles.tagPill}>
-                                  {tag}
-                                </span>
-                              ))
-                            ) : (
-                              <Tag size={16} />
-                            )}
-                          </button>
-                        </div>
-                      </td>
-                      <td>
-                        <div className={styles.actionCell}>
-                          <button className={styles.iconButton} onClick={() => handleDeleteClick(prompt)}>
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                    {promptToDelete && promptToDelete.id === prompt.id && (
-                      <tr className={styles.confirmationRow}>
-                        <td colSpan={7}>
-                          <div className={styles.confirmationContainer}>
-                            <div className={styles.confirmationContent}>
-                              <h4 className={styles.confirmationTitle}>Please confirm</h4>
-                              <p className={styles.confirmationText}>
-                                This action permanently deletes this prompt. All requests to fetch prompt
-                                <strong> {prompt.name} </strong> will error.
-                              </p>
-                            </div>
-                            <button className={styles.deleteConfirmButton} onClick={confirmDelete}>
-                              Delete Prompt
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    )}
-                  </React.Fragment>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+        <DataTable
+          columns={columns}
+          data={filteredPrompts}
+          keyField="id"
+          onRowClick={handleRowClick}
+          showDelete={true}
+          onDeleteClick={handleDeleteClick}
+          pagination={{
+            enabled: true,
+            pageSize: 50,
+            pageSizeOptions: [10, 20, 30, 50],
+            position: 'fixed-bottom',
+          }}
+          renderEmptyState={() => {
+            if (isLoading) return "Loading prompts...";
+            if (error) return <span style={{ color: 'red' }}>{error}</span>;
+            return "No prompts found";
+          }}
+        />
       </div>
 
-      {/* 페이지네이션을 화면 하단에 고정 */}
-      {totalPages > 0 && (
-        <PromptsPagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          pageSize={pageSize}
-          pageSizes={pageSizes}
-          onPageChange={handlePageChange}
-          onPageSizeChange={handlePageSizeChange}
-          mode="fixed-bottom"
-          sidebarCollapsed={false} // 실제 사이드바 상태에 따라 조정
-        />
+      {promptToDelete && (
+        <div className={styles.confirmationOverlay}>
+          <div className={styles.confirmationContainer}>
+            <div className={styles.confirmationContent}>
+              <h4 className={styles.confirmationTitle}>Please confirm</h4>
+              <p className={styles.confirmationText}>
+                This action permanently deletes this prompt. All requests to fetch prompt
+                <strong> {promptToDelete.name} </strong> will error.
+              </p>
+            </div>
+            <div className={styles.confirmationActions}>
+              <button className={styles.cancelButton} onClick={() => setPromptToDelete(null)}>
+                Cancel
+              </button>
+              <button className={styles.deleteConfirmButton} onClick={confirmDelete}>
+                Delete Prompt
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
-      {/* TagEditor 렌더링 로직 */}
       {editingPrompt && (
         <TagEditor
           promptName={editingPrompt.name}
@@ -263,7 +193,7 @@ const Prompts = () => {
           projectId={projectId}
         />
       )}
-    </div>
+    </div >
   );
 };
 
