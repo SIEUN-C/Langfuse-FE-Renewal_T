@@ -21,7 +21,7 @@ export function DataTable({
   showCheckbox = false,
   onCheckboxChange,
   selectedRows = new Set(),
-  showFavorite = true,
+  showFavorite = false,
   onFavoriteClick,
   favoriteState = {},
   onToggleAllFavorites,
