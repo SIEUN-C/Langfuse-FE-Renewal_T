@@ -33,6 +33,7 @@
   flex-direction: column;
   transform: translateX(100%); /* 기본적으로 화면 밖에 위치 */
   transition: transform 0.3s ease-in-out; /* 부드러운 전환 효과 */
+  border : 1px solid #334155;
 }
 
 /* SidePanel.jsx에서 isOpen prop이 true일 때 적용될 클래스 */

@@ -103,6 +103,10 @@ export default function PromptsDetail() {
     removeComment,
   } = useComments(projectId, 'PROMPT', selectedVersion?.dbId);
 
+  // 버튼에 표시할 댓글 수 (최대 99+ 표기)
+  const commentCount = Array.isArray(comments) ? comments.length : 0;
+  const commentCountLabel = commentCount > 99 ? '99+' : String(commentCount);
+
   // Memoized Values
   const filteredVersions = useMemo(() => {
     const searchId = parseInt(searchQuery);
@@ -445,8 +449,16 @@ export default function PromptsDetail() {
               >
                 Dataset run
               </button>
-              <button className={styles.iconButton} onClick={() => setIsCommentsOpen(true)}>
+              <button 
+              className={`${styles.iconButton} ${styles.actionButtonSecondary} ${styles.commentButton}`} 
+              onClick={() => setIsCommentsOpen(true)}
+              aria-label={`Open comments${commentCount ?`, ${commentCount} items` : ''}`}
+              title={`Comments${commentCount ? ` (${commentCountLabel})` : ''}`}
+              >
                 <MessageCircle size={16} />
+                {commentCount > 0 && (
+                  <span className={styles.commentBadge}>{commentCountLabel}</span>
+                )}
               </button>
               <div className={styles.versionMenuContainer} ref={versionMenuRef}>
                 <button
