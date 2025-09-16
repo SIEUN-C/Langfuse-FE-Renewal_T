@@ -26,6 +26,7 @@ const Comment = ({ comment, onDelete }) => (
 );
 
 const Comments = ({
+  currentUser,
   comments,
   isLoading,
   error,
@@ -47,6 +48,7 @@ const Comments = ({
   };
 
   const handleDelete = async (commentId) => {
+    
     if (window.confirm('정말로 이 댓글을 삭제하시겠습니까?')) {
       const result = await onDeleteComment(commentId);
       if (!result.success) {
@@ -64,7 +66,7 @@ const Comments = ({
         {isLoading && <p>Loading comments...</p>}
         {error && <p style={{ color: 'red' }}>Error: {error}</p>}
         {!isLoading && !error && sortedComments.map((comment) => (
-          <Comment key={comment.id} comment={comment} onDelete={handleDelete} />
+          <Comment key={comment.id} comment={comment} onDelete={handleDelete} currentUser={currentUser} />
         ))}
       </div>
 

@@ -86,15 +86,6 @@ export const fetchAllDatasetNames = async (projectId) => {
 
     const jsonResponse = await response.json();
 
-    
-    // --- ▼▼▼ [디버깅 추가] 서버로부터 받은 원본 데이터 확인 ▼▼▼ ---
-    console.log("[디버깅] API 원본 응답:", JSON.stringify(jsonResponse, null, 2));
-    // --- ▲▲▲ [디버깅 추가] 완료 ▲▲▲ ---
-
-
-
-
-
     const result = unwrapTrpcJson(jsonResponse);
     
     const datasets = result?.datasets || result || [];

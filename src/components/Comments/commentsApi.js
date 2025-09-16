@@ -19,18 +19,44 @@ export const fetchComments = async ({ objectType, objectId }) => {
 };
 
 export const createComment = async ({ projectId, objectType, objectId, content }) => {
-    try {
-        const response = await langfuse.api.commentsCreate({
-            projectId,
-            objectType,
-            objectId,
-            content,
-        });
-        return response;
-    } catch (error) {
-        console.error("Failed to create comment:", error);
-        throw new Error('댓글을 작성하는 데 실패했습니다.');
+  try {
+    const payload = {
+      json: {
+        projectId,
+        objectType,
+        objectId,
+        content,
+      },
+    };
+
+    // Langfuse SDK 대신 fetch API를 사용하여 직접 tRPC 엔드포인트를 호출합니다.
+    const response = await fetch('/api/trpc/comments.create', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+      credentials: 'include', // ✨ 세션 쿠키를 함께 보내 사용자 인증을 처리하는 핵심 옵션
+    });
+
+    // fetch는 HTTP 에러를 throw하지 않으므로, 직접 상태를 확인해야 합니다.
+    if (!response.ok) {
+      // 에러 응답이 JSON 형태일 경우, 상세 메시지를 추출합니다.
+      const errorData = await response.json().catch(() => ({})); 
+      const errorMessage = errorData?.error?.json?.message || `Request failed with status ${response.status}`;
+      throw new Error(errorMessage);
     }
+
+    // 성공적인 응답 데이터를 JSON으로 파싱하여 반환합니다.
+    const result = await response.json();
+    // 실제 댓글 데이터는 result.data.json 경로에 있을 수 있으므로, 호출한 쪽에서 필요에 맞게 사용합니다.
+    return result; 
+
+  } catch (error) {
+    console.error("Failed to create comment:", error);
+    // 이미 Error 객체이므로 그대로 다시 throw 합니다.
+    throw error;
+  }
 };
 
 export const deleteComment = async ({ commentId, projectId, objectId, objectType }) => {
