@@ -35,6 +35,7 @@ import SchemaPanel from "./components/SchemaPanel";
 import VariablesPanel from "./components/VariablesPanel";
 import StreamSettingsPopover from "./components/StreamSettingsPopover";
 import ModelHeader from "./components/ModelHeader";
+import ModelAdvancedSettings, { DEFAULT_SETTINGS } from "../../components/ModelAdvancedSettings/ModelAdvancedSettings";
 
 // 세션에서 현재 사용 가능한 org/projects를 가져오는 유틸
 import { fetchSession } from "../Settings/lib/sessionOrg";
@@ -308,6 +309,7 @@ function PlaygroundComponent({
           showRemoveButton={showRemoveButton}
           projectId={PROJECT_ID}
           providerForAdv={selectedProvider}
+          onResetModelAdv={() => setModelAdv(DEFAULT_SETTINGS)}
         />
         {isSavePopoverOpen && (
           <SavePromptPopover onSaveAsNew={() => console.log("onSaveAsNew")} />

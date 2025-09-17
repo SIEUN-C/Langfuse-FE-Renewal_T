@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useMemo } from "react";
 import styles from "./DefaultModelModal.module.css";
 import { Settings2 } from 'lucide-react';
-import ModelAdvancedSettingsPopover from "./ModelAdvancedSettingsPopover";
+import ModelAdvancedSettings, { DEFAULT_SETTINGS } from "../../../components/ModelAdvancedSettings/ModelAdvancedSettings";
 import { fetchLlmApiKeys, upsertDefaultModel } from '../services/libraryApi'
 import useProjectId from 'hooks/useProjectId'
 
@@ -26,15 +26,6 @@ export default function DefaultModelModal({
   const [confirmText, setConfirmText] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
 
-  const DEFAULT_SETTINGS = {
-    useTemperature: false,
-    useTopP: false,
-    useMaxTokens: false,
-    temperature: 0.7,
-    maxTokens: 1024,
-    topP: 1.0,
-    additionalOptions: false,
-  };
   const [ismodalOpen, setIsModalOpen] = useState(false);
   const settingsButtonRef = useRef(null);
   const [modelSettings, setModelSettings] = useState(DEFAULT_SETTINGS);
@@ -42,13 +33,34 @@ export default function DefaultModelModal({
   // ESC로 닫기 & 모달 열릴 때 첫 포커스
   useEffect(() => {
     if (!isOpen) return;
-    const onKey = (e) => {
-      if (e.key === "Escape") onClose?.();
+
+    const handleOutsideClick = (event) => {
+      if (
+        dialogRef.current && !dialogRef.current.contains(event.target) &&
+        settingsButtonRef.current && !settingsButtonRef.current.contains(event.target)
+      ) {
+        onClose?.();
+      }
     };
-    document.addEventListener("keydown", onKey);
-    setTimeout(() => closeBtnRef.current?.focus(), 0);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [isOpen, onClose]);
+
+    const handleEscapeKey = (event) => {
+      if (event.key === "Escape") {
+        // 확인 모달이 열려있으면 그것만 닫고, 그렇지 않으면 메인 모달을 닫음
+        if (isConfirmModalOpen) {
+          setIsConfirmModalOpen(false);
+        } else {
+          onClose?.();
+        }
+      }
+    };
+
+    document.addEventListener("mousedown", handleOutsideClick);
+    document.addEventListener("keydown", handleEscapeKey);
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+      document.removeEventListener("keydown", handleEscapeKey);
+    };
+  }, [isOpen, onClose, isConfirmModalOpen]);
 
   useEffect(() => {
     if (!isOpen || !projectId) return;
@@ -129,13 +141,12 @@ export default function DefaultModelModal({
   if (!isOpen) return null;
 
   return (
-    <div className={styles.dmcOverlay} role="presentation" onMouseDown={onClose}>
+    <div className={styles.dmcOverlay} role="presentation">
       <div
         className={styles.dmcModal}
         role="dialog"
         aria-modal="true"
         aria-labelledby="dmc-title"
-        onMouseDown={(e) => e.stopPropagation()}
         ref={dialogRef}
       >
         {/* 헤더 */}
@@ -158,7 +169,7 @@ export default function DefaultModelModal({
               X
             </button>
           </div>
-          <ModelAdvancedSettingsPopover
+          <ModelAdvancedSettings
             open={ismodalOpen}
             onClose={() => setIsModalOpen(false)}
             anchorRef={settingsButtonRef}
@@ -166,7 +177,9 @@ export default function DefaultModelModal({
             onSettingChange={handleSettingChange}
             onReset={() => setModelSettings(DEFAULT_SETTINGS)}
             projectId={projectId}
-            provider={selectedProvider} />
+            provider={selectedProvider}
+            useFixedPosition={true}
+          />
         </div>
 
         {/* 본문 */}

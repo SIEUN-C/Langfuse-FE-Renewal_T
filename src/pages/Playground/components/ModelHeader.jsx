@@ -2,7 +2,7 @@
 import { useEffect } from "react";
 import styles from "../Playground.module.css";
 import { ChevronDown, Copy, Save, Settings, Plus, SlidersHorizontal, X } from "lucide-react";
-import ModelAdvancedSettingsPopover from "../ModelAdvancedSettingsPopover";
+import ModelAdvancedSettings, { DEFAULT_SETTINGS} from "../../../components/ModelAdvancedSettings/ModelAdvancedSettings";
 
 export default function ModelHeader({
     // 상태/값
@@ -25,6 +25,7 @@ export default function ModelHeader({
     modelAdvValues,
     onToggleModelAdv,
     onChangeModelAdv,
+    onResetModelAdv,
 
     // 핸들러
     onToggleMenu,
@@ -97,14 +98,16 @@ export default function ModelHeader({
                 </button>
 
                 {/* 고급 설정 팝오버 */}
-                <ModelAdvancedSettingsPopover
+                <ModelAdvancedSettings
                     open={isModelAdvOpen}
-                    anchorRef={modelAdvBtnRef}
-                    values={modelAdvValues}
-                    onChange={onChangeModelAdv}
                     onClose={() => onToggleModelAdv(false)}
+                    anchorRef={modelAdvBtnRef}
+                    settings={modelAdvValues}
+                    onSettingChange={onChangeModelAdv}
+                    onReset={onResetModelAdv}
                     projectId={projectId}
                     provider={providerForAdv}
+                    useFixedPosition={true}
                 />
 
                 {/* 연결이 없거나 모델이 0개여도 버튼 노출 */}

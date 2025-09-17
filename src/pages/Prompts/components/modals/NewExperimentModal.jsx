@@ -9,7 +9,7 @@ import Modal from '../../../../components/Modal/Modal';
 import NewLLMConnectionsForm from '../../../Settings/form/NewLLMConnectionsForm';
 import { saveLlmConnection } from '../../../../api/settings/LLMApi';
 import { publicKey, secretKey } from '../../../../lib/langfuse';
-import ModelAdvancedSettingsPopover from '../ModelAdvancedSettingsPopover';
+import ModelAdvancedSettings, { DEFAULT_SETTINGS } from '../../../../components/ModelAdvancedSettings/ModelAdvancedSettings';
 
 const NewExperimentModal = ({ isOpen, onClose, onSubmit, promptName, promptVersion }) => {
   const [experimentName, setExperimentName] = useState('');
@@ -37,15 +37,6 @@ const NewExperimentModal = ({ isOpen, onClose, onSubmit, promptName, promptVersi
   const { projectId } = useProjectId();
   
   // --- ▼▼▼ [수정] 1. 토글 상태를 포함한 완전한 기본 설정으로 되돌립니다. ▼▼▼ ---
-  const DEFAULT_SETTINGS = {
-    useTemperature: true,
-    useTopP: false,
-    useMaxTokens: false,
-    temperature: 0.7,
-    maxTokens: 1024,
-    topP: 1.0,
-    additionalOptions: false,
-  };
   const [modelSettings, setModelSettings] = useState(DEFAULT_SETTINGS);
   // --- ▲▲▲ [수정] 완료 ▲▲▲ ---
 
@@ -306,7 +297,7 @@ const NewExperimentModal = ({ isOpen, onClose, onSubmit, promptName, promptVersi
                 </div>
                 
                 {/* --- ▼▼▼ [수정] 3. 자식에게 올바른 props를 전달합니다. ▼▼▼ --- */}
-                <ModelAdvancedSettingsPopover
+                <ModelAdvancedSettings
                   open={isAdvancedSettingsOpen}
                   onClose={() => setAdvancedSettingsOpen(false)}
                   anchorRef={settingsButtonRef}
@@ -315,6 +306,7 @@ const NewExperimentModal = ({ isOpen, onClose, onSubmit, promptName, promptVersi
                   onReset={() => setModelSettings(DEFAULT_SETTINGS)}
                   projectId={projectId}
                   provider={selectedProviderObject?.provider}
+                  useFixedPosition={true}
                 />
                 {/* --- ▲▲▲ [수정] 완료 ▲▲▲ --- */}
               </div>
