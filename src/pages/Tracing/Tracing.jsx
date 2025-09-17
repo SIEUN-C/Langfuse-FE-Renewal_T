@@ -343,21 +343,12 @@ const Tracing = () => {
           </div>
           <div className={styles.filtersBox}>
             <FilterControls
-              onRefresh={loadTraces}
               envFilterProps={envFilterProps}
               timeRangeFilterProps={timeRangeFilter}
               builderFilterProps={builderFilterProps}
             />
           </div>
           <div className={styles.filterRightGroup}>
-            <FilterButton onClick={handleCreateClick}>
-              <Plus size={16} /> New Trace
-            </FilterButton>
-
-            <FilterButton onClick={handleUpdateClick} style={{ marginLeft: '8px' }}>
-              <Edit size={16} /> Update Trace
-            </FilterButton>
-
             <FilterButton onClick={() => setIsColumnModalOpen(true)} style={{ marginLeft: '8px' }}>
               <Columns size={16} /> Columns ({visibleColumns.length}/{columns.length})
             </FilterButton>

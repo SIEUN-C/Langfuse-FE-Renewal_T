@@ -7,12 +7,9 @@ import { useNavigate } from 'react-router-dom';
 import Templates from '../Templates';
 import styles from './EvaluatorLibrary.module.css';
 import { Expand, ChevronDown, ChevronUp } from 'lucide-react';
+import { useListNavigator } from 'hooks/useListNavigator';
 
 const EvaluatorLibrary = () => {
-  const columns = getEvaluatorLibraryColumns({
-    onUse: (row) => navigate(`evals/new/${row.id}`),
-    onEdit: (row) => navigate(`edit/${row.id}`),
-  });
   const { projectId } = useProjectId();
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -20,10 +17,18 @@ const EvaluatorLibrary = () => {
   const navigate = useNavigate();
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [selectedTemplateId, setSelectedTemplateId] = useState(null)
-  const currentIndex = useMemo(() => {
-    if (!selectedTemplateId) return -1;
-    return data.findIndex(item => item.id === selectedTemplateId);
-  }, [data, selectedTemplateId]);
+  const columns = getEvaluatorLibraryColumns({
+    onUse: (row) => navigate(`evals/new/${row.id}`),
+    onEdit: (row) => navigate(`edit/${row.id}`),
+  });
+  const { currentIndex, handleNext, handlePrevious } = useListNavigator(
+    isPanelOpen,
+    data,
+    selectedTemplateId,
+    setSelectedTemplateId,
+    () => setIsPanelOpen(false)
+  );
+
 
   useEffect(() => {
     if (!projectId) {
@@ -47,22 +52,6 @@ const EvaluatorLibrary = () => {
 
     fetchData();
   }, [projectId]);
-
-  const handleNext = () => {
-    const currentIndex = data.findIndex(item => item.id === selectedTemplateId);
-    if (currentIndex < data.length - 1) {
-      const nextItem = data[currentIndex + 1];
-      setSelectedTemplateId(nextItem.id);
-    }
-  };
-
-  const handlePrevious = () => {
-    const currentIndex = data.findIndex(item => item.id === selectedTemplateId);
-    if (currentIndex > 0) {
-      const previousItem = data[currentIndex - 1];
-      setSelectedTemplateId(previousItem.id);
-    }
-  };
 
   const closePanel = useCallback(() => {
     setIsPanelOpen(false);

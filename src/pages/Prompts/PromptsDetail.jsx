@@ -26,6 +26,7 @@ import NewExperimentModal from './components/modals/NewExperimentModal.jsx';
 import SidePanel from '../../components/SidePanel/SidePanel.jsx';
 import Comments from '../../components/Comments/Comments.jsx';
 import { useComments } from '../../hooks/useComments.js';
+import { useListNavigator } from 'hooks/useListNavigator.js';
 
 // Reference 멘션 기능 컴포넌트
 const PromptContentViewer = ({ content }) => {
@@ -107,6 +108,15 @@ export default function PromptsDetail() {
   const commentCount = Array.isArray(comments) ? comments.length : 0;
   const commentCountLabel = commentCount > 99 ? '99+' : String(commentCount);
 
+  const promptsForNavigator = useMemo(() => allPrompts.map(name => ({ id: name })), [allPrompts]);
+
+  const { currentIndex, handleNext, handlePrevious } = useListNavigator(
+    true,
+    promptsForNavigator,
+    id,
+    (newId) => navigate(`/prompts/${newId}`)
+  );
+
   // Memoized Values
   const filteredVersions = useMemo(() => {
     const searchId = parseInt(searchQuery);
@@ -122,18 +132,6 @@ export default function PromptsDetail() {
       version.author.toLowerCase().includes(query)
     );
   }, [versions, searchQuery]);
-
-  const { currentIndex, prevPromptName, nextPromptName } = useMemo(() => {
-    if (!id || allPrompts.length === 0) {
-      return { currentIndex: -1, prevPromptName: null, nextPromptName: null };
-    }
-    const idx = allPrompts.findIndex(name => name === id);
-    return {
-      currentIndex: idx,
-      prevPromptName: idx > 0 ? allPrompts[idx - 1] : null,
-      nextPromptName: idx < allPrompts.length - 1 ? allPrompts[idx + 1] : null,
-    };
-  }, [id, allPrompts]);
 
   const variables = useMemo(() => {
     if (!selectedVersion) return [];
@@ -204,13 +202,6 @@ export default function PromptsDetail() {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
-  // Event Handlers
-  const handleNavigate = (promptName) => {
-    if (promptName) {
-      navigate(`/prompts/${promptName}`);
-    }
-  };
 
   const handleNewVersion = () => {
     if (!id || !selectedVersion) return;
@@ -398,19 +389,19 @@ export default function PromptsDetail() {
               <div className={styles.navButtons}>
                 <button
                   className={styles.navButton}
-                  onClick={() => handleNavigate(prevPromptName)}
-                  disabled={!prevPromptName}
-                  title={prevPromptName ? `Go to ${prevPromptName}` : "First prompt"}
+                  onClick={handlePrevious}
+                  disabled={currentIndex === 0}
+                  title={currentIndex > 0 ? `Go to ${promptsForNavigator[currentIndex - 1].id}` : "First prompt"}
                 >
-                  <ChevronUp size={16} />
+                  <ChevronUp size={16} /> K
                 </button>
                 <button
                   className={styles.navButton}
-                  onClick={() => handleNavigate(nextPromptName)}
-                  disabled={!nextPromptName}
-                  title={nextPromptName ? `Go to ${nextPromptName}` : "Last prompt"}
+                  onClick={handleNext}
+                  disabled={currentIndex >= promptsForNavigator.length - 1}
+                  title={currentIndex < promptsForNavigator.length - 1 ? `Go to ${promptsForNavigator[currentIndex + 1].id}` : "Last prompt"}
                 >
-                  <ChevronDown size={16} />
+                  <ChevronDown size={16} /> J
                 </button>
               </div>
             </div>
@@ -449,11 +440,11 @@ export default function PromptsDetail() {
               >
                 Dataset run
               </button>
-              <button 
-              className={`${styles.iconButton} ${styles.actionButtonSecondary} ${styles.commentButton}`} 
-              onClick={() => setIsCommentsOpen(true)}
-              aria-label={`Open comments${commentCount ?`, ${commentCount} items` : ''}`}
-              title={`Comments${commentCount ? ` (${commentCountLabel})` : ''}`}
+              <button
+                className={`${styles.iconButton} ${styles.actionButtonSecondary} ${styles.commentButton}`}
+                onClick={() => setIsCommentsOpen(true)}
+                aria-label={`Open comments${commentCount ? `, ${commentCount} items` : ''}`}
+                title={`Comments${commentCount ? ` (${commentCountLabel})` : ''}`}
               >
                 <MessageCircle size={16} />
                 {commentCount > 0 && (
