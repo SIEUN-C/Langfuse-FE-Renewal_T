@@ -1,6 +1,6 @@
 // src/Pages/Tracing/TraceDetailPanel.jsx
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { X, Maximize, Minimize, HardDrive } from 'lucide-react';
+import { X, Maximize, Minimize, HardDrive, ChevronUp, ChevronDown } from 'lucide-react';
 import { fetchTraceDetails } from '../services/TraceDetailApi.js';
 import { fetchObservationDetails } from '../services/ObservationDetailApi.js';
 import styles from './TraceDetailPanel.module.css';
@@ -8,6 +8,8 @@ import TraceDetailView from './TraceDetailView.jsx';
 import TraceTimeline from './TraceTimeline.jsx';
 import { ChatMlArraySchema } from '../utils/chatml.schema.js';
 import { parseMaybeJSONDeep, decodeUnicodeLiterals } from '../utils/json.js'
+import { useListNavigator } from 'hooks/useListNavigator.js';
+import NewLlmConnectionModal from 'pages/Playground/NewLlmConnectionModal.jsx';
 
 
 // ---------- 공통 정규화 유틸 ----------
@@ -210,7 +212,7 @@ function normalizeForDetailView(d) {
 
 
 
-const TraceDetailPanel = ({ trace, onClose }) => {
+const TraceDetailPanel = ({ traces, selectedTraceId, setSelectedTraceId, onClose }) => {
   const [traceDetails, setTraceDetails] = useState(null);
   const [viewData, setViewData] = useState(null);
   const [selectedObservation, setSelectedObservation] = useState(null); // {id, traceId, projectId}
@@ -219,17 +221,27 @@ const TraceDetailPanel = ({ trace, onClose }) => {
   const [isMaximized, setIsMaximized] = useState(false);
   const panelRef = useRef(null);
 
+  const currentTrace = traces.find(t => t.id === selectedTraceId);
+  const { currentIndex, handleNext, handlePrevious } = useListNavigator(
+    true,
+    traces,
+    selectedTraceId,
+    setSelectedTraceId,
+    onClose
+  );
+
   // Trace 기본 정보 로드 (변경 없음)
   useEffect(() => {
-    if (!trace.id) return;
+    if (!selectedTraceId) return;
     const loadTrace = async () => {
       setIsLoading(true);
       setError(null);
       try {
-        const raw = await fetchTraceDetails(trace.id);
+        const raw = await fetchTraceDetails(selectedTraceId);
         const norm = normalizeForDetailView(raw);
         setTraceDetails(norm);
         setViewData(norm);
+        setSelectedObservation(null);
       } catch (err) {
         setError("Trace 상세 정보를 불러오는 데 실패했습니다.");
       } finally {
@@ -237,7 +249,7 @@ const TraceDetailPanel = ({ trace, onClose }) => {
       }
     };
     loadTrace();
-  }, [trace.id]);
+  }, [selectedTraceId]);
 
   // Observation 상세 정보 로드 (변경 없음)
   useEffect(() => {
@@ -271,18 +283,17 @@ const TraceDetailPanel = ({ trace, onClose }) => {
       // traceId, projectId는 상위에서 보유한 값으로 보완
       setSelectedObservation({
         id: obs,
-        traceId: trace.id,                       // 상위 prop의 trace.id
-        projectId: (traceDetails && traceDetails.projectId) || trace.projectId,
+        traceId: selectedTraceId,                       // 상위 prop의 trace.id
+        projectId: (traceDetails && traceDetails.projectId) || currentTrace?.projectId,
       });
     } else {
       setSelectedObservation({
         id: obs.id,
-        traceId: obs.traceId ?? trace.id,
-        projectId: obs.projectId ?? (traceDetails && traceDetails.projectId) ?? trace.projectId,
+        traceId: obs.traceId ?? selectedTraceId,
+        projectId: obs.projectId ?? (traceDetails && traceDetails.projectId) ?? currentTrace?.projectId,
       });
     }
-  }, [trace.id, trace.projectId, traceDetails]);
-
+  }, [selectedTraceId, currentTrace, traceDetails]);
 
   // ✅ 외부 클릭 감지 로직 수정
   useEffect(() => {
@@ -304,6 +315,8 @@ const TraceDetailPanel = ({ trace, onClose }) => {
     };
   }, [onClose]);
 
+  if (!currentTrace) return null;
+
   return (
     <div ref={panelRef} className={`${styles.panel} ${isMaximized ? styles.maximized : ''}`}>
       <div className={styles.header}>
@@ -312,9 +325,25 @@ const TraceDetailPanel = ({ trace, onClose }) => {
             <HardDrive size={14} />
             <span>Trace</span>
           </div>
-          <span className={styles.traceId}>{trace.id}</span>
+          <span className={styles.traceId}>{selectedTraceId}</span>
         </div>
         <div className={styles.headerRight}>
+          <button
+          className={styles.chevronUpButton}
+          onClick={handlePrevious}
+          disabled={currentIndex === 0}
+          title="Previous trace (k)"
+          >
+            <ChevronUp /> K
+          </button>
+          <button
+          className={styles.chevronDownButton}
+          onClick={handleNext}
+          disabled={currentIndex >= traces.length - 1}
+          title="Next trace (j)"
+          >
+            <ChevronDown /> J
+          </button>
           <button
             className={styles.iconButton}
             onClick={() => setIsMaximized(!isMaximized)}

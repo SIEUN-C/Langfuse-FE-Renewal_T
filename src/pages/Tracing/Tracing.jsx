@@ -69,7 +69,6 @@ const ErrorBanner = ({ message, onDismiss }) => {
 
 const Tracing = () => {
   const [activeTab, setActiveTab] = useState('Traces');
-  const [selectedTrace, setSelectedTrace] = useState(null);
   const [traces, setTraces] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -79,6 +78,7 @@ const Tracing = () => {
   const [favoriteState, setFavoriteState] = useState({});
   const [selectedRows, setSelectedRows] = useState(new Set());
   const [pendingTraceId, setPendingTraceId] = useState(null);
+  const [selectedTraceId, setSelectedTraceId] = useState(null);
   // Traces 탭 필터 상태
   const [builderFiltersTraces, setBuilderFiltersTraces] = useState(() => {
     const c = tracingFilterConfig[0];
@@ -286,7 +286,8 @@ const Tracing = () => {
     }
   }, []);
 
-  const handleRowClick = (trace) => setSelectedTrace(prev => (prev?.id === trace.id ? null : trace));
+  const handleRowClick = (trace) => setSelectedTraceId(prevId => (prevId === trace.id ? null : trace.id));
+  const handlePanelClose = () => {setSelectedTraceId(null);}
   const setAllColumnsVisible = (visible) => setColumns(prev => prev.map(col => ({ ...col, visible })));
   const toggleColumnVisibility = (key) => setColumns(prev => prev.map(col => col.key === key ? { ...col, visible: !col.visible } : col));
   const visibleColumns = useMemo(() => columns.filter(c => c.visible), [columns]);
@@ -375,7 +376,7 @@ const Tracing = () => {
                   keyField="id"
                   renderEmptyState={() => <div>No traces found.</div>}
                   onRowClick={handleRowClick}
-                  selectedRowKey={selectedTrace?.id || null}
+                  selectedRowKey={selectedTraceId}
                   showCheckbox={true}
                   selectedRows={selectedRows}
                   onCheckboxChange={setSelectedRows}
@@ -413,10 +414,12 @@ const Tracing = () => {
         </div>
       </div>
 
-      {selectedTrace && ReactDOM.createPortal(
+      {selectedTraceId && ReactDOM.createPortal(
         <TraceDetailPanel
-          trace={selectedTrace}
-          onClose={() => setSelectedTrace(null)}
+          traces={filteredTraces}
+          selectedTraceId={selectedTraceId}
+          setSelectedTraceId={setSelectedTraceId}
+          onClose={handlePanelClose}
         />,
         document.body
       )}
