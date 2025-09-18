@@ -48,7 +48,7 @@ const ColumnVisibilityModal = ({
         </div>
 
         <div className={styles.columnList}>
-          {columns.map(col => (
+          {columns.map((col) => (
             <label key={col.key} className={styles.columnItem}>
               <input
                 type="checkbox"

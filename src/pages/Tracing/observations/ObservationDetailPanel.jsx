@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
-import { X } from 'lucide-react';
+import { X, ChevronUp, ChevronDown, Expand } from 'lucide-react';
 import { getObservationById } from '../services/ObservationApi';
 import { fetchTraceDetails } from '../services/TraceDetailApi';
 import TraceTimeline from '../components/TraceTimeline';
@@ -165,6 +165,18 @@ export default function ObservationDetailPanel({ observation, onClose }) {
                     <span className={styles.traceId}>{selected?.id}</span>
                 </div>
                 <div className={styles.headerRight}>
+                    <button
+                        className={styles.chevronUpButton}>
+                        <ChevronUp /> K
+                    </button>
+                    <button
+                        className={styles.chevronDownButton}>
+                        <ChevronDown /> J
+                    </button>
+                    <button
+                        className={styles.expandButton}>
+                        <Expand />
+                    </button>
                     <button className={styles.iconButton} onClick={onClose} title="Close">
                         <X size={18} />
                     </button>

@@ -21,6 +21,21 @@
   gap: 12px;
 }
 
+.filterBar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  margin-bottom : 8px;
+}
+
+.searchBox {
+  flex: 0 1 400px;
+  max-width: 400px;
+  min-width: 260px;
+  width: clamp(260px, 40vw, 400px);
+}
+
 .libraryButton,
 .setupButton {
   padding: 8px 16px;

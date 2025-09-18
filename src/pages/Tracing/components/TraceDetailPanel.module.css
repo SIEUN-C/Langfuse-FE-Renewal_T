@@ -1,12 +1,12 @@
 /* src/pages/Tracing/TraceDetailPanel.module.css */
 .panel {
-  position: fixed; 
+  position: fixed;
   top: 0px;
   right: 0;
   width: 80%;
   max-width: 800px;
   height: calc(100% - 48px);
-  z-index: 1050; 
+  z-index: 1050;
   box-shadow: -5px 0 15px rgba(0, 0, 0, 0.3);
   transform: translateX(100%);
   animation: slideIn 0.3s forwards;
@@ -24,21 +24,26 @@
   height: 100%;
   top: 0;
   border-left: none;
-  animation: none; 
+  animation: none;
   transform: translateX(0);
 }
 
 
 @keyframes slideIn {
-  from { transform: translateX(100%); }
-  to { transform: translateX(0); }
+  from {
+    transform: translateX(100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
 }
 
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  min-height: 48px; 
+  min-height: 48px;
   padding: 0 16px;
   border-bottom: 1px solid #30363d;
   flex-shrink: 0;
@@ -70,8 +75,8 @@
   gap: 8px;
 }
 
-.traceId { 
-  font-family: monospace; 
+.traceId {
+  font-family: monospace;
   color: #e6edf3;
   font-size: 14px;
   font-weight: 500;
@@ -88,8 +93,8 @@
   cursor: pointer;
 }
 
-.iconButton:hover { 
-  background-color: #30363d; 
+.iconButton:hover {
+  background-color: #30363d;
   color: #e6edf3;
 }
 
@@ -113,7 +118,7 @@
 }
 
 /* TraceDetailView 내부의 .body에 적용되던 스타일을 유지하기 위해 일부 스타일 이동 */
-.detailSection > div {
+.detailSection>div {
   padding: 16px;
   display: flex;
   flex-direction: column;
@@ -121,24 +126,34 @@
 }
 
 .chevronUpButton {
-    position: absolute;
-    top: 10px;
-    right: 138px;
-    background-color: #020817;
-    color: white;
-    border: 1px solid #334155;
-    cursor: pointer;
-    /* font-size: 16px; */
+  position: absolute;
+  /* top: 10px; */
+  right: 138px;
+  background-color: #020817;
+  color: white;
+  border: 1px solid #334155;
+  cursor: pointer;
+  /* font-size: 16px; */
 }
 
 .chevronDownButton {
-    position: absolute;
-    top: 10px;
-    right: 90px;
-    background-color: #020817;
-    color: white;
-    border: 1px solid #334155;
-    cursor: pointer;
+  position: absolute;
+  /* top: 10px; */
+  right: 90px;
+  background-color: #020817;
+  color: white;
+  border: 1px solid #334155;
+  cursor: pointer;
+}
+
+.expandButton {
+  position: absolute;
+  top: 10px;
+  right: 45px;
+  background: none;
+  border: none;
+  color: #f1f5f9;
+  cursor: pointer;
 }
 
 /* TraceDetailView.jsx로 이동한 스타일 규칙들(.infoBar, .contentCard 등)은
