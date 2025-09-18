@@ -11,7 +11,7 @@ import { useEnvironmentFilter } from '../../hooks/useEnvironmentFilter.js';
 import { useTimeRangeFilter } from '../../hooks/useTimeRangeFilter.js';
 import ColumnVisibilityModal from './components/ColumnVisibilityModal.jsx';
 import FilterButton from 'components/FilterButton/FilterButton';
-import { Columns, Plus, Edit, AlertCircle } from 'lucide-react';
+import { Columns, Plus, Edit, AlertCircle, LayoutGrid, Download } from 'lucide-react';
 import { createTrace, updateTrace } from './CreateTrace.jsx';
 import { langfuse } from '../../lib/langfuse.js';
 import { fetchTraces, deleteTrace } from './services/TracingApi.js';
@@ -287,7 +287,7 @@ const Tracing = () => {
   }, []);
 
   const handleRowClick = (trace) => setSelectedTraceId(prevId => (prevId === trace.id ? null : trace.id));
-  const handlePanelClose = () => {setSelectedTraceId(null);}
+  const handlePanelClose = () => { setSelectedTraceId(null); }
   const setAllColumnsVisible = (visible) => setColumns(prev => prev.map(col => ({ ...col, visible })));
   const toggleColumnVisibility = (key) => setColumns(prev => prev.map(col => col.key === key ? { ...col, visible: !col.visible } : col));
   const visibleColumns = useMemo(() => columns.filter(c => c.visible), [columns]);
@@ -348,19 +348,23 @@ const Tracing = () => {
               timeRangeFilterProps={timeRangeFilter}
               builderFilterProps={builderFilterProps}
             />
-          </div>
+          </div>  
           <div className={styles.filterRightGroup}>
+            <button className={styles.tableViewButton}>
+              Table View
+            </button>
             <FilterButton onClick={() => setIsColumnModalOpen(true)} style={{ marginLeft: '8px' }}>
               <Columns size={16} /> Columns ({visibleColumns.length}/{columns.length})
             </FilterButton>
-
-
             {/* 행 높이 아이콘 버튼 */}
-           <RowDensityButton
-             value={rowDensity}
-             onChange={setRowDensity}
-             style={{ marginLeft: 8 }}
-           />
+            <RowDensityButton
+              value={rowDensity}
+              onChange={setRowDensity}
+              style={{ marginLeft: 8 }}
+            />
+            <button className={styles.exportButton}>
+              <Download />
+            </button>
           </div>
         </div>
 

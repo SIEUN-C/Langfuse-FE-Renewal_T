@@ -44,7 +44,7 @@
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
-  justify-content: flex-start;
+  /* justify-content: flex-start; */
 }
 
 .searchBox {
@@ -117,10 +117,27 @@
 
 .filterRightGroup {
   margin-left: auto;
+  margin-right: 50px;
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
   white-space: nowrap;
+}
+
+.tableViewButton {
+  background-color: #1e293b;
+  color: #f1f5f9;
+  border: 1px solid #334155;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.exportButton {
+  background-color: #1e293b;
+  color: #f1f5f9;
+  border: 1px solid #334155;
+  cursor: pointer;
+  border-radius: 6px;
 }
 
 /* ▼▼▼ 아래 스타일을 추가해주세요. ▼▼▼ */
