@@ -9,7 +9,7 @@ import FilterControls from 'components/FilterControls/FilterControls';
 import TraceDetailPanel from './components/TraceDetailPanel.jsx';
 import { useEnvironmentFilter } from '../../hooks/useEnvironmentFilter.js';
 import { useTimeRangeFilter } from '../../hooks/useTimeRangeFilter.js';
-import ColumnVisibilityModal from './components/ColumnVisibilityModal.jsx';
+import ColumnVisibilityModal from '../../components/ColumnVisibilityModal/ColumnVisibilityModal.jsx';
 import FilterButton from 'components/FilterButton/FilterButton';
 import { Columns, Plus, Edit, AlertCircle, LayoutGrid, Download } from 'lucide-react';
 import { createTrace, updateTrace } from './CreateTrace.jsx';

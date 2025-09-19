@@ -5,11 +5,11 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.3);
   display: flex;
   justify-content: flex-end;
   z-index: 1000;
-  backdrop-filter: blur(2px);
+  /* backdrop-filter: blur(2px); */
 }
 
 .modalContent {
@@ -199,4 +199,18 @@
 
 .dropdownItem {
   padding: 8px 0;
+}
+
+.columnItem input[type="checkbox"]:disabled + span {
+  /* 비활성화된 항목의 텍스트를 약간 흐리게 만듭니다 */
+  opacity: 0.6;
+  cursor: not-allowed; /* 마우스 커서를 '금지' 모양으로 변경 */
+}
+
+/* "(필수)" 텍스트를 추가하는 가상 요소 */
+.columnItem input[type="checkbox"]:disabled + span::after {
+  /* content: " (필수)"; */
+  color: #888; /* 글자 색상 */
+  font-size: 0.8em; /* 글자 크기 */
+  margin-left: 6px; /* 왼쪽 여백 */
 }
