@@ -23,44 +23,37 @@ const PromptsNew = () => {
             ? 'Text'
             : 'Chat'
     );
-
-    // --- [수정 시작] ---
-    // 'New Version' 모드로 진입 시, location.state로부터 받은 chatContent의 role 값을
-    // ChatBox 컴포넌트가 사용하는 형식(첫 글자만 대문자)으로 변환합니다.
-    // 예를 들어 "SYSTEM"은 "System"으로, "USER"는 "User"로 변경하여
-    // select box에 올바른 role이 선택되도록 합니다.
+    
+    // --- START: chatContent 초기화 로직 수정 ---
+    // 각 메시지에 고유 ID를 부여하고 role 형식을 맞춥니다.
     const [chatContent, setChatContent] = useState(
         (initialState.chatContent || []).map(message => {
-            if (!message.role) {
-                return { ...message, role: 'System' }; // role이 없는 경우 기본값 설정
-            }
-            // 첫 글자는 대문자로, 나머지는 소문자로 변환
-            const formattedRole = message.role.charAt(0).toUpperCase() + message.role.slice(1).toLowerCase();
-            return { ...message, role: formattedRole };
+            const formattedRole = message.role
+                ? message.role.charAt(0).toUpperCase() + message.role.slice(1).toLowerCase()
+                : 'System'; // role이 없는 경우 기본값
+            return {
+                ...message,
+                id: message.id || crypto.randomUUID(), // ID가 없으면 새로 생성
+                role: formattedRole
+            };
         })
     );
-    // --- [수정 종료] ---
-
-
-
-
-    //const [chatContent, setChatContent] = useState(initialState.chatContent || []);
-    // ▼▼▼ [최종 수정] textContent가 항상 문자열이 되도록 수정 ▼▼▼
+    // --- END: chatContent 초기화 로직 수정 ---
+    
     const [textContent, setTextContent] = useState(
         typeof initialState.textContent === 'string' ? initialState.textContent : ''
     );
-    const [config, setConfig] = useState(initialState.config || '{\n  "temperature": 1\n}');
+    const [config, setConfig] = useState(initialState.config || '{ }');
     const [labels, setLabels] = useState(initialState.labels || { production: true });
     const [commitMessage, setCommitMessage] = useState('');
     const [isReferenceModalOpen, setIsReferenceModalOpen] = useState(false);
     const [variables, setVariables] = useState([]);
     const isNewVersionMode = initialState.isNewVersion || false;
-
-    // 오류 메시지 상태 추가
     const [saveError, setSaveError] = useState('');
 
     useEffect(() => {
         const extractVariables = (text) => {
+            if (typeof text !== 'string') return [];
             const regex = /{{\s*(\w+)\s*}}/g;
             const matches = text.match(regex) || [];
             return matches.map(match => match.replace(/[{}]/g, '').trim());
@@ -75,6 +68,17 @@ const PromptsNew = () => {
         }
         setVariables([...new Set(allVars)]);
     }, [textContent, chatContent, promptType]);
+
+    // --- START: ChatBox 변경 핸들러 추가 ---
+    // ChatBox에서 메시지가 변경될 때마다 ID가 있는지 확인하고 없으면 부여합니다.
+    const handleChatContentChange = (newChatContent) => {
+        const contentWithIds = newChatContent.map(msg => ({
+            ...msg,
+            id: msg.id || crypto.randomUUID()
+        }));
+        setChatContent(contentWithIds);
+    };
+    // --- END: ChatBox 변경 핸들러 추가 ---
 
     const handleLabelChange = (e) => {
         const { name, checked } = e.target;
@@ -92,7 +96,7 @@ const PromptsNew = () => {
     };
 
     const handleSave = async () => {
-        setSaveError(''); // 저장 시도 시 오류 메시지 초기화
+        setSaveError('');
         if (!projectId) {
             setSaveError("오류: 프로젝트가 선택되지 않았습니다.");
             return;
@@ -103,16 +107,12 @@ const PromptsNew = () => {
                 promptName, promptType, chatContent, textContent,
                 config, labels, commitMessage
             }, projectId);
-            alert(`'${promptName}' 프롬프트의 새 버전이 성공적으로 저장되었습니다.`);
+            alert(`'${promptName}' 프롬프트가 성공적으로 저장되었습니다.`);
             navigate(`/prompts/${promptName}`);
         } catch (err) {
             console.error("Failed to save prompt:", err);
             const errorMessage = err.message || "알 수 없는 오류가 발생했습니다.";
-            if (errorMessage.includes('Circular dependency')) {
-                setSaveError(`오류: 자기 자신을 참조할 수 없습니다. 다른 프롬프트를 선택해주세요.`);
-            } else {
-                setSaveError(`저장 실패: ${errorMessage}`);
-            }
+            setSaveError(`저장 실패: ${errorMessage}`);
         }
     };
 
@@ -182,7 +182,7 @@ const PromptsNew = () => {
                 ) : (
                     <ChatBox
                         value={chatContent}
-                        onChange={setChatContent}
+                        onChange={handleChatContentChange} // 직접 setChatContent 대신 핸들러 사용
                         schema="rolePlaceholder"
                         autoInit={true}
                     />
@@ -197,12 +197,12 @@ const PromptsNew = () => {
                 )}
             </FormGroup>
 
+            {/* ... 나머지 FormGroup 컴포넌트들은 그대로 유지 ... */}
             <FormGroup
                 htmlFor="prompt-config"
                 label="Config"
                 subLabel="Arbitrary JSON configuration that is available on the prompt."
             >
-                {/* --- 3. [수정] LineNumberedTextarea를 CodeBlock 컴포넌트로 교체하고 props를 맞게 수정 --- */}
                 <CodeBlock
                     code={config}
                     onChange={setConfig}
@@ -216,7 +216,7 @@ const PromptsNew = () => {
             >
                 <div className={styles.labelsContainer}>
                     <label className={styles.checkboxWrapper}>
-                        <input type="checkbox" name="production" checked={labels.production} onChange={handleLabelChange} />
+                        <input type="checkbox" name="production" checked={labels.production || false} onChange={handleLabelChange} />
                         <span>Set the "Production" label</span>
                     </label>
                 </div>
