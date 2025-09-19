@@ -17,7 +17,9 @@ import FilterControls from "components/FilterControls/FilterControls";
 import { sessionsFilterConfig } from 'components/FilterControls/filterConfig.js';
 import FilterButton from 'components/FilterButton/FilterButton'
 import { getEvaluatorColumns } from "./components/EvaluatorColumns";
-import ColumnVisibilityModal from "pages/Tracing/components/ColumnVisibilityModal";
+import ColumnVisibilityModal from "components/ColumnVisibilityModal/ColumnVisibilityModal";
+import { useColumnVisibility } from "hooks/useColumnVisibility";
+import { colorSchemeDark } from "ag-grid-community";
 
 const JudgePage = () => {
   const [activeTab, setActiveTab] = useState("running");
@@ -44,12 +46,6 @@ const JudgePage = () => {
     onFilterChange: setBuilderFilters,
     filterConfig: sessionsFilterConfig
   };
-
-  // ========================[수정 1: 컬럼 상태 초기화]========================
-  // 주석: columns 상태를 빈 배열로 초기화합니다.
-  //       useEffect를 사용하여 projectId나 datasetMap이 변경될 때마다 컬럼을 다시 계산하도록 합니다.
-  const [columns, setColumns] = useState([]);
-  // ========================[수정 끝]========================
 
   const fetchData = useCallback(async () => {
     if (!projectId) {
@@ -98,25 +94,18 @@ const JudgePage = () => {
     setIsDeleteModalOpen(true);
   }, []);
 
-  useEffect(() => {
-    const newColumns = getEvaluatorColumns(
-      projectId,
-      datasetMap,
-      handleOpenDeleteModal
-    ).map(c => ({
-      ...c,
-      key: c.accessorKey || c.id,
-      visible: columns.find(oldCol => (oldCol.accessorKey || oldCol.id) === (c.accessorKey || c.id))?.visible ?? true,
-    }));
-    setColumns(newColumns);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  const rawColumns = useMemo(() => {
+    return getEvaluatorColumns(projectId, datasetMap, handleOpenDeleteModal);
   }, [projectId, datasetMap, handleOpenDeleteModal]);
-  // ========================[수정 끝]========================
 
-  const showToast = (message, type = 'success') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
-  };
+  const {
+    columns,
+    visibleColumns,
+    toggleColumnVisibility,
+    setAllColumnsVisible,
+    restoreDefaults,
+  } = useColumnVisibility(rawColumns);
+  const [columnVisibility, setColumnVisibility] = useState({});
 
   const handleCloseDeleteModal = () => {
     setIsDeleteModalOpen(false);
@@ -154,18 +143,6 @@ const JudgePage = () => {
   const handleOpenDefaultModel = () => navigate(`default-model`);
   const handleCustomEvaluator = () => navigate(`custom`);
 
-  const toggleColumnVisibility = (key) => {
-    setColumns(prev =>
-      prev.map(col => (col.key === key ? { ...col, visible: !col.visible } : col))
-    );
-  };
-
-  const setAllColumnsVisible = (visible) => {
-    setColumns(prev => prev.map(col => ({ ...col, visible })));
-  };
-
-  const visibleColumns = useMemo(() => columns.filter(c => c.visible), [columns]);
-
   const filteredEvaluators = useMemo(() => {
     if (!searchValue) {
       return evaluators;
@@ -175,7 +152,6 @@ const JudgePage = () => {
       evaluator.scoreName.toLowerCase().includes(searchValue.toLowerCase())
     );
   }, [evaluators, searchValue]);
-
 
   return (
     <div className={styles.pageLayout}>
@@ -246,12 +222,11 @@ const JudgePage = () => {
           columns={columns}
           toggleColumnVisibility={toggleColumnVisibility}
           setAllColumnsVisible={setAllColumnsVisible}
+          onRestoreDefaults={restoreDefaults}
         />
 
         <main className={styles.content}>
           {activeTab === "running" ? (
-            // ========================[수정 3: visibleColumns 전달]========================
-            // 주석: EvaluatorsTable에 'columns' prop으로 'visibleColumns'를 전달합니다.
             <EvaluatorsTable
               data={filteredEvaluators}
               columns={visibleColumns}
@@ -261,7 +236,6 @@ const JudgePage = () => {
               projectId={projectId}
               onDeleteClick={handleOpenDeleteModal}
             />
-            // ========================[수정 끝]========================
           ) : (
             <EvaluatorLibrary />
           )}
