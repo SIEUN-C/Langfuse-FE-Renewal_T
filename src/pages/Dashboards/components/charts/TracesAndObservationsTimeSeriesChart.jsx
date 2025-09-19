@@ -1,5 +1,107 @@
+// import React from 'react';
+// import BaseTimeSeriesChart from './BaseTimeSeriesChart';
+// import TotalMetric from './TotalMetric';
+// import { compactNumberFormatter } from '../../utils/numbers';
+// import { isEmptyTimeSeries } from '../../utils/hooks';
+// import NoDataOrLoading from './NoDataOrLoading';
+// import TabComponent from './TabsComponent';
+
+// /**
+//  * 트레이스와 관찰 시계열 차트 컴포넌트 (리팩토링 버전)
+//  * props를 통해 실제 API 데이터를 받아 렌더링
+//  *
+//  * @param {Object} props
+//  * @param {string} props.className - CSS 클래스
+//  * @param {Object} props.data - API로부터 받은 차트 데이터
+//  * @param {boolean} props.isLoading - 로딩 상태
+//  * @param {Object} props.error - 에러 객체
+//  * @param {string} props.agg - 집계 옵션
+//  */
+// const TracesAndObservationsTimeSeriesChart = ({
+//   className,
+//   data, // API 데이터를 직접 받도록 수정
+//   isLoading = false,
+//   error, // 에러 상태 추가
+//   agg,
+// }) => {
+//   // 에러가 발생한 경우 에러 메시지 표시
+//   if (error) {
+//     return (
+//       <div className="flex h-full items-center justify-center text-red-500">
+//         Error loading data: {error.message}
+//       </div>
+//     );
+//   }
+
+//   // API 응답 데이터를 UI에 맞게 가공 (데이터가 없을 경우 빈 배열로 초기화)
+//   // [주의] 실제 API 응답 구조에 따라 이 부분은 달라질 수 있음.
+//   // 우선 기존 Mock 데이터와 유사한 구조로 가정하고 처리.
+//   const traces = data?.traces || [];
+//   const observations = data?.observations || [];
+
+//   const totalTraces = traces.reduce((acc, item) => acc + (item.values[0]?.value || 0), 0);
+//   const totalObservations = observations.reduce((acc, item) => acc + item.values.reduce((sum, val) => sum + val.value, 0), 0);
+
+//   // 탭 데이터 구성
+//   const tabData = [
+//     {
+//       tabTitle: "Traces",
+//       timeSeriesData: traces,
+//       totalMetric: totalTraces,
+//       metricDescription: `Traces tracked`,
+//     },
+//     {
+//       tabTitle: "Observations by Level",
+//       timeSeriesData: observations,
+//       totalMetric: totalObservations,
+//       metricDescription: `Observations tracked`,
+//     },
+//   ];
+
+//   return (
+//     <div className={`flex flex-col content-end ${className}`}>
+//       <TabComponent
+//         tabs={tabData.map((item) => {
+//           return {
+//             tabTitle: item.tabTitle,
+//             content: (
+//               <>
+//                 <TotalMetric
+//                   description={item.metricDescription}
+//                   metric={
+//                     item.totalMetric
+//                       ? compactNumberFormatter(item.totalMetric)
+//                       : "0"
+//                   }
+//                 />
+//                 {!isEmptyTimeSeries({ data: item.timeSeriesData }) ? (
+//                   <BaseTimeSeriesChart
+//                     className="h-full min-h-80 self-stretch"
+//                     agg={agg}
+//                     data={item.timeSeriesData}
+//                     connectNulls={true}
+//                     chartType="area"
+//                   />
+//                 ) : (
+//                   <NoDataOrLoading
+//                     isLoading={isLoading}
+//                     description="Traces contain details about LLM applications and can be created using the SDK."
+//                     href="https://langfuse.com/docs/observability/overview"
+//                   />
+//                 )}
+//               </>
+//             ),
+//           };
+//         })}
+//       />
+//     </div>
+//   );
+// };
+
+// export default TracesAndObservationsTimeSeriesChart;
+
+
 import React from 'react';
-import WidgetCard from '../WidgetCard';
 import BaseTimeSeriesChart from './BaseTimeSeriesChart';
 import TotalMetric from './TotalMetric';
 import { compactNumberFormatter } from '../../utils/numbers';
@@ -7,168 +109,79 @@ import { isEmptyTimeSeries } from '../../utils/hooks';
 import NoDataOrLoading from './NoDataOrLoading';
 import TabComponent from './TabsComponent';
 
-/**
- * 트레이스와 관찰 시계열 차트 컴포넌트
- * 트레이스 개수와 관찰(level별) 개수를 시간별로 보여주는 차트
- * @param {Object} props
- * @param {string} props.className - CSS 클래스
- * @param {string} props.projectId - 프로젝트 ID
- * @param {Object} props.globalFilterState - 글로벌 필터 상태
- * @param {Date} props.fromTimestamp - 시작 시간
- * @param {Date} props.toTimestamp - 종료 시간
- * @param {string} props.agg - 집계 옵션
- * @param {boolean} props.isLoading - 로딩 상태
- */
 const TracesAndObservationsTimeSeriesChart = ({
   className,
-  projectId,
-  globalFilterState,
-  fromTimestamp,
-  toTimestamp,
-  agg,
+  data,
   isLoading = false,
+  error,
+  agg,
 }) => {
-  // TODO: 실제 API 연동 필요
-  console.log('TracesAndObservationsTimeSeriesChart props:', {
-    projectId,
-    globalFilterState,
-    fromTimestamp: fromTimestamp?.toISOString(),
-    toTimestamp: toTimestamp?.toISOString(),
-    agg,
-    isLoading
-  });
+  if (error) {
+    return (
+      <div className="flex h-full items-center justify-center text-red-500">
+        Error loading data: {error.message}
+      </div>
+    );
+  }
 
-  // Mock 트레이스 시계열 데이터 생성
-  const generateMockTimeSeriesData = (fromDate, toDate, baseValue, label) => {
-    const data = [];
-    const current = new Date(fromDate);
-    const end = new Date(toDate);
-    
-    while (current <= end) {
-      const variance = 0.7 + Math.random() * 0.6; // 70-130% 변동
-      data.push({
-        ts: current.getTime(),
-        values: [{
-          label: label,
-          value: Math.round(baseValue * variance)
-        }]
-      });
-      
-      // 집계 옵션에 따라 시간 증가
-      if (agg === '1 hour' || agg === '3 hours') {
-        current.setHours(current.getHours() + 1);
-      } else {
-        current.setDate(current.getDate() + 1);
-      }
-    }
-    
-    return data;
-  };
+  const tracesData = data?.traces || [];
+  const observationsData = data?.observations || [];
 
-  // Mock 관찰 데이터 생성 (level별)
-  const generateMockObservationsData = (fromDate, toDate) => {
-    const data = [];
-    const current = new Date(fromDate);
-    const end = new Date(toDate);
-    const levels = ['DEFAULT', 'DEBUG', 'WARNING', 'ERROR'];
-    
-    while (current <= end) {
-      const ts = current.getTime();
-      const values = levels.map(level => {
-        const baseValue = level === 'DEFAULT' ? 120 : 
-                         level === 'DEBUG' ? 80 : 
-                         level === 'WARNING' ? 25 : 10;
-        const variance = 0.6 + Math.random() * 0.8;
-        return {
-          label: level,
-          value: Math.round(baseValue * variance)
-        };
-      });
-      
-      data.push({ ts, values });
-      
-      // 시간 증가
-      if (agg === '1 hour' || agg === '3 hours') {
-        current.setHours(current.getHours() + 1);
-      } else {
-        current.setDate(current.getDate() + 1);
-      }
-    }
-    
-    return data;
-  };
-
-  // Mock 데이터 생성
-  const mockTracesData = generateMockTimeSeriesData(fromTimestamp, toTimestamp, 150, 'Traces');
-  const mockObservationsData = generateMockObservationsData(fromTimestamp, toTimestamp);
-
-  // 총합 계산
-  const totalTraces = mockTracesData.reduce((acc, item) => {
-    return acc + (item.values[0]?.value || 0);
+  const totalTraces = tracesData.reduce((acc, curr) => acc + (curr.values[0]?.value || 0), 0);
+  const totalObservations = observationsData.reduce((acc, curr) => {
+    const sumOfValues = curr.values.reduce((sum, v) => sum + (v.value || 0), 0);
+    return acc + sumOfValues;
   }, 0);
 
-  const totalObservations = mockObservationsData.reduce((acc, item) => {
-    return acc + item.values.reduce((sum, val) => sum + (val.value || 0), 0);
-  }, 0);
-
-  // 탭 데이터 구성
-  const data = [
+  const tabData = [
     {
       tabTitle: "Traces",
-      data: mockTracesData,
+      timeSeriesData: tracesData,
       totalMetric: totalTraces,
       metricDescription: `Traces tracked`,
+      color: "blue",
     },
     {
       tabTitle: "Observations by Level",
-      data: mockObservationsData,
+      timeSeriesData: observationsData,
       totalMetric: totalObservations,
       metricDescription: `Observations tracked`,
+      color: "indigo",
     },
   ];
 
   return (
-    <WidgetCard
-      className={className}
-      title="Traces by time"
-      isLoading={isLoading}
-      cardContentClassName="flex flex-col content-end"
-    >
+    <div className={`flex flex-col content-end ${className}`}>
       <TabComponent
-        tabs={data.map((item) => {
-          return {
-            tabTitle: item.tabTitle,
-            content: (
-              <>
-                <TotalMetric
-                  description={item.metricDescription}
-                  metric={
-                    item.totalMetric
-                      ? compactNumberFormatter(item.totalMetric)
-                      : compactNumberFormatter(0)
-                  }
+        tabs={tabData.map((item) => ({
+          tabTitle: item.tabTitle,
+          content: (
+            <>
+              {/* 🎯 [수정] prop 이름을 'metric'에서 'totalCount'로 변경 */}
+              <TotalMetric
+                description={item.metricDescription}
+                totalCount={compactNumberFormatter(item.totalMetric)}
+              />
+              {!isEmptyTimeSeries({ data: item.timeSeriesData }) ? (
+                <BaseTimeSeriesChart
+                  className="h-full min-h-80 self-stretch"
+                  agg={agg}
+                  data={item.timeSeriesData}
+                  connectNulls={true}
+                  chartType="area" 
+                  colors={[item.color]}
                 />
-                {!isEmptyTimeSeries({ data: item.data }) ? (
-                  <BaseTimeSeriesChart
-                    className="h-full min-h-80 self-stretch"
-                    agg={agg}
-                    data={item.data}
-                    connectNulls={true}
-                    chartType="area"
-                  />
-                ) : (
-                  <NoDataOrLoading
-                    isLoading={isLoading}
-                    description="Traces contain details about LLM applications and can be created using the SDK."
-                    href="https://langfuse.com/docs/observability/overview"
-                  />
-                )}
-              </>
-            ),
-          };
-        })}
+              ) : (
+                <NoDataOrLoading
+                  isLoading={isLoading}
+                  description="No data available for the selected time range."
+                />
+              )}
+            </>
+          ),
+        }))}
       />
-    </WidgetCard>
+    </div>
   );
 };
 
