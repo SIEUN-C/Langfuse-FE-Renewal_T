@@ -1,24 +1,29 @@
-import React, { useMemo } from 'react';
-import { 
-  LineChart, 
-  AreaChart, 
-  Line, 
-  Area, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip as RechartsTooltip, 
+import React, { useState, useMemo } from 'react';
+import {
+  LineChart,
+  AreaChart,
+  Line,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip as RechartsTooltip,
   Legend,
-  ResponsiveContainer 
+  ResponsiveContainer,
+  Dot,
 } from 'recharts';
 import { getColorsForCategories } from '../../utils/getColorsForCategories';
-import { compactNumberFormatter } from '../../utils/numbers';  
+import { compactNumberFormatter } from '../../utils/numbers';
 import { dashboardDateRangeAggregationSettings } from '../../utils/date-range-utils';
 import Tooltip from './Tooltip';
 
-/**
- * 기본 시계열 차트 컴포넌트 (Area/Line 모두 지원하는 최종 버전)
- */
+const CustomizedDot = (props) => {
+  const { value, cx, cy, stroke } = props;
+  if (value > 0) {
+    return <Dot cx={cx} cy={cy} r={5} fill={stroke} />;
+  }
+  return null;
+};
+
 const BaseTimeSeriesChart = (props) => {
   const {
     className = '',
@@ -27,10 +32,17 @@ const BaseTimeSeriesChart = (props) => {
     showLegend = true,
     connectNulls = false,
     valueFormatter = compactNumberFormatter,
-    chartType = 'line', // 기본값은 line으로 유지
-    colors: customColors, 
+    chartType = 'line',
+    colors: customColors,
+    conditionalDots = false,
+    interactiveLegend = false,
+    showLine = true,
+    specialSeries = [],
+    yAxisDomain,
   } = props;
-  
+
+  const [activeLabel, setActiveLabel] = useState(null);
+
   // --- 데이터 가공 로직 (기존과 동일) ---
   const safeData = useMemo(() => data.filter(d => d && typeof d.ts !== 'undefined' && Array.isArray(d.values)), [data]);
   const labels = useMemo(() => {
@@ -70,20 +82,29 @@ const BaseTimeSeriesChart = (props) => {
     });
     return map;
   }, [labels, customColors]);
+  
   const CustomTooltip = ({ active, payload, label }) => {
     if (!active || !payload) return null;
     return <Tooltip active={active} payload={payload} label={label} formatter={valueFormatter} />;
   };
 
+  const handleLegendClick = (payload) => {
+    if (!interactiveLegend) return; 
+    const { dataKey } = payload;
+    setActiveLabel(activeLabel === dataKey ? null : dataKey);
+  };
+  
+  const legendFormatter = (value) => {
+    return <span style={{ fontSize: '12px', color: '#374151', fontWeight: 900 }}>{value}</span>;
+  };
+
   if (safeData.length === 0) {
-    return <div style={{ marginTop: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '200px', color: '#6b7280', fontSize: '0.875rem' }} className={className}>No data available</div>;
+    return <div style={{ marginTop: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '300px', color: '#6b7280', fontSize: '0.875rem' }} className={className}>No data available</div>;
   }
-  // --- 데이터 가공 로직 끝 ---
   
   return (
     <div style={{ marginTop: '16px', height: '300px' }} className={className}>
       <ResponsiveContainer width="100%" height="100%">
-        {/* 🎯 [수정] AreaChart 로직을 다시 복원 */}
         {chartType === 'area' ? (
           <AreaChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
             <defs>
@@ -94,34 +115,52 @@ const BaseTimeSeriesChart = (props) => {
                 </linearGradient>
               ))}
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
             <XAxis dataKey="timestamp" stroke="#6b7280" fontSize={12} />
-            <YAxis stroke="#6b7280" fontSize={12} tickFormatter={valueFormatter} />
+            <YAxis stroke="#6b7280" fontSize={12} tickFormatter={valueFormatter} domain={yAxisDomain} />
             <RechartsTooltip content={<CustomTooltip />} />
-            {showLegend && <Legend />}
-            {labels.map((label) => (
-              <Area key={label} type="monotone" dataKey={label} stackId="1" stroke={colorMap[label]} fill={`url(#color-${label})`} connectNulls={connectNulls} />
-            ))}
+            <Legend verticalAlign="top" align="right" onClick={handleLegendClick} formatter={legendFormatter} wrapperStyle={{ marginBottom: '40px' }} />
+            {labels.map((label) => {
+              if (activeLabel && activeLabel !== label) return null;
+              const isSpecial = specialSeries.includes(label);
+              return (
+                <Area 
+                  key={label} 
+                  type="monotone" 
+                  dataKey={label} 
+                  stackId="1" 
+                  stroke={colorMap[label]} 
+                  fill={`url(#color-${label})`} 
+                  connectNulls={connectNulls}
+                  dot={conditionalDots && !isSpecial ? <CustomizedDot /> : { r: 5, fill: colorMap[label] }}
+                  activeDot={{ r: 5 }}
+                  strokeWidth={showLine || isSpecial ? 2 : 0} 
+                />
+              );
+            })}
           </AreaChart>
         ) : (
           <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
             <XAxis dataKey="timestamp" stroke="#6b7280" fontSize={12} />
-            <YAxis stroke="#6b7280" fontSize={12} tickFormatter={valueFormatter} />
+            <YAxis stroke="#6b7280" fontSize={12} tickFormatter={valueFormatter} domain={yAxisDomain} />
             <RechartsTooltip content={<CustomTooltip />} />
-            {showLegend && <Legend />}
-            {labels.map((label) => (
-              <Line
-                key={label}
-                type="monotone"
-                dataKey={label}
-                stroke={colorMap[label]}
-                strokeWidth={2}
-                dot={{ r: 3, strokeWidth: 1, fill: colorMap[label] }}
-                activeDot={{ r: 5 }}
-                connectNulls={connectNulls}
-              />
-            ))}
+            <Legend verticalAlign="top" align="right" onClick={handleLegendClick} formatter={legendFormatter} wrapperStyle={{ marginBottom: '40px' }} />
+            {labels.map((label) => {
+              if (activeLabel && activeLabel !== label) return null;
+              // 🎯 [수정] 현재 시리즈가 특별 처리 대상인지 정확히 일치하는지 확인
+              const isSpecial = specialSeries.includes(label);
+              return (
+                <Line
+                  key={label}
+                  type="monotone"
+                  dataKey={label}
+                  stroke={colorMap[label]}
+                  strokeWidth={showLine || isSpecial ? 2 : 0}
+                  dot={conditionalDots && !isSpecial ? <CustomizedDot /> : { r: 5, fill: colorMap[label] }}
+                  activeDot={{ r: 5 }}
+                  connectNulls={connectNulls}
+                />
+              );
+            })}
           </LineChart>
         )}
       </ResponsiveContainer>

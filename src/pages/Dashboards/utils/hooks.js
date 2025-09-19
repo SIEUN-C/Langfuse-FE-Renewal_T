@@ -55,16 +55,23 @@ export const extractTimeSeriesData = (data, timeColumn, extractConfig) => {
  * @returns {Array} 변환된 데이터
  */
 export const fillMissingValuesAndTransform = (timeSeriesData, expectedLabels) => {
-  if (!Array.isArray(timeSeriesData) || timeSeriesData.length === 0) return [];
+  // ★★★ 수정: timeSeriesData가 배열이 아닐 경우를 대비
+  if (!Array.isArray(timeSeriesData) || timeSeriesData.length === 0) return [];
+  // ★★★ 수정: expectedLabels가 없을 경우를 대비하여 모든 라벨을 수집
+  if (!expectedLabels) {
+    const allLabels = new Set();
+    timeSeriesData.forEach(dp => dp.values.forEach(v => allLabels.add(v.label)));
+    expectedLabels = Array.from(allLabels);
+  }
 
-  return timeSeriesData.map(dataPoint => {
-    const filledValues = expectedLabels.map(label => {
-      const existingValue = dataPoint.values.find(v => v.label === label);
-      return {
-        label,
-        value: existingValue ? existingValue.value : 0
-      };
-    });
+  return timeSeriesData.map(dataPoint => {
+    const filledValues = expectedLabels.map(label => {
+      const existingValue = dataPoint.values.find(v => v.label === label);
+      return {
+        label,
+        value: existingValue ? existingValue.value : 0
+      };
+    });
 
     return {
       ...dataPoint,
@@ -84,16 +91,21 @@ export const isEmptyTimeSeries = ({
   data,
   isNullValueAllowed = false,
 }) => {
-  return (
-    data.length === 0 ||
-    data.every(
-      (item) =>
-        item.values.length === 0 ||
-        (isNullValueAllowed
-          ? false
-          : item.values.every((value) => value.value === 0)),
-    )
-  );
+  // ★★★ 수정: data가 null이나 undefined일 경우를 처리하는 방어 코드 추가
+  if (!data) {
+    return true;
+  }
+  
+  return (
+    data.length === 0 ||
+    data.every(
+      (item) =>
+        item.values.length === 0 ||
+        (isNullValueAllowed
+          ? false
+          : item.values.every((value) => value.value === 0)),
+    )
+  );
 };
 
 /**

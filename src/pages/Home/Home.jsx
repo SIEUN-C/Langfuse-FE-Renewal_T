@@ -10,6 +10,8 @@ import ModelCostTable from "../Dashboards/components/charts/ModelCostTable";
 import UserChart from "../Dashboards/components/charts/UserChart";
 import LatencyChart from "../Dashboards/components/charts/LatencyChart";
 import LatencyTables from "../Dashboards/components/charts/LatencyTables";
+// ▼▼▼ 1. ChartScores 컴포넌트 import 추가 ▼▼▼
+import ChartScores from "../Dashboards/components/charts/ChartScores";
 
 // ===== 필터 컴포넌트들 =====
 import DateRangePicker from "../../components/DateRange/DateRangePicker";
@@ -27,12 +29,28 @@ import { dashboardDateRangeAggregationSettings } from "../Dashboards/utils/date-
 
 // ===== 유틸리티 =====
 import { useDebounce } from "../Dashboards/hooks/useDebounce";
+// ▼▼▼ 2. 데이터 가공 함수 import 추가 ▼▼▼
+import {
+  extractTimeSeriesData,
+  fillMissingValuesAndTransform,
+} from "../Dashboards/utils/hooks";
 
 // 아이콘
 import { Loader } from "lucide-react";
 
 // CSS
 import styles from "./Home.module.css";
+
+// ▼▼▼ 3. ChartScores 데이터 처리에 필요한 헬퍼 함수 정의 ▼▼▼
+const getScoreDataTypeIcon = (dataType) => {
+  const iconMap = {
+    "NUMERIC": "📊",
+    "CATEGORICAL": "📋",
+    "BOOLEAN": "✅",
+    "STRING": "📝",
+  };
+  return iconMap[dataType] || "📈";
+};
 
 const Home = () => {
   const { projectId } = useParams();
@@ -59,6 +77,12 @@ const Home = () => {
   const [isScoresTableLoading, setIsScoresTableLoading] = useState(true);
   const [scoresTableError, setScoresTableError] = useState(null);
   // ▲▲▲▲▲ [여기까지] ScoresTable 차트 상태 추가 ▲▲▲▲▲
+
+    // ▼▼▼ 4. ChartScores를 위한 상태 변수 추가 ▼▼▼
+   // 'ChartScores'를 위한 상태 변수
+  const [chartScoresData, setChartScoresData] = useState([]); // 초기값을 null에서 빈 배열로 변경
+  const [isChartScoresLoading, setIsChartScoresLoading] = useState(true);
+  const [chartScoresError, setChartScoresError] = useState(null);
 
 
   // 필터 관련 로직 (기존과 동일)
@@ -174,7 +198,64 @@ const Home = () => {
   // ▲▲▲▲▲ [여기까지] ScoresTable 데이터 로딩 useEffect 추가 ▲▲▲▲▲
 
 
+// ▼▼▼ 5. ChartScores 데이터 로딩을 위한 useEffect 추가 ▼▼▼
+// 'ChartScores' 데이터 로딩을 위한 useEffect
+useEffect(() => {
+  const fetchChartScoresData = async () => {
+    if (!projectId || !dateRange.startDate || !dateRange.endDate) return;
+    setIsChartScoresLoading(true);
+    setChartScoresError(null);
+    try {
+      const fromTimestamp = dateRange.startDate.toISOString();
+      const toTimestamp = dateRange.endDate.toISOString();
+      
+      // ▼▼▼ [수정] 여기를 'hour'에서 'day'로 변경 ▼▼▼
+      const timeDimension = { granularity: "day" }; 
 
+      const query = {
+        view: "scores-numeric",
+        dimensions: [
+          { field: "name" },
+          { field: "dataType" },
+          { field: "source" },
+        ],
+        metrics: [{ measure: "value", aggregation: "avg" }],
+        filters: mergedFilterState,
+        timeDimension, // 수정된 timeDimension 사용
+        fromTimestamp,
+        toTimestamp,
+        orderBy: null,
+      };
+
+      const result = await widgetAPI.executeQuery(projectId, query);
+      if (!result.success) { throw new Error(result.error || "Failed to fetch chart scores data"); }
+      
+      // ▼▼▼ [수정] API 응답 데이터가 배열이 아닐 경우를 대비한 방어 코드 추가 ▼▼▼
+      const rawData = result.data;
+      const processedData = Array.isArray(rawData) && rawData.length > 0
+        ? fillMissingValuesAndTransform(
+          extractTimeSeriesData(rawData, "time_dimension", [
+            {
+              uniqueIdentifierColumns: [
+                { accessor: "data_type", formatFct: (value) => getScoreDataTypeIcon(value) },
+                { accessor: "name" },
+                { accessor: "source", formatFct: (value) => `(${value.toLowerCase()})` },
+              ],
+              valueColumn: "avg_value",
+            },
+          ]),
+        )
+        : [];
+      setChartScoresData(processedData);
+    } catch (error) {
+      console.error("Error fetching Chart Scores data:", error);
+      setChartScoresError(error);
+    } finally {
+      setIsChartScoresLoading(false);
+    }
+  };
+  fetchChartScoresData();
+}, [projectId, mergedFilterState, dateRange]);
 
 
 
@@ -210,10 +291,15 @@ const Home = () => {
           </div>
         </div>
         <div className={`${styles.chartRow} ${styles.cols2}`}>
-           <UserChart projectId={projectId} globalFilterState={mergedFilterState} fromTimestamp={dateRange.startDate} toTimestamp={dateRange.endDate} isLoading={isLoading || filterOptionsLoading} />
-          <div className={styles.placeholderCard}>
-            <div className={styles.placeholderContent}><h3>Scores</h3><p>ChartScores</p><small>구현 예정</small></div>
-          </div>
+            <UserChart projectId={projectId} globalFilterState={mergedFilterState} fromTimestamp={dateRange.startDate} toTimestamp={dateRange.endDate} isLoading={isLoading || filterOptionsLoading} />
+          {/* 🎯 [수정] 이 부분을 우리가 만든 ChartScores로 교체합니다. */}
+          <DashboardCard title="Scores" description="Moving average per score" isLoading={isChartScoresLoading} error={chartScoresError}>
+            <ChartScores
+              data={chartScoresData}
+              isLoading={isChartScoresLoading}
+              agg="1 day" // 데이터 단위가 day로 바뀌었으므로 agg도 맞춰줍니다.
+            />
+          </DashboardCard>
         </div>
         <div className={`${styles.chartRow} ${styles.cols3}`}>
             <LatencyTables projectId={projectId} globalFilterState={mergedFilterState} fromTimestamp={dateRange.startDate} toTimestamp={dateRange.endDate} isLoading={isLoading || filterOptionsLoading} />
