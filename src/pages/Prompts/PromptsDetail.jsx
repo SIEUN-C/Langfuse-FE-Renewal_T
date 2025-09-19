@@ -207,7 +207,22 @@ export default function PromptsDetail() {
     if (!id || !selectedVersion) return;
 
     const isChatType = Array.isArray(selectedVersion.prompt);
-    const chatContentValue = isChatType ? (selectedVersion.prompt || []) : [];
+    const chatContentValue = isChatType
+      ? (selectedVersion.prompt || []).map(msg => {
+        let role = 'Placeholder'; // 기본값을 Placeholder로 설정
+        if (msg.role) {
+          // role이 있으면 첫 글자만 대문자로 변환 (e.g. "system" -> "System")
+          role = msg.role.charAt(0).toUpperCase() + msg.role.slice(1).toLowerCase();
+        }
+
+        return {
+          ...msg,
+          id: msg.id || crypto.randomUUID(), // ID가 없으면 새로 생성
+          role: role,
+          content: msg.name || msg.content || ''
+        };
+      })
+      : [];
     const textContentValue = !isChatType ? (selectedVersion.prompt || '') : '';
     const configValue = selectedVersion.config ? JSON.stringify(selectedVersion.config, null, 2) : '{}';
 
@@ -227,21 +242,40 @@ export default function PromptsDetail() {
 
   const handleGoToPlayground = () => {
     if (!selectedVersion) return;
+
     const messages = [];
-    if (selectedVersion.prompt.system) {
-      messages.push({ id: Date.now() + 1, role: 'System', content: selectedVersion.prompt.system });
+    const promptData = selectedVersion.prompt;
+
+    if (typeof promptData === 'string') {
+      messages.push({
+        id: crypto.randomUUID(),
+        role: 'System',
+        content: promptData,
+      });
+    } else if (Array.isArray(promptData)) {
+      promptData.forEach((msg) => {
+        if (!msg.role) { // placeholder
+          messages.push({
+            id: msg.id || crypto.randomUUID(),
+            role: 'Placeholder',
+            content: msg.name || msg.content || '',
+            name: msg.name || msg.content || ''
+          });
+        } else { // 일반 메시지
+          messages.push({
+            id: msg.id || crypto.randomUUID(),
+            role: msg.role.charAt(0).toUpperCase() + msg.role.slice(1).toLowerCase(),
+            content: msg.content || '',
+          });
+        }
+      });
     }
-    if (selectedVersion.prompt.user) {
-      messages.push({ id: Date.now() + 2, role: 'User', content: selectedVersion.prompt.user });
-    }
-    navigate('/playground', {
-      state: {
-        promptName: id,
-        promptVersion: selectedVersion.id,
-        messages: messages,
-        config: selectedVersion.config,
-      }
-    });
+
+    // 1. 데이터를 sessionStorage에 JSON 문자열 형태로 저장합니다.
+    sessionStorage.setItem('promptDataForPlayground', JSON.stringify({ messages }));
+
+    // 2. state 없이 Playground 페이지로 이동합니다.
+    navigate('/playground');
   };
 
   const handleDuplicateSubmit = async (newName, copyAll) => {
@@ -474,16 +508,30 @@ export default function PromptsDetail() {
             {activeDetailTab === 'Prompt' && (
               <>
                 {Array.isArray(selectedVersion.prompt) ? (
-                  selectedVersion.prompt.map((message, index) => (
-                    <div className={styles.promptCard} key={index}>
-                      <div className={styles.promptHeader}>
-                        {message.role.charAt(0).toUpperCase() + message.role.slice(1)}
+                  selectedVersion.prompt.map((message, index) => {
+                    const key = message.id || index;
+                    let headerText;
+                    let contentToShow;
+
+                    if (message.role) {
+                      headerText = message.role.charAt(0).toUpperCase() + message.role.slice(1);
+                      contentToShow = message.content;
+                    } else {
+                      headerText = 'Placeholder';
+                      contentToShow = message.name || message.content || '';
+                    }
+
+                    return (
+                      <div className={styles.promptCard} key={key}>
+                        <div className={styles.promptHeader}>
+                          {headerText}
+                        </div>
+                        <div className={styles.promptBody}>
+                          <PromptContentViewer content={contentToShow} />
+                        </div>
                       </div>
-                      <div className={styles.promptBody}>
-                        <PromptContentViewer content={message.content} />
-                      </div>
-                    </div>
-                  ))
+                    );
+                  })
                 ) : (
                   <div className={styles.promptCard}>
                     <div className={styles.promptHeader}>Text Prompt</div>

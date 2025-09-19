@@ -1,17 +1,16 @@
 // src/Pages/Playground/lib/toServerBody.js
 
-// 내부 표준 → 서버 스키마 매핑
 const ADAPTER_OUT_MAP = {
-  vertex: "google-ai-studio",   // 또는 "google-vertex-ai"도 허용됨
+  vertex: "google-ai-studio",
   "azure-openai": "azure",
 };
 
 export default function toServerBody({
   projectId,
   messages,
-  schema,        // {id,name,schema} | null
+  schema,
   streaming,
-  modelAdv,      // UI 상태 (useState)
+  modelAdv,
   selectedProvider,
   selectedAdapter,
   selectedModel,
@@ -28,12 +27,12 @@ export default function toServerBody({
   const chat = (messages || [])
     .filter((m) => m.kind !== "placeholder" && m.role !== "Placeholder")
     .map((m) => ({
+      id: m.id,
       type: toType(m.role),
       role: toRole(m.role),
       content: (m.content || "").trim(),
     }));
 
-  // ✅ 서버가 기대하는 어댑터명으로 변환
   const adapterForServer =
     ADAPTER_OUT_MAP[(selectedAdapter || "").toLowerCase()] || selectedAdapter;
 
@@ -42,29 +41,55 @@ export default function toServerBody({
     adapter: adapterForServer,
     model: (selectedModel || "").trim(),
     ...(modelAdv?.useTemperature ? { temperature: Number(modelAdv.temperature) } : {}),
-    ...(modelAdv?.useTopP ? { topP: Number(modelAdv.topP) } : {}),
-    ...(modelAdv?.useMaxTokens ? { maxTokens: parseInt(modelAdv.maxTokens, 10) } : {}),
+    ...(modelAdv?.useTopP ? { top_p: Number(modelAdv.topP) } : {}),
+    ...(modelAdv?.useMaxTokens ? { max_tokens: parseInt(modelAdv.maxTokens, 10) } : {}),
     ...(modelAdv?.useFrequencyPenalty ? { frequencyPenalty: Number(modelAdv.frequencyPenalty) } : {}),
     ...(modelAdv?.usePresencePenalty ? { presencePenalty: Number(modelAdv.presencePenalty) } : {}),
   };
 
-  const stops = String(modelAdv?.stopInput || "")
-    .split(/[\n,]/)
-    .map((s) => s.trim())
-    .filter(Boolean);
-  if (stops.length) mp.stop = stops;
-
-  if ((modelAdv?.apiKeyOverride || "").trim()) {
-    mp.apiKeyOverride = modelAdv.apiKeyOverride.trim();
+  // additionalOptions 로직 (안전하게 유지)
+  if (
+    modelAdv?.additionalOptions &&
+    typeof modelAdv.additionalOptionsValue === 'string' &&
+    modelAdv.additionalOptionsValue.trim()
+  ) {
+    try {
+      const providerOptions = JSON.parse(modelAdv.additionalOptionsValue);
+      mp.providerOptions = providerOptions;
+    } catch (error) {
+      console.error(
+        "Playground - Error parsing additionalOptions JSON:",
+        error
+      );
+    }
   }
+
+  // --- START: trim() 오류 최종 수정 ---
+
+  // 1. stopInput을 안전하게 처리합니다.
+  const stopInput = modelAdv?.stopInput;
+  if (typeof stopInput === 'string' && stopInput.trim()) {
+    const stops = stopInput.split(/[\n,]/).map((s) => s.trim()).filter(Boolean);
+    if (stops.length) {
+      mp.stop = stops;
+    }
+  }
+
+  // 2. apiKeyOverride를 안전하게 처리합니다.
+  const apiKeyOverride = modelAdv?.apiKeyOverride;
+  if (typeof apiKeyOverride === 'string' && apiKeyOverride.trim()) {
+    mp.apiKeyOverride = apiKeyOverride.trim();
+  }
+
+  // --- END: trim() 오류 최종 수정 ---
 
   return {
     projectId,
     messages: chat,
     modelParams: mp,
     streaming: !!streaming,
-    outputSchema: schema
-      ? { id: schema.id, name: schema.name, schema: schema.schema || {} }
-      : null,
+    outputSchema: schema ?
+      { id: schema.id, name: schema.name, schema: schema.schema || {} } :
+      null,
   };
 }

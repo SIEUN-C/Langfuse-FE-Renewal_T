@@ -1,7 +1,7 @@
 // src/Pages/Tracing/RowDensityButton.jsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import ReactDOM from "react-dom";
-import { List } from "lucide-react";
+import { LayoutGrid } from "lucide-react";
 import styles from "./RowDensityButton.module.css";
 
 export default function RowDensityButton({ value, onChange, className, style }) {
@@ -61,7 +61,7 @@ export default function RowDensityButton({ value, onChange, className, style }) 
         title="Row height"
         onClick={() => (open ? setOpen(false) : openMenu())}
       >
-        <List size={18} />
+        <LayoutGrid size={18} />
       </button>
 
       {open &&

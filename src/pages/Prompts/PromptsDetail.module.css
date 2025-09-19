@@ -572,6 +572,7 @@
 .playgroundDropdownItem:hover {
   background-color: #1e293b;
   color: #f1f5f9;
+  width: 140px;
 }
 
 /* ▼▼▼ 추가 : reference 멘션기능 구현  ▼▼▼ */

@@ -42,6 +42,21 @@ import { fetchSession } from "../Settings/lib/sessionOrg";
 
 const API_URL = "/api/chatCompletion";
 
+const getInitialMessages = () => {
+  const savedDataString = sessionStorage.getItem('promptDataForPlayground');
+  if (savedDataString) {
+    try {
+      const savedData = JSON.parse(savedDataString);
+      if (Array.isArray(savedData.messages)) {
+        return savedData.messages;
+      }
+    } catch (error) {
+      console.error("sessionStorage 데이터 파싱 오류:", error);
+    }
+  }
+  return null;
+};
+
 function PlaygroundComponent({
   PROJECT_ID,
   onCopy,
@@ -51,7 +66,7 @@ function PlaygroundComponent({
   onRegisterRunner,
 }) {
   // 메시지/변수
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState(() => getInitialMessages() || []);
   const [varNames, setVarNames] = useState([]);
   const [varValues, setVarValues] = useState({});
   const [placeholders, setPlaceholders] = useState([]);
@@ -132,6 +147,10 @@ function PlaygroundComponent({
     [connections, selectedProvider, selectedAdapter]
   );
 
+  useEffect(() => {
+    sessionStorage.removeItem('promptDataForPlayground');
+  }, []);
+
   // 드롭다운 리스트
   const modelMenuItems = useMemo(
     () =>
@@ -178,12 +197,12 @@ function PlaygroundComponent({
     return loadingConn
       ? "Loading LLM connections…"
       : !selectedProvider
-      ? "Select a provider"
-      : !selectedModel
-      ? "Select or type a model"
-      : !hasContent
-      ? "Add at least one message"
-      : "";
+        ? "Select a provider"
+        : !selectedModel
+          ? "Select or type a model"
+          : !hasContent
+            ? "Add at least one message"
+            : "";
   }, [loadingConn, selectedProvider, selectedModel, hasContent]);
 
   const canSubmit = hasContent && !!selectedProvider && !!selectedModel;
@@ -452,7 +471,12 @@ function PlaygroundComponent({
       )}
 
       {/* Messages */}
-      <ChatBox value={messages} onChange={setMessages} schema="kind" autoInit />
+      <ChatBox
+        value={messages}
+        onChange={setMessages}
+        schema="rolePlaceholder"
+        autoInit={messages.length === 0}
+      />
 
       {/* Output */}
       <div className={styles.outputCard}>
@@ -515,10 +539,10 @@ function PlaygroundComponent({
           initialData={
             editingTool
               ? {
-                  name: editingTool.name,
-                  description: editingTool.description,
-                  parameters: editingTool.parameters || {},
-                }
+                name: editingTool.name,
+                description: editingTool.description,
+                parameters: editingTool.parameters || {},
+              }
               : undefined
           }
           onSubmit={async (form) => {
@@ -544,10 +568,10 @@ function PlaygroundComponent({
           initialData={
             editingSchema
               ? {
-                  name: editingSchema.name,
-                  description: editingSchema.description,
-                  schema: editingSchema.schema || {},
-                }
+                name: editingSchema.name,
+                description: editingSchema.description,
+                schema: editingSchema.schema || {},
+              }
               : undefined
           }
           onSubmit={async (form) => {

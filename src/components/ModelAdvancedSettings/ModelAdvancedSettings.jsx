@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './ModelAdvancedSettings.module.css';
 import { fetchLlmApiKeys } from './ModelAdvancedSettingsApi';
+import CodeBlock from 'components/CodeBlock/CodeBlock'
 
 export const DEFAULT_SETTINGS = {
   useTemperature: false,
@@ -11,6 +12,7 @@ export const DEFAULT_SETTINGS = {
   maxTokens: 1024,
   topP: 1.0,
   additionalOptions: false,
+  additionalOptionsValue: "{\n\n}",
 };
 
 const ModelAdvancedSettings = ({
@@ -29,6 +31,31 @@ const ModelAdvancedSettings = ({
   const navigate = useNavigate();
   const [apiKey, setApiKey] = useState('');
   const [position, setPosition] = useState({ top: 0, left: 0 });
+  const [isJsonValid, setIsJsonValid] = useState(true);
+
+  // --- JSON 유효성 검사 ---
+  useEffect(() => {
+    // additionalOptions가 활성화되어 있을 때만 유효성을 검사합니다.
+    if (settings.additionalOptions) {
+      const jsonString = settings.additionalOptionsValue ?? '';
+
+      // 빈 문자열이거나 기본 중괄호만 있는 경우, 오류로 간주하지 않습니다.
+      if (jsonString.trim() === '' || jsonString.trim() === '{}' || jsonString.trim() === '{\n  \n}') {
+        setIsJsonValid(true);
+        return;
+      }
+
+      try {
+        JSON.parse(jsonString);
+        setIsJsonValid(true); // 파싱 성공!
+      } catch (e) {
+        setIsJsonValid(false); // 파싱 실패!
+      }
+    } else {
+      // 토글이 꺼지면 경고 상태를 초기화합니다.
+      setIsJsonValid(true);
+    }
+  }, [settings.additionalOptions, settings.additionalOptionsValue]);
 
   // --- API Key Fetching Logic ---
   useEffect(() => {
@@ -56,7 +83,6 @@ const ModelAdvancedSettings = ({
       const viewportHeight = window.innerHeight;
       const margin = 8; // 여백
 
-      // --- 가로 위치 계산 (기존과 동일) ---
       let left = buttonRect.right + margin;
       if (left + popoverRect.width > viewportWidth) {
         left = buttonRect.left - popoverRect.width - margin;
@@ -64,19 +90,25 @@ const ModelAdvancedSettings = ({
       left = Math.max(margin, left);
 
       // --- 세로 위치 계산 (수정된 로직) ---
-      let top = buttonRect.bottom + margin; // 1. 기본적으로 버튼 아래에 위치
+      // 1. 기본적으로 버튼 아래에 위치하도록 시도
+      let top = buttonRect.bottom + margin;
 
       // 2. 아래쪽 공간이 부족하면 위쪽으로 보냄
       if (top + popoverRect.height > viewportHeight) {
         top = buttonRect.top - popoverRect.height - margin;
       }
 
-      // 3. 위쪽으로 보내도 공간이 부족하면(화면 상단보다 위로 가면) 화면 상단에 붙임
+      // 3. 위로 보내도 화면 상단을 벗어나면, 화면 상단에 붙임
       top = Math.max(margin, top);
+
+      // 4. 그래도 화면 하단을 벗어나는 경우 (내용이 너무 길어서), 화면 하단에 붙임
+      top = Math.min(top, viewportHeight - popoverRect.height - margin);
+
 
       setPosition({ top, left });
     }
-  }, [open, anchorRef, useFixedPosition]);
+    // 💡 의존성 배열에 'settings'를 추가하여 settings가 바뀔 때마다 이 로직이 재실행되도록 합니다.
+  }, [open, anchorRef, useFixedPosition, settings]);
 
   // --- Close on Outside Click / Escape Key ---
   useEffect(() => {
@@ -148,6 +180,7 @@ const ModelAdvancedSettings = ({
               onChange={(e) => update({ temperature: toFloat(e.target.value, 0) })}
               className={styles.advValueInput}
               step="0.1" min="0" max="2"
+              disabled={!settings.useTemperature}
             />
             <div
               className={`${styles.advToggleSwitch} ${settings.useTemperature ? styles.advToggleOn : ""}`}
@@ -183,6 +216,7 @@ const ModelAdvancedSettings = ({
               onChange={(e) => update({ maxTokens: toInt(e.target.value, 1024) })}
               className={styles.advValueInput}
               min="1"
+              disabled={!settings.useMaxTokens}
             />
             <div
               className={`${styles.advToggleSwitch} ${settings.useMaxTokens ? styles.advToggleOn : ""}`}
@@ -218,6 +252,7 @@ const ModelAdvancedSettings = ({
               onChange={(e) => update({ topP: toFloat(e.target.value, 1) })}
               className={styles.advValueInput}
               step="0.05" min="0" max="1"
+              disabled={!settings.useTopP}
             />
             <div
               className={`${styles.advToggleSwitch} ${settings.useTopP ? styles.advToggleOn : ""}`}
@@ -258,6 +293,21 @@ const ModelAdvancedSettings = ({
             </div>
           </div>
         </div>
+        {settings.additionalOptions && (
+          <div className={styles.jsonEditorContainer}>
+            <CodeBlock
+              code={settings.additionalOptionsValue ?? ""}
+              onChange={(value) => update({ additionalOptionsValue: value })}
+              language="json"
+              className={`${styles.jsonCodeBlock} ${!isJsonValid ? styles.invalidJson : ''}`}
+            />
+            {!isJsonValid && (
+              <div className={styles.jsonWarning}>
+                형식이 올바르지 않습니다.
+              </div>
+            )}
+          </div>
+        )}
 
         {/* API key */}
         <div className={styles.advParameterRow}>

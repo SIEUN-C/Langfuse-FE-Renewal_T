@@ -109,7 +109,7 @@ const JudgePage = () => {
       visible: columns.find(oldCol => (oldCol.accessorKey || oldCol.id) === (c.accessorKey || c.id))?.visible ?? true,
     }));
     setColumns(newColumns);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId, datasetMap, handleOpenDeleteModal]);
   // ========================[수정 끝]========================
 
@@ -205,32 +205,6 @@ const JudgePage = () => {
           </div>
         </header>
 
-        <div className={styles.filterBar}>
-          <div className={styles.searchBox}>
-            <SearchInput
-            placeholder="Search..."
-            value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
-            searchType={searchType}
-            setSearchType={setSearchType}
-            searchTypes={["Name"]}
-            />
-          </div>
-          <FilterControls
-            builderFilterProps={builderFilterProps}
-          />
-          <FilterButton onClick={() => setIsColumnVisibleModalOpen(true)}>
-            <Columns size={16} /> Columns ({visibleColumns.length}/{columns.length})
-          </FilterButton>
-        </div>
-        <ColumnVisibilityModal
-          isOpen={isColumnVisibleModalOpen}
-          onClose={() => setIsColumnVisibleModalOpen(false)}
-          columns={columns}
-          toggleColumnVisibility={toggleColumnVisibility}
-          setAllColumnsVisible={setAllColumnsVisible}
-        />
-
         <nav className={styles.tabs}>
           <button
             className={`${styles.tab} ${activeTab === "running" ? styles.active : ""}`}
@@ -246,13 +220,41 @@ const JudgePage = () => {
           </button>
         </nav>
 
+        <div className={styles.filterBar}>
+          <div className={styles.searchBox}>
+            <SearchInput
+              placeholder="Search..."
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+              searchType={searchType}
+              setSearchType={setSearchType}
+              searchTypes={["Name"]}
+            />
+          </div>
+          {activeTab === "running" && (
+            <FilterControls
+              builderFilterProps={builderFilterProps}
+            />
+          )}
+          <FilterButton onClick={() => setIsColumnVisibleModalOpen(true)}>
+            <Columns size={16} /> Columns ({visibleColumns.length}/{columns.length})
+          </FilterButton>
+        </div>
+        <ColumnVisibilityModal
+          isOpen={isColumnVisibleModalOpen}
+          onClose={() => setIsColumnVisibleModalOpen(false)}
+          columns={columns}
+          toggleColumnVisibility={toggleColumnVisibility}
+          setAllColumnsVisible={setAllColumnsVisible}
+        />
+
         <main className={styles.content}>
           {activeTab === "running" ? (
             // ========================[수정 3: visibleColumns 전달]========================
             // 주석: EvaluatorsTable에 'columns' prop으로 'visibleColumns'를 전달합니다.
             <EvaluatorsTable
               data={filteredEvaluators}
-              columns={visibleColumns} 
+              columns={visibleColumns}
               onRowClick={handleRowClick}
               isLoading={isLoading}
               datasetMap={datasetMap}

@@ -439,7 +439,8 @@
    4) Tools/Schema 패널 리스트
    ========================= */
 .toolSection {
-  border: 1px solid var(--border);
+  /* border: 1px solid var(--border); */
+  border: 1px solid #334155;
   border-radius: 6px;
   padding: 10px 14px;
   display: flex;
@@ -450,17 +451,17 @@
 }
 
 .toolSearch {
-    display: block;   /* SearchInput이 자체적으로 flex/width 가짐 */
-   margin: 8px 0;    /* 위아래 간격만 */
+  display: flex;
+  margin: 8px 0;
+  border-radius: 6px;
 }
 
 .toolSearch input {
   background: none;
-  border: none;
   outline: none;
   color: white;
   padding: 8px 4px;
-  font-size: 13px;
+  font-size: 11px;
   width: 100%;
 }
 

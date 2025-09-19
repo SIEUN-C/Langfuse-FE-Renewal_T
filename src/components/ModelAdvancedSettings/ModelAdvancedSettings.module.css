@@ -208,3 +208,32 @@
 .advResetButton:hover {
   background-color: #2159a8;
 }
+
+.jsonEditorContainer {
+  margin-top: 8px;
+  /* padding: 12px; */
+  background-color: none;
+  border-radius: 4px;
+  border: 1px solid #334155;
+}
+
+.jsonWarning {
+  margin-top: 8px;
+  color: #a94442; /* 어두운 빨간색 텍스트 */
+  background-color: #f2dede; /* 연한 빨간색 배경 */
+  border: 1px solid #ebccd1; /* 연한 빨간색 테두리 */
+  border-radius: 4px;
+  padding: 10px;
+  font-size: 13px;
+}
+
+.invalidJson {
+  /* CodeBlock의 테두리를 빨간색으로 변경하여 오류를 시각적으로 표시 */
+  border-color: #a94442 !important; 
+  box-shadow: 0 0 0 1px #a94442;
+}
+
+.advValueInput:disabled {
+  color: #999;
+  cursor: not-allowed;
+}

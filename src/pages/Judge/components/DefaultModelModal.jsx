@@ -35,19 +35,25 @@ export default function DefaultModelModal({
     if (!isOpen) return;
 
     const handleOutsideClick = (event) => {
-      if (
-        dialogRef.current && !dialogRef.current.contains(event.target) &&
-        settingsButtonRef.current && !settingsButtonRef.current.contains(event.target)
-      ) {
+      if (ismodalOpen) {
+        return;
+      }
+
+      if (settingsButtonRef.current && settingsButtonRef.current.contains(event.target)) {
+        return;
+      }
+
+      if (dialogRef.current && !dialogRef.current.contains(event.target)) {
         onClose?.();
       }
     };
 
     const handleEscapeKey = (event) => {
       if (event.key === "Escape") {
-        // 확인 모달이 열려있으면 그것만 닫고, 그렇지 않으면 메인 모달을 닫음
         if (isConfirmModalOpen) {
           setIsConfirmModalOpen(false);
+        } else if (ismodalOpen) {
+          setIsModalOpen(false);
         } else {
           onClose?.();
         }
@@ -56,11 +62,14 @@ export default function DefaultModelModal({
 
     document.addEventListener("mousedown", handleOutsideClick);
     document.addEventListener("keydown", handleEscapeKey);
+
     return () => {
       document.removeEventListener("mousedown", handleOutsideClick);
       document.removeEventListener("keydown", handleEscapeKey);
     };
-  }, [isOpen, onClose, isConfirmModalOpen]);
+
+  }, [isOpen, onClose, isConfirmModalOpen, ismodalOpen]);
+
 
   useEffect(() => {
     if (!isOpen || !projectId) return;
@@ -103,9 +112,26 @@ export default function DefaultModelModal({
     setIsUpdating(true);
 
     const modelParams = {};
+
     if (modelSettings.useTemperature) modelParams.temperature = modelSettings.temperature;
     if (modelSettings.useTopP) modelParams.top_p = modelSettings.topP;
     if (modelSettings.useMaxTokens) modelParams.max_tokens = modelSettings.maxTokens;
+
+    if (modelSettings.additionalOptions && modelSettings.additionalOptionsValue) {
+      try {
+        const providerOptions = JSON.parse(modelSettings.additionalOptionsValue);
+        modelParams.providerOptions = providerOptions;
+      } catch (error) {
+        console.error("Provided JSON in 'additional options' is invalid:", error);
+        alert("The JSON provided in 'additional options' is not valid. Please correct it.");
+        setIsUpdating(false);
+        return;
+      }
+    }
+
+    modelParams.adapter = selectedApiKey.adapter;
+    modelParams.provider = selectedProvider;
+    modelParams.model = selectedModelName;
 
     const modelData = {
       projectId: projectId,
@@ -169,17 +195,6 @@ export default function DefaultModelModal({
               X
             </button>
           </div>
-          <ModelAdvancedSettings
-            open={ismodalOpen}
-            onClose={() => setIsModalOpen(false)}
-            anchorRef={settingsButtonRef}
-            settings={modelSettings}
-            onSettingChange={handleSettingChange}
-            onReset={() => setModelSettings(DEFAULT_SETTINGS)}
-            projectId={projectId}
-            provider={selectedProvider}
-            useFixedPosition={true}
-          />
         </div>
 
         {/* 본문 */}
@@ -253,6 +268,7 @@ export default function DefaultModelModal({
             Update
           </button>
         </div>
+
         {isConfirmModalOpen && (
           // 뒷 배경을 다시 어둡게 처리
           <div className={styles.confirmOverlay}>
@@ -290,6 +306,17 @@ export default function DefaultModelModal({
           </div>
         )}
       </div>
+      <ModelAdvancedSettings
+        open={ismodalOpen}
+        onClose={() => setIsModalOpen(false)}
+        anchorRef={settingsButtonRef}
+        settings={modelSettings}
+        onSettingChange={handleSettingChange}
+        onReset={() => setModelSettings(DEFAULT_SETTINGS)}
+        projectId={projectId}
+        provider={selectedProvider}
+        useFixedPosition={true}
+      />
     </div>
   );
 }
