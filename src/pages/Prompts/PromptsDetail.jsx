@@ -271,13 +271,11 @@ export default function PromptsDetail() {
       });
     }
 
-    // --- START: 수정된 부분 ---
     // 1. 데이터를 sessionStorage에 JSON 문자열 형태로 저장합니다.
     sessionStorage.setItem('promptDataForPlayground', JSON.stringify({ messages }));
 
     // 2. state 없이 Playground 페이지로 이동합니다.
     navigate('/playground');
-    // --- END: 수정된 부분 ---
   };
 
   const handleDuplicateSubmit = async (newName, copyAll) => {
