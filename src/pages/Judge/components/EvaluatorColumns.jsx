@@ -238,6 +238,7 @@ export const getEvaluatorColumns = (projectId, datasetMap, onDeleteClick) => {
       id: 'target',
       header: 'Target',
       accessor: (row) => row.targetObject ?? '-',
+      defaultVisible: true,
     },
     // --- 수정: Filter 컬럼의 표시 방식을 변경 ---
     // JSON 문자열 대신 위에서 만든 FilterDisplay 컴포넌트를 사용합니다.
@@ -247,6 +248,7 @@ export const getEvaluatorColumns = (projectId, datasetMap, onDeleteClick) => {
       header: 'Filter',
       // 이제 이 accessor는 위에서 받은 datasetMap을 정상적으로 사용할 수 있습니다.
       accessor: (row) => <FilterDisplay filter={row.filter} datasetMap={datasetMap} />,
+      defaultVisible: true,
     },
     // ---------------------------------------------------------------
     // -----------------------------------------
@@ -254,6 +256,7 @@ export const getEvaluatorColumns = (projectId, datasetMap, onDeleteClick) => {
       id: 'rowId',
       header: 'Id',
       accessor: (row) => row.id,
+      defaultVisible: true,
     },
     {
       id: 'actions',

@@ -3,13 +3,14 @@ import ReactDOM from 'react-dom';
 import dayjs from 'dayjs';
 import styles from './Tracing.module.css';
 import { DataTable } from 'components/DataTable/DataTable';
-import { traceTableColumns as originalTraceTableColumns } from './config/TraceColumns.jsx';
+import { traceTableColumns as rawColumns } from './config/TraceColumns.jsx';
 import SearchInput from 'components/SearchInput/SearchInput';
 import FilterControls from 'components/FilterControls/FilterControls';
 import TraceDetailPanel from './components/TraceDetailPanel.jsx';
 import { useEnvironmentFilter } from '../../hooks/useEnvironmentFilter.js';
 import { useTimeRangeFilter } from '../../hooks/useTimeRangeFilter.js';
 import ColumnVisibilityModal from '../../components/ColumnVisibilityModal/ColumnVisibilityModal.jsx';
+import { useColumnVisibility } from 'hooks/useColumnVisibility.js';
 import FilterButton from 'components/FilterButton/FilterButton';
 import { Columns, Plus, Edit, AlertCircle, LayoutGrid, Download } from 'lucide-react';
 import { createTrace, updateTrace } from './CreateTrace.jsx';
@@ -31,19 +32,37 @@ import ObservationsTab from './Observations/ObservationTab.jsx';
 const pickField = (...xs) => xs.find(v => v !== undefined && v !== null);
 
 const normalizeRow = (t = {}) => {
+  console.log("API에서 받은 원본 데이터", t);
+
   const u = t.usageDetails || t.usage || {};
   const tok = t.tokens || {};
+
   const inputTokens = pickField(u.input, t.inputUsage, u.promptTokens, t.promptTokens, tok.input, tok.prompt);
   const outputTokens = pickField(u.output, t.outputUsage, u.completionTokens, t.completionTokens, tok.output, tok.completion);
   const totalTokens = pickField(u.total, t.totalUsage, t.totalTokens, tok.total,
     (inputTokens ?? 0) + (outputTokens ?? 0));
-  return { ...t, inputTokens, outputTokens, totalTokens };
-};
 
+  const inputCost = t.inputCost;
+  const outputCost = t.outputCost;
+  const totalCost = t.totalCost;
+
+  const result = {
+      ...t, 
+    inputTokens, 
+    outputTokens, 
+    totalTokens, 
+    inputCost, 
+    outputCost, 
+    totalCost 
+  };
+
+  console.log('result: ', result);
+  return result;
+};
 
 // [추가됨] Timestamp 컬럼에 대한 렌더링 함수를 추가하여 날짜 형식을 지정합니다.
 // 이렇게 하면 데이터는 표준 형식으로 다루고, 보여줄 때만 보기 좋게 바꿀 수 있습니다.
-const traceTableColumns = originalTraceTableColumns.map(col => {
+const traceTableColumns = rawColumns.map(col => {
   if (col.key === 'timestamp') {
     return {
       ...col,
@@ -224,10 +243,13 @@ const Tracing = () => {
     setFavoriteState(newFavoriteState);
   };
 
-  const [columns, setColumns] = useState(
-    // [수정됨] 위에서 새로 정의한, 렌더링 함수가 포함된 traceTableColumns를 사용합니다.
-    traceTableColumns.map(c => ({ ...c, visible: true }))
-  );
+  const {
+    columns,
+    visibleColumns,
+    toggleColumnVisibility,
+    setAllColumnsVisible,
+    restoreDefaults,
+  } = useColumnVisibility(rawColumns);
 
   const loadTraces = useCallback(async () => {
     try {
@@ -288,9 +310,6 @@ const Tracing = () => {
 
   const handleRowClick = (trace) => setSelectedTraceId(prevId => (prevId === trace.id ? null : trace.id));
   const handlePanelClose = () => { setSelectedTraceId(null); }
-  const setAllColumnsVisible = (visible) => setColumns(prev => prev.map(col => ({ ...col, visible })));
-  const toggleColumnVisibility = (key) => setColumns(prev => prev.map(col => col.key === key ? { ...col, visible: !col.visible } : col));
-  const visibleColumns = useMemo(() => columns.filter(c => c.visible), [columns]);
 
   useEffect(() => {
     if (!pendingTraceId) return;
@@ -348,7 +367,7 @@ const Tracing = () => {
               timeRangeFilterProps={timeRangeFilter}
               builderFilterProps={builderFilterProps}
             />
-          </div>  
+          </div>
           <div className={styles.filterRightGroup}>
             <button className={styles.tableViewButton}>
               Table View
@@ -434,6 +453,7 @@ const Tracing = () => {
         columns={columns}
         toggleColumnVisibility={toggleColumnVisibility}
         setAllColumnsVisible={setAllColumnsVisible}
+        onRestoreDefaults={restoreDefaults}
       />
     </div>
   );

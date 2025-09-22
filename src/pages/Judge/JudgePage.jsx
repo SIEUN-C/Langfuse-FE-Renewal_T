@@ -11,12 +11,13 @@ import { Pencil, Columns } from 'lucide-react';
 import { getAllEvaluatorConfigs, getAllDatasetMeta, deleteEvalJob } from "./services/judgeApi";
 import DeleteConfirmationModal from './components/DeleteConfirmationModal';
 import Toast from '../../components/Toast/Toast';
-import { getDefaultModel } from './services/libraryApi';
+import { getDefaultModel, getTemplateEvaluators } from './services/libraryApi';
 import SearchInput from 'components/SearchInput/SearchInput'
 import FilterControls from "components/FilterControls/FilterControls";
 import { sessionsFilterConfig } from 'components/FilterControls/filterConfig.js';
 import FilterButton from 'components/FilterButton/FilterButton'
 import { getEvaluatorColumns } from "./components/EvaluatorColumns";
+import { getEvaluatorLibraryColumns } from "./components/EvaluatorLibraryColumns"
 import ColumnVisibilityModal from "components/ColumnVisibilityModal/ColumnVisibilityModal";
 import { useColumnVisibility } from "hooks/useColumnVisibility";
 import { colorSchemeDark } from "ag-grid-community";
@@ -24,6 +25,7 @@ import { colorSchemeDark } from "ag-grid-community";
 const JudgePage = () => {
   const [activeTab, setActiveTab] = useState("running");
   const [evaluators, setEvaluators] = useState([]);
+  const [evaluatorLibrary, setEvaluatorLibrary] = useState([]);
   const [datasetMap, setDatasetMap] = useState(new Map());
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
@@ -45,6 +47,10 @@ const JudgePage = () => {
     filters: builderFilters,
     onFilterChange: setBuilderFilters,
     filterConfig: sessionsFilterConfig
+  };
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
   };
 
   const fetchData = useCallback(async () => {
@@ -79,11 +85,32 @@ const JudgePage = () => {
     }
   }, [projectId]);
 
+  const fetchLibraryData = useCallback(async () => {
+    if (!projectId) return;
+    setIsLoading(true);
+    try {
+      const data = await getTemplateEvaluators(projectId);
+      setEvaluatorLibrary(data ?? []);
+    } catch (error) {
+      console.error('Failed to fetch evaluator library', error);
+      setEvaluatorLibrary([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [projectId]);
+
   useEffect(() => {
     if (activeTab === "running") {
       fetchData();
+    } else if (activeTab === 'library') {
+      fetchLibraryData();
     }
-  }, [activeTab, fetchData]);
+  }, [activeTab, fetchData, fetchLibraryData]);
+
+  const handleCloseDeleteModal = () => {
+    setIsDeleteModalOpen(false);
+    setEvaluatorToDelete(null);
+  };
 
   // ========================[수정 2: useEffect로 컬럼 재생성]========================
   // 주석: projectId나 datasetMap이 변경될 때마다 컬럼 정의를 업데이트합니다.
@@ -94,23 +121,13 @@ const JudgePage = () => {
     setIsDeleteModalOpen(true);
   }, []);
 
-  const rawColumns = useMemo(() => {
-    return getEvaluatorColumns(projectId, datasetMap, handleOpenDeleteModal);
-  }, [projectId, datasetMap, handleOpenDeleteModal]);
+  const handleUseEvaluator = useCallback((evaluator) => {
+    navigate(`/llm-as-a-judge/evals/new/${evaluator.id}`);
+  }, [navigate]);
 
-  const {
-    columns,
-    visibleColumns,
-    toggleColumnVisibility,
-    setAllColumnsVisible,
-    restoreDefaults,
-  } = useColumnVisibility(rawColumns);
-  const [columnVisibility, setColumnVisibility] = useState({});
-
-  const handleCloseDeleteModal = () => {
-    setIsDeleteModalOpen(false);
-    setEvaluatorToDelete(null);
-  };
+  const handleEditEvaluator = useCallback((evaluator) => {
+    navigate(`/llm-as-a-judge/edit/${evaluator.id}`);
+  }, [navigate]);
 
   const handleConfirmDelete = async () => {
     if (!evaluatorToDelete) return;
@@ -143,6 +160,27 @@ const JudgePage = () => {
   const handleOpenDefaultModel = () => navigate(`default-model`);
   const handleCustomEvaluator = () => navigate(`custom`);
 
+  const rawColumns = useMemo(() => {
+    if (activeTab === 'running') {
+      return getEvaluatorColumns(projectId, datasetMap, handleOpenDeleteModal);
+    }
+    if (activeTab === 'library') {
+      return getEvaluatorLibraryColumns({
+        onUse: handleUseEvaluator,
+        onEdit: handleEditEvaluator
+      });
+    }
+    return [];
+  }, [activeTab, projectId, datasetMap, handleOpenDeleteModal, handleUseEvaluator, handleEditEvaluator]);
+
+    const {
+    columns,
+    visibleColumns,
+    toggleColumnVisibility,
+    setAllColumnsVisible,
+    restoreDefaults,
+  } = useColumnVisibility(rawColumns);
+
   const filteredEvaluators = useMemo(() => {
     if (!searchValue) {
       return evaluators;
@@ -152,6 +190,15 @@ const JudgePage = () => {
       evaluator.scoreName.toLowerCase().includes(searchValue.toLowerCase())
     );
   }, [evaluators, searchValue]);
+
+  const filteredLibrary = useMemo(() => {
+    if (!searchValue) {
+      return evaluatorLibrary;
+    }
+    return evaluatorLibrary.filter(item =>
+      item.name?.toLowerCase().includes(searchValue.toLowerCase())
+    );
+  }, [evaluatorLibrary, searchValue]);
 
   return (
     <div className={styles.pageLayout}>
@@ -237,7 +284,12 @@ const JudgePage = () => {
               onDeleteClick={handleOpenDeleteModal}
             />
           ) : (
-            <EvaluatorLibrary />
+            <EvaluatorLibrary
+              data={filteredLibrary}
+              columns={visibleColumns}
+              onUse={handleUseEvaluator}
+              onEdit={handleEditEvaluator}
+            />
           )}
         </main>
       </div>

@@ -1,26 +1,18 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { DataTable } from '../../../components/DataTable/DataTable';
 import { getEvaluatorLibraryColumns } from './EvaluatorLibraryColumns';
-import { getTemplateEvaluators } from '../services/libraryApi'
-import useProjectId from 'hooks/useProjectId';
 import { useNavigate } from 'react-router-dom';
 import Templates from '../Templates';
 import styles from './EvaluatorLibrary.module.css';
 import { Expand, ChevronDown, ChevronUp } from 'lucide-react';
 import { useListNavigator } from 'hooks/useListNavigator';
 
-const EvaluatorLibrary = () => {
-  const { projectId } = useProjectId();
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
+const EvaluatorLibrary = ({ data, columns, isLoading }) => {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [selectedTemplateId, setSelectedTemplateId] = useState(null)
-  const columns = getEvaluatorLibraryColumns({
-    onUse: (row) => navigate(`evals/new/${row.id}`),
-    onEdit: (row) => navigate(`edit/${row.id}`),
-  });
+  
   const { currentIndex, handleNext, handlePrevious } = useListNavigator(
     isPanelOpen,
     data,
@@ -28,30 +20,6 @@ const EvaluatorLibrary = () => {
     setSelectedTemplateId,
     () => setIsPanelOpen(false)
   );
-
-
-  useEffect(() => {
-    if (!projectId) {
-      setLoading(false);
-      return;
-    }
-
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const evaluatorsData = await getTemplateEvaluators(projectId);
-        setData(evaluatorsData);
-      } catch (err) {
-        console.error(err);
-        setError("Failed to load evaluator templates. Please try again.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [projectId]);
 
   const closePanel = useCallback(() => {
     setIsPanelOpen(false);
@@ -77,7 +45,7 @@ const EvaluatorLibrary = () => {
     };
   }, [isPanelOpen, handleNext, handlePrevious, closePanel]);
 
-  if (loading) {
+  if (isLoading) {
     return <div>Loading...</div>;
   }
 
@@ -99,10 +67,12 @@ const EvaluatorLibrary = () => {
       <DataTable
         columns={columns}
         data={data}
+        isLoading={isLoading}
         keyField="id"
         showCheckbox={false}
         showFavorite={false}
         onRowClick={handleRowClick}
+        renderEmptyState={() => <div className={styles.emptyState}>No evaluators found in library.</div>}
         pagination={{
           enabled: true,
           pageSize: 50,

@@ -207,7 +207,7 @@ const CustomEvaluator = () => {
               id="scoreReasoningPrompt"
               value={scoreReasoning}
               onChange={(e) => setScoreReasoning(e.target.value)}
-              autocomplete='off'
+              autoComplete='off'
             />
           </div>
 
@@ -221,7 +221,7 @@ const CustomEvaluator = () => {
               id="scoreRangePrompt"
               value={scoreRange}
               onChange={(e) => setScoreRange(e.target.value)}
-              autocomplete='off'
+              autoComplete='off'
             />
           </div>
         </div>
@@ -231,7 +231,7 @@ const CustomEvaluator = () => {
         <button
           className={styles.saveButton}
           onClick={handleSave}
-          disables={isSaving}
+          disabled={isSaving}
         >
           {isSaving ? 'Saving...' : 'Save'}
         </button>
