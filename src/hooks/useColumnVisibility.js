@@ -7,12 +7,9 @@ const getInitialVisibility = (rawColumns) => {
   }
   rawColumns.forEach(col => {
     const key = col.id;
-    if (col.isMandatory) {
-      initialVisibility[key] = true;
-    } else {
-      initialVisibility[key] = col.defaultVisible !== false;
-    }
+    initialVisibility[key] = col.isMandatory === true || col.defaultVisible === true;
   });
+
   return initialVisibility;
 };
 
@@ -28,26 +25,13 @@ export const useColumnVisibility = (rawColumns = []) => {
 
   // 1. 기본값으로 되돌리는 함수
   const restoreDefaults = useCallback(() => {
-    const defaultVisibility = {};
-    rawColumns.forEach(col => {
-      const key = col.id;
-
-      if (col.isMandatory) {
-        defaultVisibility[key] = true;
-      } else {
-        defaultVisibility[key] = col.defaultVisibility !== false;
-      }
-    });
-    setColumnVisibility(defaultVisibility);
+    setColumnVisibility(getInitialVisibility(rawColumns));
   }, [rawColumns]);
 
   // 2. 개별 컬럼 토글 함수
   const toggleColumnVisibility = useCallback((key) => {
-    setColumnVisibility(prev => {
-      const currentVisibility = prev[key] ?? true;
-      return { ...prev, [key]: !currentVisibility };
-    });
-  }, []);
+    setColumnVisibility(prev => ({ ...prev, [key]: !prev[key] }));
+  }, []);;
 
   // 3. 전체 선택/해제 함수 (필수 컬럼 제외)
   const setAllColumnsVisible = useCallback((visible) => {
@@ -72,7 +56,7 @@ export const useColumnVisibility = (rawColumns = []) => {
       return {
         ...col,
         key: key,
-        visible: columnVisibility[key] ?? true,
+        visible: columnVisibility[key] ?? false,
       };
     });
   }, [rawColumns, columnVisibility]);

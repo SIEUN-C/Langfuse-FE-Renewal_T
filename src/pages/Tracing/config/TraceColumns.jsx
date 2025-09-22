@@ -3,112 +3,157 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Star } from 'lucide-react';
 import styles from '../Tracing.module.css';
+import dayjs from 'dayjs';
 
-// 비용 포맷팅 헬퍼 함수
-const formatCost = (cost) => {
-  if (cost === null || cost === 0) return '-';
-  return `$${cost.toFixed(6)}`;
+const safeRender = (value) => {
+  if (value === null || value === undefined) {
+    return '-';
+  }
+  // value가 객체나 배열인 경우, JSON 문자열로 변환하여 보여줍니다.
+  if (typeof value === 'object') {
+    return <pre className={styles.cellText}>{JSON.stringify(value, null, 2)}</pre>;
+  }
+  // 그 외의 경우(문자열, 숫자 등)는 그대로 반환합니다.
+  return String(value);
 };
 
 export const traceTableColumns = [
   {
-    key: 'timestamp',
+    id: 'timestamp',
     header: 'Timestamp',
-    accessor: (row) => row.timestamp,
-    visible: true,
+    accessor: (row) => dayjs(row.timestamp).format('YYYY-MM-DD HH:mm:ss'),
+    defaultVisible: true,
   },
   {
-    key: 'name',
+    id: 'name',
     header: 'Name',
-    // 'to' 경로를 '/trace/'로 수정합니다.
     accessor: (row) => row.name,
-    // accessor: (row) => <Link to={`/trace/${row.id}`} className={styles.traceLink}>{row.name}</Link>,
-    visible: true,
+    defaultVisible: true,
   },
   {
-    key: 'userId',
-    header: 'User ID',
-    accessor: (row) => row.userId || 'N/A',
-    visible: true,
-  },
-  {
-    key: 'input',
+    id: 'input',
     header: 'Input',
-    accessor: (row) => <div className={styles.cellText}>{row.input}</div>,
-    visible: true,
+    accessor: (row) => <div className={styles.cellText}>{safeRender(row.input)}</div>,
+    defaultVisible: true,
   },
   {
-    key: 'output',
+    id: 'output',
     header: 'Output',
-    accessor: (row) => <div className={styles.cellText}>{row.output}</div>,
-    visible: true,
+    accessor: (row) => <div className={styles.cellText}>{safeRender(row.output)}</div>,
+    defaultVisible: true,
   },
   {
-    key: 'cost',
-    header: 'Cost (USD)',
-    accessor: (row) => formatCost(row.cost),
-    visible: true,
+    id: 'observationLevels',
+    header: 'Observation Levels',
+    accessor: (row) => safeRender(row.observationLevels),
+    defaultVisible: true,
   },
   {
-    key: 'latency',
+    id: 'latency',
     header: 'Latency',
-    accessor: (row) => `${row.latency} ms`,
-    visible: true,
+    accessor: (row) => (row.latency != null ? `${row.latency}s` : '-'),
+    defaultVisible: true,
   },
   {
-    key: 'observations',
-    header: 'Observations',
-    accessor: (row) => row.observations,
-    visible: true,
+    id: 'tokens',
+    header: 'Tokens',
+    accessor: (row) => safeRender(row.tokens),
+    defaultVisible: true,
   },
   {
-    key: 'sessionId',
-    header: 'Session ID',
-    accessor: (row) => row.sessionId || 'N/A',
-    visible: false, // 기본 숨김
+    id: 'totalCost',
+    header: 'Total Cost',
+    accessor: (row) => (row.cost != null ? `$${Number(row.cost).toFixed(6)}` : '-'),
+    defaultVisible: true,
   },
   {
-    key: 'tags',
-    header: 'Tags',
-    accessor: (row) => row.tags?.join(', ') || 'N/A',
-    visible: false, // 기본 숨김
-  },
-  {
-    key: 'version',
-    header: 'Version',
-    accessor: (row) => row.version || 'N/A',
-    visible: false, // 기본 숨김
-  },
-  {
-    key: 'release',
-    header: 'Release',
-    accessor: (row) => row.release || 'N/A',
-    visible: false, // 기본 숨김
-  },
-  {
-    key: 'environment',
+    id: 'environment',
     header: 'Environment',
-    accessor: (row) => row.environment || 'N/A',
-    visible: false, // 기본 숨김
+    accessor: (row) => safeRender(row.environment),
+    defaultVisible: true,
   },
   {
-    key: 'inputTokens',
+    id: 'tags',
+    header: 'Tags',
+    accessor: (row) => safeRender(row.tags),
+    defaultVisible: true,
+  },
+  {
+    id: 'metadata',
+    header: 'Metadata',
+    accessor: (row) => safeRender(row.metadata),
+    defaultVisible: true,
+  },
+  {
+    id: 'session',
+    header: 'Session',
+    accessor: (row) => safeRender(row.session),
+    defaultVisible: false,
+  },
+  {
+    id: 'user',
+    header: 'User',
+    accessor: (row) => safeRender(row.user),
+    defaultVisible: false,
+  },
+  {
+    id: 'observations',
+    header: 'Observations',
+    accessor: (row) => safeRender(row.observations),
+    defaultVisible: false,
+  },
+  {
+    id: 'level',
+    header: 'Level',
+    accessor: (row) => safeRender(row.level),
+    defaultVisible: false,
+  },
+  {
+    id: 'version',
+    header: 'Version',
+    accessor: (row) => safeRender(row.version),
+    defaultVisible: false,
+  },
+  {
+    id: 'release',
+    header: 'Release',
+    accessor: (row) => safeRender(row.release),
+    defaultVisible: false,
+  },
+  {
+    id: 'traceId',
+    header: 'Trace ID',
+    accessor: (row) => safeRender(row.traceId),
+    defaultVisible: false,
+  },
+  {
+    id: 'inputCost',
+    header: 'Input Cost',
+    accessor: (row) => safeRender(row.inputCost),
+    defaultVisible: false,
+  },
+  {
+    id: 'outputCost',
+    header: 'Output Cost',
+    accessor: (row) => safeRender(row.outputCost),
+    defaultVisible: false,
+  },
+  {
+    id: 'inputTokens',
     header: 'Input Tokens',
-    accessor: (row) => row.inputTokens ?? '-',
-    visible: false,
+    accessor: (row) => safeRender(row.inputTokens),
+    defaultVisible: false,
   },
   {
-    key: 'outputTokens',
+    id: 'outputTokens',
     header: 'Output Tokens',
-    accessor: (row) => row.outputTokens ?? '-',
-    visible: false,
+    accessor: (row) => safeRender(row.outputTokens),
+    defaultVisible: false,
   },
   {
-    key: 'totalTokens',
+    id: 'totalTokens',
     header: 'Total Tokens',
-    accessor: (row) => row.totalTokens ?? '-',
-    visible: false,
+    accessor: (row) => safeRender(row.totalTokens),
+    defaultVisible: false,
   },
-
-
 ];
