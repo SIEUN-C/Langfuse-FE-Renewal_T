@@ -43,6 +43,7 @@ const ScoresTable = ({ data, isLoading, className }) => {
   // 총 스코어 계산
   const totalScores = data.reduce((acc, curr) => acc + (curr.countScoreId || 0), 0);
 
+
   return (
     <DashboardTable
       headers={[
@@ -78,8 +79,9 @@ const ScoresTable = ({ data, isLoading, className }) => {
         href: "https://langfuse.com/docs/evaluation/overview",
       }}
     >
+      {/* 🎯 [수정] prop 이름을 'metric'에서 'totalCount'로 변경 */}
       <TotalMetric
-        metric={totalScores ? compactNumberFormatter(totalScores) : "0"}
+        totalCount={totalScores ? compactNumberFormatter(totalScores) : "0"}
         description="Total scores tracked"
       />
     </DashboardTable>
