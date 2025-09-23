@@ -1,19 +1,21 @@
-// src/pages/Tracing/traceColumns.jsx
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Star } from 'lucide-react';
+import { Star, Sigma, MoveRight } from 'lucide-react';
 import styles from '../Tracing.module.css';
 import dayjs from 'dayjs';
 
+// 이 함수는 값이 null, undefined, 객체 등 어떤 형태든 안전하게 렌더링해주는 좋은 유틸리티입니다.
 const safeRender = (value) => {
   if (value === null || value === undefined) {
     return '-';
   }
-  // value가 객체나 배열인 경우, JSON 문자열로 변환하여 보여줍니다.
+  if (Array.isArray(value)) {
+    // 배열인 경우 태그처럼 보이게 쉼표로 구분된 문자열로 표시
+    return value.join(', ');
+  }
   if (typeof value === 'object') {
     return <pre className={styles.cellText}>{JSON.stringify(value, null, 2)}</pre>;
   }
-  // 그 외의 경우(문자열, 숫자 등)는 그대로 반환합니다.
   return String(value);
 };
 
@@ -33,31 +35,31 @@ export const traceTableColumns = [
   {
     id: 'input',
     header: 'Input',
-    accessor: (row) => <div className={styles.cellText}>{safeRender(row.input)}</div>,
+    accessor: (row) => <div className={styles.cellText}>{row.input}</div>,
     defaultVisible: true,
   },
   {
     id: 'output',
     header: 'Output',
-    accessor: (row) => <div className={styles.cellText}>{safeRender(row.output)}</div>,
+    accessor: (row) => <div className={styles.cellText}>{row.output}</div>,
     defaultVisible: true,
   },
   {
-    id: 'observationLevels',
-    header: 'Observation Levels',
-    accessor: (row) => safeRender(row.observationLevels),
+    id: 'observationLevels', 
+    header: 'Observations Levels',
+    accessor: (row) => row.observations,
     defaultVisible: true,
   },
   {
     id: 'latency',
     header: 'Latency',
-    accessor: (row) => (row.latency != null ? `${row.latency}s` : '-'),
+    accessor: (row) => (row.latency != null ? `${row.latency.toFixed(2)}s` : '-'),
     defaultVisible: true,
   },
   {
     id: 'tokens',
     header: 'Tokens',
-    accessor: (row) => safeRender(row.tokens),
+    accessor: (row) => <div>{safeRender(row.inputTokens)}<MoveRight size={10}/>{safeRender(row.outputTokens)}(<Sigma size={10}/>{safeRender(row.totalTokens)})</div>,
     defaultVisible: true,
   },
   {
@@ -85,21 +87,15 @@ export const traceTableColumns = [
     defaultVisible: true,
   },
   {
-    id: 'session',
-    header: 'Session',
-    accessor: (row) => safeRender(row.session),
+    id: 'sessionId',
+    header: 'Session ID',
+    accessor: (row) => safeRender(row.sessionId),
     defaultVisible: false,
   },
   {
-    id: 'user',
-    header: 'User',
-    accessor: (row) => safeRender(row.user),
-    defaultVisible: false,
-  },
-  {
-    id: 'observations',
-    header: 'Observations',
-    accessor: (row) => safeRender(row.observations),
+    id: 'userId',
+    header: 'User ID',
+    accessor: (row) => safeRender(row.userId),
     defaultVisible: false,
   },
   {
@@ -121,21 +117,21 @@ export const traceTableColumns = [
     defaultVisible: false,
   },
   {
-    id: 'traceId',
+    id: 'id',
     header: 'Trace ID',
-    accessor: (row) => safeRender(row.traceId),
+    accessor: (row) => safeRender(row.id),
     defaultVisible: false,
   },
   {
     id: 'inputCost',
     header: 'Input Cost',
-    accessor: (row) => safeRender(row.inputCost),
+    accessor: (row) => (row.inputCost != null ? `$${Number(row.inputCost).toFixed(6)}` : '-'),
     defaultVisible: false,
   },
   {
     id: 'outputCost',
     header: 'Output Cost',
-    accessor: (row) => safeRender(row.outputCost),
+    accessor: (row) => (row.outputCost != null ? `$${Number(row.outputCost).toFixed(6)}` : '-'),
     defaultVisible: false,
   },
   {
@@ -155,5 +151,5 @@ export const traceTableColumns = [
     header: 'Total Tokens',
     accessor: (row) => safeRender(row.totalTokens),
     defaultVisible: false,
-  },
+  }
 ];

@@ -15,7 +15,7 @@ import FilterButton from 'components/FilterButton/FilterButton';
 import { Columns, Plus, Edit, AlertCircle, LayoutGrid, Download } from 'lucide-react';
 import { createTrace, updateTrace } from './CreateTrace.jsx';
 import { langfuse } from '../../lib/langfuse.js';
-import { fetchTraces, deleteTrace } from './services/TracingApi.js';
+import { fetchTraces, deleteTrace, fetchTraceMetrics } from './services/TracingApi.js';
 import { fetchTraceDetails } from './services/TraceDetailApi.js';
 import { getProjects } from '../../api/settings/ProjectApi.js';
 // --- ▼▼▼ [추가] filter ▼▼▼ ---
@@ -28,51 +28,6 @@ import RowDensityButton from "./components/RowDensityButton.jsx";
 // Observation 추가
 import ObservationsTab from './Observations/ObservationTab.jsx';
 
-// 토큰컬럼을 위한 추가 
-const pickField = (...xs) => xs.find(v => v !== undefined && v !== null);
-
-const normalizeRow = (t = {}) => {
-  console.log("API에서 받은 원본 데이터", t);
-
-  const u = t.usageDetails || t.usage || {};
-  const tok = t.tokens || {};
-
-  const inputTokens = pickField(u.input, t.inputUsage, u.promptTokens, t.promptTokens, tok.input, tok.prompt);
-  const outputTokens = pickField(u.output, t.outputUsage, u.completionTokens, t.completionTokens, tok.output, tok.completion);
-  const totalTokens = pickField(u.total, t.totalUsage, t.totalTokens, tok.total,
-    (inputTokens ?? 0) + (outputTokens ?? 0));
-
-  const inputCost = t.inputCost;
-  const outputCost = t.outputCost;
-  const totalCost = t.totalCost;
-
-  const result = {
-      ...t, 
-    inputTokens, 
-    outputTokens, 
-    totalTokens, 
-    inputCost, 
-    outputCost, 
-    totalCost 
-  };
-
-  console.log('result: ', result);
-  return result;
-};
-
-// [추가됨] Timestamp 컬럼에 대한 렌더링 함수를 추가하여 날짜 형식을 지정합니다.
-// 이렇게 하면 데이터는 표준 형식으로 다루고, 보여줄 때만 보기 좋게 바꿀 수 있습니다.
-const traceTableColumns = rawColumns.map(col => {
-  if (col.key === 'timestamp') {
-    return {
-      ...col,
-      // render 함수는 DataTable의 각 행(row)을 인자로 받습니다.
-      render: (row) => dayjs(row.timestamp).format('YYYY-MM-DD HH:mm:ss')
-    };
-  }
-  return col;
-});
-
 // 에러 메시지를 표시하는 별도의 컴포넌트
 const ErrorBanner = ({ message, onDismiss }) => {
   if (!message) return null;
@@ -84,7 +39,6 @@ const ErrorBanner = ({ message, onDismiss }) => {
     </div>
   );
 };
-
 
 const Tracing = () => {
   const [activeTab, setActiveTab] = useState('Traces');
@@ -121,8 +75,33 @@ const Tracing = () => {
     },
   ]));
 
-
   const [projectId, setProjectId] = useState(null);
+
+  const normalizeRow = (t = {}) => {
+    // metrics API 응답의 costDetails 객체에서 비용 정보를 가져옵니다.
+    const inputCost = t.costDetails?.input ?? t.inputCost;
+    const outputCost = t.costDetails?.output ?? t.outputCost;
+    const totalCost = t.costDetails?.total ?? t.calculatedTotalCost ?? t.totalCost;
+
+    // 토큰 정보도 새로운 필드에서 가져옵니다.
+    const inputTokens = t.usageDetails?.input ?? t.promptTokens;
+    const outputTokens = t.usageDetails?.output ?? t.completionTokens;
+    const totalTokens = t.usageDetails?.total ?? t.totalTokens;
+
+    const result = {
+      ...t,
+      inputTokens,
+      outputTokens,
+      totalTokens,
+      inputCost,
+      outputCost,
+      totalCost,
+      // TracingApi.js에서 'cost'필드에 totalCost를 넣었으므로 일관성을 위해 추가
+      cost: totalCost,
+    };
+
+    return result;
+  };
 
   useEffect(() => {
     const fetchProjectId = async () => {
@@ -252,23 +231,43 @@ const Tracing = () => {
   } = useColumnVisibility(rawColumns);
 
   const loadTraces = useCallback(async () => {
+    if (!projectId) return;
+
     try {
       setIsLoading(true);
       setError(null);
+
       const fetchedTraces = await fetchTraces();
-      const normalized = (Array.isArray(fetchedTraces) ? fetchedTraces : []).map(normalizeRow);
+      if (!fetchedTraces || fetchedTraces.length === 0) {
+        setTraces([]);
+        return;
+      }
+
+      const traceIds = fetchedTraces.map(trace => trace.id);
+
+      const metrics = await fetchTraceMetrics(traceIds, projectId);
+
+      const metricsMap = new Map(metrics.map(metric => [metric.id, metric]));
+
+      const combinedData = fetchedTraces.map(trace => ({
+        ...trace,
+        ...metricsMap.get(trace.id),
+      }));
+
+      const normalized = combinedData.map(normalizeRow);
       setTraces(normalized);
 
       const initialFavorites = {};
       normalized.forEach(trace => { initialFavorites[trace.id] = trace.isFavorited || false; });
       setFavoriteState(initialFavorites);
+
     } catch (err) {
       setError(err.clientMessage || err.message || "알 수 없는 오류가 발생했습니다.");
       console.error("Trace 로딩 실패:", err);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [projectId]);
 
   useEffect(() => { loadTraces(); }, [loadTraces]);
 
