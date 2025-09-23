@@ -361,6 +361,9 @@
 .mappingPromptBlock {
     margin-bottom: 12px;
 }
+.mappingPromptBlock .textarea {
+    width: 95%;
+}
 
 .mappingPromptHeader {
     display: flex;

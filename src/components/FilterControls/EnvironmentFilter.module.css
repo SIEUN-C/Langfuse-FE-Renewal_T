@@ -38,9 +38,12 @@
   flex-direction: column;
   gap: 4px;
 }
+.dropdownMenu .searchInput {
+  width: 90%;
+}
 
 .searchInput {
-  width: 100%;
+  width: 90%;
   background-color: #020817;
   border: 1px solid #334155;
   border-radius: 4px;
@@ -77,7 +80,7 @@
 .optionItem input[type="checkbox"] {
   width: 16px;
   height: 16px;
-  accent-color: #a78bfa;
+  accent-color: #a5b4fc;
 }
 
 .clearButton {

@@ -133,7 +133,7 @@ export const getTraceTableColumns = (projectId, rowHeight) => {
         return (
           <div className={styles.tagContainer}>
             {row.tags.map((tag) => (
-              <span ket={tag} className={styles.tagItem}>
+              <span key={tag} className={styles.tagItem}>
                 <Tag size={10} /> {tag}
               </span>
             ))}

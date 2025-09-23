@@ -5,6 +5,7 @@
 //       아이콘도 추가로 import 합니다.
 import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import ReactDOM from 'react-dom';
 import styles from './EvaluatorsTable.module.css';
 import { Pencil, Trash2 } from 'lucide-react'; // 아이콘 추가
 // ========================[수정 끝]========================
@@ -102,6 +103,20 @@ const formatDateTime = (isoString) => {
 const ActionMenu = ({ row, onDeleteClick }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const buttonRef = useRef(null);
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
+
+  const handleToggle = (e) => {
+    e.stopPropagation();
+    if (buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setMenuPosition({
+        top: rect.bottom + window.scrollY + 2, // 버튼 바로 아래
+        left: rect.left + window.scrollX - 100, // 메뉴 너비를 고려하여 왼쪽으로 조정
+      });
+    }
+    setIsOpen(!isOpen);
+  };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -115,33 +130,39 @@ const ActionMenu = ({ row, onDeleteClick }) => {
     };
   }, []);
 
-  const handleToggle = (e) => {
-    e.stopPropagation();
-    setIsOpen(!isOpen);
-  };
+  const menu = (
+    <div
+      ref={dropdownRef}
+      className={styles.dropdownMenu}
+      // 계산된 위치를 style로 적용합니다.
+      style={{
+        position: 'absolute',
+        top: `${menuPosition.top}px`,
+        left: `${menuPosition.left}px`,
+      }}
+    >
+      <button className={styles.dropdownItem} onClick={(e) => e.stopPropagation()}>
+        <Pencil size={14} /> Edit
+      </button>
+      <button
+        className={`${styles.dropdownItem} ${styles.deleteItem}`}
+        onClick={(e) => {
+          e.stopPropagation();
+          onDeleteClick(row);
+          setIsOpen(false);
+        }}
+      >
+        <Trash2 size={14} /> Delete
+      </button>
+    </div>
+  );
 
   return (
     <div className={styles.rowActions} ref={dropdownRef}>
-      <button onClick={handleToggle} className={styles.moreButton}>
+      <button ref={buttonRef} onClick={handleToggle} className={styles.moreButton}>
         ...
       </button>
-      {isOpen && (
-        <div className={styles.dropdownMenu}>
-          <button className={styles.dropdownItem} onClick={(e) => e.stopPropagation()}>
-            <Pencil size={14} /> Edit
-          </button>
-          <button
-            className={`${styles.dropdownItem} ${styles.deleteItem}`}
-            onClick={(e) => {
-              e.stopPropagation();
-              onDeleteClick(row);
-              setIsOpen(false);
-            }}
-          >
-            <Trash2 size={14} /> Delete
-          </button>
-        </div>
-      )}
+      {isOpen && ReactDOM.createPortal(menu, document.body)}
     </div>
   );
 };

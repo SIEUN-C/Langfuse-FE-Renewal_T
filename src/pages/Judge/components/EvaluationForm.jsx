@@ -246,11 +246,6 @@ export default function EvaluationForm({
 
     return (
         <div className={styles.formRoot}>
-            {/* 상단: 참조 Evaluator */}
-            <div className={styles.row}>
-                <label className={styles.label}>Referenced Evaluator</label>
-                <div className={styles.tag}>{template?.name ?? "-"}</div>
-            </div>
 
             {/* Score name */}
             <div className={styles.row}>

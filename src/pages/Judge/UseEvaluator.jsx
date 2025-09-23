@@ -65,9 +65,6 @@ export default function UseEvaluator() {
 
     return (
         <div className={styles.container}>
-            <header className={styles.header}>
-                <h2>Run Evaluator: {template.name}</h2>
-            </header>
 
             {/* Step2 폼만! */}
             <EvaluationForm

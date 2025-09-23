@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import useProjectId from 'hooks/useProjectId';
 import { templateNames, templateById, createJob } from './services/evaluatorsApi';
 import EvaluationForm from './components/EvaluationForm';
+import { ExternalLink } from 'lucide-react';
 import styles from './SetupEvaluator.module.css';
 
 
@@ -18,6 +19,7 @@ export default function SetupEvaluator() {
   const [currentTemplate, setCurrentTemplate] = useState(null);
   const [loading, setLoading] = useState(false);
   const [query, setQuery] = useState('');              // ❗ 훅은 최상단
+  const [selectedTemplateId, setSelectedTemplateId] = useState(null);
 
   // Step1: 템플릿 목록 불러오기
   useEffect(() => {
@@ -59,7 +61,7 @@ export default function SetupEvaluator() {
     return templates.filter(t => (t.name || '').toLowerCase().includes(q));
   }, [templates, query]);
 
-  const handleSelect = async (latestId) => {
+  const navigateToStep2 = async (latestId) => {
     try {
       const t = await templateById({ projectId, id: latestId });
       setCurrentTemplate(t);
@@ -67,6 +69,10 @@ export default function SetupEvaluator() {
     } catch (e) {
       console.error('templateById error', e);
     }
+  };
+
+  const handleRowClick = (id) => {
+    setSelectedTemplateId(prevId => (prevId === id ? null : id));
   };
 
   const handleSubmit = async (payloadFromForm) => {
@@ -87,7 +93,6 @@ export default function SetupEvaluator() {
             <span>2. Run Evaluator</span>
           </div>
           <div className={styles.subtle}>
-            Current default model: test / Qwen3-30B-A3B-Instruct-… (예시 텍스트)
           </div>
         </header>
 
@@ -115,12 +120,12 @@ export default function SetupEvaluator() {
             {!loading && filtered.map((t) => (
               <div
                 key={t.latestId}
-                className={styles.item}
-                onClick={() => handleSelect(t.latestId)}
+                className={`${styles.item} ${selectedTemplateId === t.latestId ? styles.selectedItem : ''}`}
+                onClick={() => handleRowClick(t.latestId)}
               >
                 <div className={styles.left}>
                   <div className={styles.nameRow}>
-                    <span className={styles.flag} aria-hidden />
+                    {/* <span className={styles.flag} aria-hidden /> */}
                     <span className={styles.name}>{t.name}</span>
                   </div>
                   <div className={styles.metaRow}>
@@ -133,13 +138,13 @@ export default function SetupEvaluator() {
                 </div>
 
                 <div className={styles.right}>
-                  <a
+                  <Link
+                    to={`/llm-as-a-judge/templates/${t.latestId}`}
                     className={styles.externalLink}
-                    href="#"
-                    onClick={(e) => e.preventDefault()}
+                    onClick={(e) => e.stopPropagation()}
                   >
-                    Open
-                  </a>
+                    <ExternalLink size={16} />
+                  </Link>
                 </div>
               </div>
             ))}
@@ -150,7 +155,11 @@ export default function SetupEvaluator() {
           <button className={styles.btn} onClick={() => navigate('/llm-as-a-judge/custom')}>
             + Create Custom Evaluator
           </button>
-          <button className={`${styles.btn} ${styles.primary}`} disabled>
+          <button
+            className={`${styles.btn} ${styles.primary}`}
+            disabled={!selectedTemplateId}
+            onClick={() => navigate(`/llm-as-a-judge/evals/new/${selectedTemplateId}`)}
+          >
             Use Selected Evaluator
           </button>
         </footer>
