@@ -5,14 +5,19 @@ import { useParams } from "react-router-dom";
 import ScoresTable from "../Dashboards/components/charts/ScoresTable"; // 이 부분을 추가해주세요.
 import TracesAndObservationsTimeSeriesChart from "../Dashboards/components/charts/TracesAndObservationsTimeSeriesChart";
 import { DashboardCard } from "../Dashboards/components/cards/DashboardCard";
+// ▼▼▼ [수정] 이 줄을 추가해주세요 ▼▼▼
+import { ModelSelectorPopover } from "../Dashboards/components/charts/ModelSelector";
 import TracesBarListChart from "../Dashboards/components/charts/TracesBarListChart";
 import ModelCostTable from "../Dashboards/components/charts/ModelCostTable";
 import UserChart from "../Dashboards/components/charts/UserChart";
-import LatencyChart from "../Dashboards/components/charts/LatencyChart";
+import ChartModelLatencies from "../Dashboards/components/charts/ChartModelLatencies"; // ▼ 이 줄을 추가함
 import LatencyTables from "../Dashboards/components/charts/LatencyTables";
 // ▼▼▼ 1. ChartScores 컴포넌트 import 추가 ▼▼▼
 import ChartScores from "../Dashboards/components/charts/ChartScores";
 import ModelUsageChart from "../Dashboards/components/charts/ModelUsageChart"; // 🎯 1. ModelUsageChart import
+
+
+
 
 // ===== 필터 컴포넌트들 =====
 import DateRangePicker from "../../components/DateRange/DateRangePicker";
@@ -128,6 +133,12 @@ const Home = () => {
   const [modelUsageError, setModelUsageError] = useState(null);
   const [allModels, setAllModels] = useState([]);
   const [selectedModels, setSelectedModels] = useState([]);
+
+  // ▼▼▼ [신규] Model Latencies 차트 상태 변수 추가 ▼▼▼
+  const [latencyData, setLatencyData] = useState(null);
+  const [isLatencyLoading, setIsLatencyLoading] = useState(true);
+  const [latencyError, setLatencyError] = useState(null);
+  // ▲▲▲ [신규] Model Latencies 차트 상태 변수 추가 ▲▲▲
 
   
 
@@ -338,6 +349,7 @@ useEffect(() => {
 
 
 
+
 // 🎯 3. ModelUsageChart의 모델 목록을 가져오는 로직 (useModelSelection 훅 대체)
  // ModelUsageChart 데이터 로딩
   useEffect(() => {
@@ -442,6 +454,76 @@ useEffect(() => {
   }, [isAllModelsSelected, allModels]);
 
 
+// ▼▼▼ [신규] Model Latencies 데이터 로딩 useEffect 추가 ▼▼▼
+  useEffect(() => {
+    const fetchLatencyData = async () => {
+      // 모델 목록이 아직 없거나 선택된 모델이 없으면 API를 호출하지 않음
+      if (!projectId || !dateRange.startDate || !dateRange.endDate || allModels.length === 0 || selectedModels.length === 0) {
+        setLatencyData([]); // 데이터를 빈 배열로 초기화
+        setIsLatencyLoading(false);
+        return;
+      }
+
+      setIsLatencyLoading(true);
+      setLatencyError(null);
+
+      try {
+        const fromTimestamp = dateRange.startDate.toISOString();
+        const toTimestamp = dateRange.endDate.toISOString();
+
+        const latencyQuery = {
+          view: "observations",
+          dimensions: [{ field: "providedModelName" }],
+          metrics: [
+            { measure: "latency", aggregation: "p50" },
+            { measure: "latency", aggregation: "p75" },
+            { measure: "latency", aggregation: "p90" },
+            { measure: "latency", aggregation: "p95" },
+            { measure: "latency", aggregation: "p99" },
+          ],
+          filters: [
+            ...mergedFilterState, // 전역 필터 (Env, 시간 등)
+            {
+              column: "type",
+              operator: "any of",
+              value: ["GENERATION", "COMPLETION", "LLM"], // LLM 생성 관련 타입만 필터링
+              type: "stringOptions",
+            },
+            {
+              column: "providedModelName",
+              operator: "any of",
+              value: selectedModels, // 선택된 모델 필터링
+              type: "stringOptions",
+            },
+          ],
+          timeDimension: {
+            granularity: 'day',
+          },
+          fromTimestamp,
+          toTimestamp,
+          orderBy: null,
+        };
+
+        const result = await widgetAPI.executeQuery(projectId, latencyQuery);
+
+        if (result.success) {
+          setLatencyData(result.data);
+        } else {
+          throw new Error(result.error || "Failed to fetch latency data");
+        }
+      } catch (error) {
+        console.error("Error fetching Latency data:", error);
+        setLatencyError(error);
+      } finally {
+        setIsLatencyLoading(false);
+      }
+    };
+
+    fetchLatencyData();
+  }, [projectId, mergedFilterState, dateRange, selectedModels, allModels]); // 의존성 배열에 selectedModels, allModels 추가
+  // ▲▲▲ [신규] Model Latencies 데이터 로딩 useEffect 추가 ▲▲▲
+
+
 
   return (
     <div className={styles.homePage}>
@@ -500,9 +582,30 @@ useEffect(() => {
         <div className={`${styles.chartRow} ${styles.cols3}`}>
             <LatencyTables projectId={projectId} globalFilterState={mergedFilterState} fromTimestamp={dateRange.startDate} toTimestamp={dateRange.endDate} isLoading={isLoading || filterOptionsLoading} />
         </div>
+          {/* ▼▼▼ [최종 수정] 이 블록 전체를 아래 코드로 교체 ▼▼▼ */}
         <div className={`${styles.chartRow} ${styles.cols1}`}>
-          <LatencyChart projectId={projectId} globalFilterState={mergedFilterState} agg="1 hour" fromTimestamp={dateRange.startDate} toTimestamp={dateRange.endDate} isLoading={isLoading || filterOptionsLoading} />
+          <DashboardCard
+              title="Model latencies"
+              description="Latencies (seconds) per LLM generation"
+              isLoading={isLatencyLoading || isModelUsageLoading}
+              error={latencyError}
+            >
+              <ChartModelLatencies
+                rawData={latencyData}
+                isLoading={isLatencyLoading || isModelUsageLoading}
+                agg="1 day"
+                
+                // 모델 선택에 필요한 모든 props를 직접 내려줌
+                allModels={allModels}
+                selectedModels={selectedModels}
+                setSelectedModels={setSelectedModels}
+                isAllSelected={isAllModelsSelected}
+                buttonText={modelSelectorText}
+                handleSelectAll={handleSelectAllModels}
+              />
+          </DashboardCard>
         </div>
+        {/* ▲▲▲ 여기까지 교체 ▲▲▲ */}
       </div>
     </div>
   );
