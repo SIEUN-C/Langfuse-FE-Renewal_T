@@ -1,7 +1,7 @@
 // src/Pages/Evaluation/Judge/EvaluationView.jsx
 // ========================[수정 시작 (1/7)]========================
 // 주석: react-router-dom에서 페이지 이동을 위한 useNavigate를 import합니다.
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom'; // useNavigate 추가
 // ========================[수정 끝 (1/7)]========================
 // --- ✨ 추가: 새로운 아이콘들을 import 합니다 ---
@@ -25,7 +25,8 @@ import styles from './EvaluationView.module.css';
 // --- 추가: 방금 새로 만든 사이드 패널 컴포넌트를 import 합니다 ---
 import { ColumnVisibilityPanel } from './components/ColumnVisibilityPanel';
 //---------------------------------------------------------------
-import { computeFinalStatus } from './components/evalstatus'; //To update Evaluator status_finished 
+import { computeFinalStatus } from './components/evalstatus'; //To update Evaluator status_finished
+import RowHeightDropdown from 'components/RowHeightDropdown/RowHeightDropdown';
 
 
 const EvaluationView = () => {
@@ -57,9 +58,7 @@ const EvaluationView = () => {
 
   // ========================[수정 시작 (1/4)]========================
   // 주석: Row height 상태와 드롭다운 메뉴의 열림 상태를 관리할 state를 추가합니다.
-  const [rowHeight, setRowHeight] = useState('small'); // 'small', 'medium', 'large'
-  const [isRowHeightMenuOpen, setIsRowHeightMenuOpen] = useState(false);
-  const rowHeightMenuRef = useRef(null); // 드롭다운 메뉴 외부 클릭 감지를 위한 ref
+  const [rowHeight, setRowHeight] = useState('small');
   // ========================[수정 끝 (1/4)]========================
 
   // ========================[수정 시작 (2/4)]========================
@@ -112,22 +111,6 @@ const EvaluationView = () => {
 
     fetchJobs();
   }, [projectId, evaluationId]);
-
-  // ========================[수정 시작 (3/4)]========================
-  // 주석: 드롭다운 메뉴 외부를 클릭하면 메뉴가 닫히도록 하는 useEffect를 추가합니다.
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (rowHeightMenuRef.current && !rowHeightMenuRef.current.contains(event.target)) {
-        setIsRowHeightMenuOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-  // ========================[수정 끝 (3/4)]========================
-
 
   // 주석: useReactTable은 이제 렌더링이 아닌 '상태 관리' 용도로만 사용합니다.
   const table = useReactTable({
@@ -244,28 +227,10 @@ const EvaluationView = () => {
             </button>
             {/* ========================[수정 시작 (4/4)]======================== */}
             {/* 주석: LayoutGrid 버튼을 드롭다운 컨테이너로 감싸고, 클릭 이벤트를 연결합니다. */}
-            <div className={styles.dropdownContainer} ref={rowHeightMenuRef}>
-              <button className={styles.iconButton} onClick={() => setIsRowHeightMenuOpen(!isRowHeightMenuOpen)}>
-                <LayoutGrid size={16} />
-              </button>
-              {isRowHeightMenuOpen && (
-                <div className={styles.dropdownMenu}>
-                  <div className={styles.dropdownHeader}>Row height</div>
-                  <div className={styles.dropdownItem} onClick={() => { setRowHeight('small'); setIsRowHeightMenuOpen(false); }}>
-                    <span>Small</span>
-                    {rowHeight === 'small' && <Check size={16} />}
-                  </div>
-                  <div className={styles.dropdownItem} onClick={() => { setRowHeight('medium'); setIsRowHeightMenuOpen(false); }}>
-                    <span>Medium</span>
-                    {rowHeight === 'medium' && <Check size={16} />}
-                  </div>
-                  <div className={styles.dropdownItem} onClick={() => { setRowHeight('large'); setIsRowHeightMenuOpen(false); }}>
-                    <span>Large</span>
-                    {rowHeight === 'large' && <Check size={16} />}
-                  </div>
-                </div>
-              )}
-            </div>
+            <RowHeightDropdown
+              value={rowHeight}
+              onChange={setRowHeight}
+            />
             {/* ========================[수정 끝 (4/4)]======================== */}
           </div>
         </div>

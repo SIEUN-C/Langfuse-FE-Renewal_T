@@ -1,7 +1,6 @@
 import React from 'react';
 import styles from './ColumnVisibilityModal.module.css';
 import { X } from 'lucide-react';
-import { useColumnVisibility } from 'hooks/useColumnVisibility';
 
 const ColumnVisibilityModal = ({
   isOpen,
@@ -64,18 +63,18 @@ const ColumnVisibilityModal = ({
             const isMandatory = col.isMandatory === true;
 
             return (
-              <label key={col.key} className={styles.columnItem}>
+              <label key={col.id} className={styles.columnItem}>
                 <input
                   type="checkbox"
                   checked={isMandatory || col.visible}
                   onChange={() => {
                     if (!isMandatory) {
-                      toggleColumnVisibility(col.key);
+                      toggleColumnVisibility(col.id);
                     }
                   }}
                   disabled={isMandatory}
                 />
-                <span>{typeof col.header === 'string' ? col.header : col.key}</span>
+                <span>{typeof col.header === 'string' ? col.header : col.id}</span>
               </label>
             );
           })}

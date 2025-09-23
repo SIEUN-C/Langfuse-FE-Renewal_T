@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import dayjs from 'dayjs';
 import styles from './Tracing.module.css';
 import { DataTable } from 'components/DataTable/DataTable';
-import { traceTableColumns as rawColumns } from './config/TraceColumns.jsx';
+import { getTraceTableColumns } from './config/TraceColumns.jsx';
 import SearchInput from 'components/SearchInput/SearchInput';
 import FilterControls from 'components/FilterControls/FilterControls';
 import TraceDetailPanel from './components/TraceDetailPanel.jsx';
@@ -23,7 +23,7 @@ import { tracingFilterConfig } from 'components/FilterControls/filterConfig';
 import { observationsFilterConfig } from './config/ObservationFilterConfig.js';
 // --- ▲▲▲ [추가] filter ▲▲▲ ---
 
-import RowDensityButton from "./components/RowDensityButton.jsx";
+import RowHeightDropdown from 'components/RowHeightDropdown/RowHeightDropdown.jsx'
 
 // Observation 추가
 import ObservationsTab from './Observations/ObservationTab.jsx';
@@ -52,6 +52,7 @@ const Tracing = () => {
   const [selectedRows, setSelectedRows] = useState(new Set());
   const [pendingTraceId, setPendingTraceId] = useState(null);
   const [selectedTraceId, setSelectedTraceId] = useState(null);
+  const [rowHeight, setRowHeight] = useState('small')
   // Traces 탭 필터 상태
   const [builderFiltersTraces, setBuilderFiltersTraces] = useState(() => {
     const c = tracingFilterConfig[0];
@@ -222,13 +223,15 @@ const Tracing = () => {
     setFavoriteState(newFavoriteState);
   };
 
+  const columnDefinitions = useMemo(() => getTraceTableColumns(null, rowHeight), [rowHeight]);
+
   const {
     columns,
     visibleColumns,
     toggleColumnVisibility,
     setAllColumnsVisible,
     restoreDefaults,
-  } = useColumnVisibility(rawColumns);
+  } = useColumnVisibility(columnDefinitions);
 
   const loadTraces = useCallback(async () => {
     if (!projectId) return;
@@ -375,10 +378,9 @@ const Tracing = () => {
               <Columns size={16} /> Columns ({visibleColumns.length}/{columns.length})
             </FilterButton>
             {/* 행 높이 아이콘 버튼 */}
-            <RowDensityButton
-              value={rowDensity}
-              onChange={setRowDensity}
-              style={{ marginLeft: 8 }}
+            <RowHeightDropdown
+              value={rowHeight}
+              onChange={setRowHeight}
             />
             <button className={styles.exportButton}>
               <Download />
@@ -388,7 +390,7 @@ const Tracing = () => {
 
         <ErrorBanner message={error} onDismiss={() => setError(null)} />
 
-        <div className={`${styles.contentArea} ${styles.densityRoot}`} data-density={rowDensity}>
+        <div className={styles.contentArea} data-density={rowHeight}>
           {activeTab === 'Traces' && (
             isLoading ? <div>Loading traces...</div> :
               !error && (

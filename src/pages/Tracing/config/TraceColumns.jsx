@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Star, Sigma, MoveRight } from 'lucide-react';
+import { Star, Sigma, MoveRight, Tag } from 'lucide-react';
 import styles from '../Tracing.module.css';
 import dayjs from 'dayjs';
 
@@ -19,137 +19,224 @@ const safeRender = (value) => {
   return String(value);
 };
 
-export const traceTableColumns = [
-  {
-    id: 'timestamp',
-    header: 'Timestamp',
-    accessor: (row) => dayjs(row.timestamp).format('YYYY-MM-DD HH:mm:ss'),
-    defaultVisible: true,
-  },
-  {
-    id: 'name',
-    header: 'Name',
-    accessor: (row) => row.name,
-    defaultVisible: true,
-  },
-  {
-    id: 'input',
-    header: 'Input',
-    accessor: (row) => <div className={styles.cellText}>{row.input}</div>,
-    defaultVisible: true,
-  },
-  {
-    id: 'output',
-    header: 'Output',
-    accessor: (row) => <div className={styles.cellText}>{row.output}</div>,
-    defaultVisible: true,
-  },
-  {
-    id: 'observationLevels', 
-    header: 'Observations Levels',
-    accessor: (row) => row.observations,
-    defaultVisible: true,
-  },
-  {
-    id: 'latency',
-    header: 'Latency',
-    accessor: (row) => (row.latency != null ? `${row.latency.toFixed(2)}s` : '-'),
-    defaultVisible: true,
-  },
-  {
-    id: 'tokens',
-    header: 'Tokens',
-    accessor: (row) => <div>{safeRender(row.inputTokens)}<MoveRight size={10}/>{safeRender(row.outputTokens)}(<Sigma size={10}/>{safeRender(row.totalTokens)})</div>,
-    defaultVisible: true,
-  },
-  {
-    id: 'totalCost',
-    header: 'Total Cost',
-    accessor: (row) => (row.cost != null ? `$${Number(row.cost).toFixed(6)}` : '-'),
-    defaultVisible: true,
-  },
-  {
-    id: 'environment',
-    header: 'Environment',
-    accessor: (row) => safeRender(row.environment),
-    defaultVisible: true,
-  },
-  {
-    id: 'tags',
-    header: 'Tags',
-    accessor: (row) => safeRender(row.tags),
-    defaultVisible: true,
-  },
-  {
-    id: 'metadata',
-    header: 'Metadata',
-    accessor: (row) => safeRender(row.metadata),
-    defaultVisible: true,
-  },
-  {
-    id: 'sessionId',
-    header: 'Session ID',
-    accessor: (row) => safeRender(row.sessionId),
-    defaultVisible: false,
-  },
-  {
-    id: 'userId',
-    header: 'User ID',
-    accessor: (row) => safeRender(row.userId),
-    defaultVisible: false,
-  },
-  {
-    id: 'level',
-    header: 'Level',
-    accessor: (row) => safeRender(row.level),
-    defaultVisible: false,
-  },
-  {
-    id: 'version',
-    header: 'Version',
-    accessor: (row) => safeRender(row.version),
-    defaultVisible: false,
-  },
-  {
-    id: 'release',
-    header: 'Release',
-    accessor: (row) => safeRender(row.release),
-    defaultVisible: false,
-  },
-  {
-    id: 'id',
-    header: 'Trace ID',
-    accessor: (row) => safeRender(row.id),
-    defaultVisible: false,
-  },
-  {
-    id: 'inputCost',
-    header: 'Input Cost',
-    accessor: (row) => (row.inputCost != null ? `$${Number(row.inputCost).toFixed(6)}` : '-'),
-    defaultVisible: false,
-  },
-  {
-    id: 'outputCost',
-    header: 'Output Cost',
-    accessor: (row) => (row.outputCost != null ? `$${Number(row.outputCost).toFixed(6)}` : '-'),
-    defaultVisible: false,
-  },
-  {
-    id: 'inputTokens',
-    header: 'Input Tokens',
-    accessor: (row) => safeRender(row.inputTokens),
-    defaultVisible: false,
-  },
-  {
-    id: 'outputTokens',
-    header: 'Output Tokens',
-    accessor: (row) => safeRender(row.outputTokens),
-    defaultVisible: false,
-  },
-  {
-    id: 'totalTokens',
-    header: 'Total Tokens',
-    accessor: (row) => safeRender(row.totalTokens),
-    defaultVisible: false,
-  }
-];
+export const getTraceTableColumns = (projectId, rowHeight) => {
+  return [
+    {
+      id: 'timestamp',
+      header: 'Timestamp',
+      accessor: (row) => dayjs(row.timestamp).format('YYYY-MM-DD HH:mm:ss'),
+      defaultVisible: true,
+    },
+    {
+      id: 'name',
+      header: 'Name',
+      accessor: (row) => row.name,
+      defaultVisible: true,
+    },
+    {
+      id: 'input',
+      header: 'Input',
+      accessor: (row) => {
+        const inputComment = row.input;
+
+        if (inputComment === null || typeof inputComment === 'undefined' || inputComment.trim() === '') {
+          return '-'
+        }
+
+        try {
+          const parsedInput = JSON.parse(inputComment)
+
+          if (rowHeight === 'small') {
+            const compactInput = JSON.stringify(parsedInput);
+
+            return (
+              <span className={`${styles.commentBox} ${styles[rowHeight]}`}>
+                {compactInput}
+              </span>
+            );
+          } else {
+            const formattedInput = JSON.stringify(parsedInput, null, 2);
+
+            return (
+              <span className={`${styles.commentBox} ${styles[rowHeight]}`}>
+                <pre>{formattedInput}</pre>
+              </span>
+            );
+          }
+        } catch (error) {
+          return (
+            <span className={`${styles.commentBox} ${styles[rowHeight]}`}>
+              {inputComment}
+            </span>
+          )
+        }
+      },
+      defaultVisible: true,
+    },
+    {
+      id: 'output',
+      header: 'Output',
+      accessor: (row) => {
+        const outputComment = row.output;
+        return outputComment ? (
+          <span className={`${styles.commentBox} ${styles[rowHeight]}`}>
+            {outputComment}
+          </span>
+        ) : '-';
+      },
+      defaultVisible: true,
+    },
+    {
+      id: 'observationLevels',
+      header: 'Observations Levels',
+      accessor: (row) => row.observations,
+      defaultVisible: true,
+    },
+    {
+      id: 'latency',
+      header: 'Latency',
+      accessor: (row) => (row.latency != null ? `${row.latency.toFixed(2)}s` : '-'),
+      defaultVisible: true,
+    },
+    {
+      id: 'tokens',
+      header: 'Tokens',
+      accessor: (row) => <div>{safeRender(row.inputTokens)} <MoveRight size={10} /> {safeRender(row.outputTokens)} (<Sigma size={10} />{safeRender(row.totalTokens)})</div>,
+      defaultVisible: true,
+    },
+    {
+      id: 'totalCost',
+      header: 'Total Cost',
+      accessor: (row) => (row.cost != null ? `$${Number(row.cost).toFixed(6)}` : '-'),
+      defaultVisible: true,
+    },
+    {
+      id: 'environment',
+      header: 'Environment',
+      accessor: (row) => {
+        return (
+          <span className={styles.cellButton}>
+            {row.environment}
+          </span>
+        )
+      },
+      defaultVisible: true,
+    },
+    {
+      id: 'tags',
+      header: 'Tags',
+      accessor: (row) => {
+        if (!Array.isArray(row.tags) || row.tags.length === 0) {
+          return '-';
+        }
+
+        return (
+          <div className={styles.tagContainer}>
+            {row.tags.map((tag) => (
+              <span ket={tag} className={styles.tagItem}>
+                <Tag size={10} /> {tag}
+              </span>
+            ))}
+          </div>
+        )
+      },
+      defaultVisible: true,
+    },
+    {
+      id: 'metadata',
+      header: 'Metadata',
+      accessor: (row) => {
+        const metadataValue = row.metadata;
+
+        if (metadataValue === null || typeof metadataValue === 'undefined') {
+          return '-'
+        }
+
+        if (rowHeight === 'small') {
+          const compactJson = JSON.stringify(metadataValue);
+
+          return (
+            <span className={`${styles.commentBox} ${styles[rowHeight]}`}>
+              {compactJson}
+            </span>
+          );
+        } else {
+          const formattedMetadata = JSON.stringify(metadataValue, null, 2);
+
+          return (
+            <span className={`${styles.commentBox} ${styles[rowHeight]}`}>
+              <pre>{formattedMetadata}</pre>
+            </span>
+          );
+        }
+      },
+      defaultVisible: true,
+    },
+    {
+      id: 'sessionId',
+      header: 'Session ID',
+      accessor: (row) => safeRender(row.sessionId),
+      defaultVisible: false,
+    },
+    {
+      id: 'userId',
+      header: 'User ID',
+      accessor: (row) => safeRender(row.userId),
+      defaultVisible: false,
+    },
+    {
+      id: 'level',
+      header: 'Level',
+      accessor: (row) => safeRender(row.level),
+      defaultVisible: false,
+    },
+    {
+      id: 'version',
+      header: 'Version',
+      accessor: (row) => safeRender(row.version),
+      defaultVisible: false,
+    },
+    {
+      id: 'release',
+      header: 'Release',
+      accessor: (row) => safeRender(row.release),
+      defaultVisible: false,
+    },
+    {
+      id: 'id',
+      header: 'Trace ID',
+      accessor: (row) => safeRender(row.id),
+      defaultVisible: false,
+    },
+    {
+      id: 'inputCost',
+      header: 'Input Cost',
+      accessor: (row) => (row.inputCost != null ? `$${Number(row.inputCost).toFixed(6)}` : '-'),
+      defaultVisible: false,
+    },
+    {
+      id: 'outputCost',
+      header: 'Output Cost',
+      accessor: (row) => (row.outputCost != null ? `$${Number(row.outputCost).toFixed(6)}` : '-'),
+      defaultVisible: false,
+    },
+    {
+      id: 'inputTokens',
+      header: 'Input Tokens',
+      accessor: (row) => safeRender(row.inputTokens),
+      defaultVisible: false,
+    },
+    {
+      id: 'outputTokens',
+      header: 'Output Tokens',
+      accessor: (row) => safeRender(row.outputTokens),
+      defaultVisible: false,
+    },
+    {
+      id: 'totalTokens',
+      header: 'Total Tokens',
+      accessor: (row) => safeRender(row.totalTokens),
+      defaultVisible: false,
+    }
+  ];
+};

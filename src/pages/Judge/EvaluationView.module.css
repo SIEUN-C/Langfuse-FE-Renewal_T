@@ -307,13 +307,25 @@
   - 'small'은 1줄, 'medium'은 5줄, 'large'는 15줄까지 보이도록 설정하여 높이를 조절합니다.
 */
 .small {
-  -webkit-line-clamp: 1; 
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
 }
 .medium {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
   -webkit-line-clamp: 5;
+  line-clamp: 5;
 }
 .large {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
   -webkit-line-clamp: 15;
+  line-clamp: 15;
 }
 /* ========================[수정 끝 (3/3)]======================== */
 
