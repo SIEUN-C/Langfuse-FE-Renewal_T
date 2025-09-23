@@ -1,3 +1,5 @@
+// src/pages/Dashboards/components/charts/ModelSelector.jsx
+
 import React, { useState, useEffect } from 'react';
 import { getAllModels } from '../../utils/hooks';
 
@@ -39,13 +41,6 @@ function ChevronIcon() {
 
 /**
  * 모델 선택 팝오버 컴포넌트
- * @param {Object} props
- * @param {Array} props.allModels - 모든 모델 배열 (객체 형태: {model: string})
- * @param {Array} props.selectedModels - 선택된 모델 배열
- * @param {function} props.setSelectedModels - 선택된 모델 설정 함수
- * @param {string} props.buttonText - 버튼 텍스트
- * @param {boolean} props.isAllSelected - 전체 선택 여부
- * @param {function} props.handleSelectAll - 전체 선택 핸들러
  */
 export const ModelSelectorPopover = ({
   allModels,
@@ -58,10 +53,12 @@ export const ModelSelectorPopover = ({
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // 검색 필터링
-  const filteredModels = allModels.filter(model =>
-    model.model.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // 🎯 [수정] 데이터가 비정상적일 경우를 대비한 방어 코드 추가
+  const filteredModels = (allModels || []) // allModels가 null/undefined일 경우 빈 배열로 처리
+    .filter(model => model && typeof model.model === 'string') // model 객체와 model.model 속성이 유효한지 확인
+    .filter(model =>
+      model.model.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
   const handleModelToggle = (modelName) => {
     setSelectedModels((prev) =>
@@ -80,10 +77,11 @@ export const ModelSelectorPopover = ({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          width: '224px', // w-56
+          width: '224px',
           padding: '8px 12px',
-          border: '1px solid #d1d5db',
-          backgroundColor: 'white',
+          border: '1px solid #4b5563', // 어두운 테마에 맞게 수정
+          backgroundColor: '#1f2937', // 어두운 테마에 맞게 수정
+          color: '#e5e7eb', // 어두운 테마에 맞게 수정
           borderRadius: '4px',
           cursor: 'pointer',
           fontSize: '0.875rem'
@@ -99,13 +97,14 @@ export const ModelSelectorPopover = ({
           position: 'absolute',
           top: '100%',
           left: 0,
-          width: '224px', // w-56
-          backgroundColor: 'white',
-          border: '1px solid #d1d5db',
+          width: '224px',
+          backgroundColor: '#374151', // 어두운 테마
+          border: '1px solid #4b5563', // 어두운 테마
           borderRadius: '6px',
           boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
           zIndex: 100,
-          marginTop: '4px'
+          marginTop: '4px',
+          color: '#e5e7eb' // 전체 텍스트 색상
         }}>
           {/* 검색 입력 */}
           <div style={{ padding: '8px' }}>
@@ -117,10 +116,13 @@ export const ModelSelectorPopover = ({
               style={{
                 width: '100%',
                 padding: '6px 8px',
-                border: '1px solid #e5e7eb',
+                border: '1px solid #4b5563',
                 borderRadius: '4px',
                 fontSize: '0.875rem',
-                outline: 'none'
+                outline: 'none',
+                backgroundColor: '#1f2937', // 어두운 테마
+                color: '#e5e7eb', // 어두운 테마
+                boxSizing: 'border-box' // 패딩이 너비를 넘지 않도록
               }}
             />
           </div>
@@ -135,13 +137,12 @@ export const ModelSelectorPopover = ({
                 padding: '8px 12px',
                 cursor: 'pointer',
                 fontSize: '0.875rem',
-                borderTop: '1px solid #f3f4f6'
               }}
               onMouseEnter={(e) => {
-                e.target.style.backgroundColor = '#f9fafb';
+                e.currentTarget.style.backgroundColor = '#4b5563';
               }}
               onMouseLeave={(e) => {
-                e.target.style.backgroundColor = 'transparent';
+                e.currentTarget.style.backgroundColor = 'transparent';
               }}
             >
               <CheckIcon visible={isAllSelected} />
@@ -154,7 +155,7 @@ export const ModelSelectorPopover = ({
             <hr style={{ 
               margin: '4px 0', 
               border: 'none', 
-              borderTop: '1px solid #e5e7eb' 
+              borderTop: '1px solid #4b5563' 
             }} />
 
             {/* 모델 목록 */}
@@ -162,7 +163,7 @@ export const ModelSelectorPopover = ({
               <div style={{
                 padding: '12px',
                 textAlign: 'center',
-                color: '#6b7280',
+                color: '#9ca3af',
                 fontSize: '0.875rem'
               }}>
                 No model found.
@@ -180,10 +181,10 @@ export const ModelSelectorPopover = ({
                     fontSize: '0.875rem'
                   }}
                   onMouseEnter={(e) => {
-                    e.target.style.backgroundColor = '#f9fafb';
+                    e.currentTarget.style.backgroundColor = '#4b5563';
                   }}
                   onMouseLeave={(e) => {
-                    e.target.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.backgroundColor = 'transparent';
                   }}
                 >
                   <CheckIcon visible={selectedModels.includes(model.model)} />
@@ -219,13 +220,9 @@ export const ModelSelectorPopover = ({
   );
 };
 
-/**
- * 모델 선택 훅
- * @param {string} projectId - 프로젝트 ID
- * @param {Array} globalFilterState - 글로벌 필터 상태
- * @param {Date} fromTimestamp - 시작 날짜
- * @param {Date} toTimestamp - 종료 날짜
- */
+
+// 🎯 Home.jsx로 로직이 이전되었으므로 이 훅은 더 이상 사용되지 않습니다.
+// 🎯 하지만 다른 곳에서 사용할 가능성을 대비해 남겨둡니다.
 export const useModelSelection = (
   projectId,
   globalFilterState,
@@ -254,7 +251,6 @@ export const useModelSelection = (
 
   useEffect(() => {
     if (firstAllModelUpdate && allModels.length > 0) {
-      // 처음에는 최대 10개 모델만 선택
       setSelectedModels(allModels.slice(0, 10).map((model) => model.model));
       setFirstAllModelUpdate(false);
     }

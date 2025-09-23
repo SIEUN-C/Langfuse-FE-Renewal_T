@@ -39,17 +39,23 @@ const BaseTimeSeriesChart = (props) => {
     showLine = true,
     specialSeries = [],
     yAxisDomain,
+    legendLabels, // 🎯 [수정] 범례 목록을 직접 받는 prop 추가
   } = props;
 
   const [activeLabel, setActiveLabel] = useState(null);
 
   // --- 데이터 가공 로직 (기존과 동일) ---
   const safeData = useMemo(() => data.filter(d => d && typeof d.ts !== 'undefined' && Array.isArray(d.values)), [data]);
+ // 🎯 [수정] legendLabels prop이 있으면 그것을 사용하고, 없으면 기존 방식을 따름
   const labels = useMemo(() => {
+    if (legendLabels) return legendLabels;
+    
     const labelSet = new Set();
     safeData.forEach(d => d.values.forEach(v => v && typeof v.label === 'string' && labelSet.add(v.label)));
     return Array.from(labelSet);
-  }, [safeData]);
+  }, [safeData, legendLabels]);
+
+
   const convertDate = (date, agg) => {
     try {
       const aggSettings = dashboardDateRangeAggregationSettings?.[agg];
@@ -98,9 +104,10 @@ const BaseTimeSeriesChart = (props) => {
     return <span style={{ fontSize: '12px', color: '#374151', fontWeight: 900 }}>{value}</span>;
   };
 
-  if (safeData.length === 0) {
+   if (safeData.length === 0 && !legendLabels) {
     return <div style={{ marginTop: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '300px', color: '#6b7280', fontSize: '0.875rem' }} className={className}>No data available</div>;
   }
+  
   
   return (
     <div style={{ marginTop: '16px', height: '300px' }} className={className}>
