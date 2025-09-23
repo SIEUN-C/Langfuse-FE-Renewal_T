@@ -69,6 +69,8 @@ export default function EvaluationForm({
     // 2) view/edit 모드: Detail preset 상태 주입
     useEffect(() => {
         if (mode === "create" || !preset) return;
+
+        if (typeof preset.scoreName === "string") setScoreName(preset.scoreName);
         if (Array.isArray(preset.mappingRows)) setMappingRows(preset.mappingRows);
         if (typeof preset.filterText === "string") setFilterText(preset.filterText);
         if (Number.isFinite(preset.samplingPct)) setSamplingPct(preset.samplingPct);
@@ -77,6 +79,7 @@ export default function EvaluationForm({
         if (typeof preset.runsOnExisting === "boolean") setRunsOnExisting(preset.runsOnExisting);
     }, [
         mode,
+        preset?.scoreName,
         preset?.mappingRows,
         preset?.filterText,
         preset?.samplingPct,

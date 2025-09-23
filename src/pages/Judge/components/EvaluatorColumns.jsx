@@ -100,7 +100,7 @@ const formatDateTime = (isoString) => {
 // 주석: 오류의 원인이었던 useState, useRef, useEffect를 사용하는 로직을
 //       이 ActionMenu 라는 별도의 컴포넌트로 완전히 옮겼습니다.
 //       이제 Hook이 올바른 위치에서 사용되므로 오류가 발생하지 않습니다.
-const ActionMenu = ({ row, onDeleteClick }) => {
+const ActionMenu = ({ row, onDeleteClick, onEditClick }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
   const buttonRef = useRef(null);
@@ -141,7 +141,14 @@ const ActionMenu = ({ row, onDeleteClick }) => {
         left: `${menuPosition.left}px`,
       }}
     >
-      <button className={styles.dropdownItem} onClick={(e) => e.stopPropagation()}>
+      <button
+        className={styles.dropdownItem}
+        onClick={(e) => {
+          e.stopPropagation();
+          onEditClick(row);
+          setIsOpen(false);
+        }}
+      >
         <Pencil size={14} /> Edit
       </button>
       <button
@@ -171,7 +178,7 @@ const ActionMenu = ({ row, onDeleteClick }) => {
 
 // --- 컬럼 정의 함수 ---
 // 주석: onDeleteClick 핸들러를 props로 받습니다.
-export const getEvaluatorColumns = (projectId, datasetMap, onDeleteClick) => {
+export const getEvaluatorColumns = (projectId, datasetMap, onDeleteClick, onEditClick) => {
   // ========================[핵심 수정 2: 오류 코드 삭제]========================
   // 주석: 이전에 오류를 일으켰던 useState, useRef, useEffect 관련 코드를
   //       여기서 모두 삭제했습니다. 그래서 코드가 짧아진 것입니다.
@@ -284,7 +291,13 @@ export const getEvaluatorColumns = (projectId, datasetMap, onDeleteClick) => {
       header: 'Actions',
       // ========================[핵심 수정 3: ActionMenu 컴포넌트 사용]========================
       // 주석: accessor에서 위에서 만든 ActionMenu 컴포넌트를 호출하여 렌더링합니다.
-      accessor: (row) => <ActionMenu row={row} onDeleteClick={onDeleteClick} />,
+      accessor: (row) => (
+        <ActionMenu
+          row={row}
+          onDeleteClick={onDeleteClick}
+          onEditClick={onEditClick}
+        />
+      ),
       // ========================[핵심 수정 3 끝]========================
       isMandatory: true,
     },

@@ -129,6 +129,10 @@ const JudgePage = () => {
     navigate(`/llm-as-a-judge/edit/${evaluator.id}`);
   }, [navigate]);
 
+  const handleActionEdit = (evaluator) => {
+    navigate(`/llm-as-a-judge/evals/edit/${evaluator.id}`);
+  }
+
   const handleConfirmDelete = async () => {
     if (!evaluatorToDelete) return;
     try {
@@ -162,7 +166,7 @@ const JudgePage = () => {
 
   const rawColumns = useMemo(() => {
     if (activeTab === 'running') {
-      return getEvaluatorColumns(projectId, datasetMap, handleOpenDeleteModal);
+      return getEvaluatorColumns(projectId, datasetMap, handleOpenDeleteModal, handleActionEdit);
     }
     if (activeTab === 'library') {
       return getEvaluatorLibraryColumns({

@@ -33,6 +33,7 @@ import EvaluationView from "pages/Judge/EvaluationView";
 import Templates from "pages/Judge/Templates";
 import CustomEvaluator from "pages/Judge/CustomEvaluator";
 import UseEvaluator from "pages/Judge/UseEvaluator";
+import EditEvaluator from "pages/Judge/EditEvaluator";
 
 import Dashboards from "./pages/Dashboards/Dashboards";
 import DashboardNew from "./pages/Dashboards/DashboardNew";
@@ -154,6 +155,7 @@ export default function App() {
         <Route path="llm-as-a-judge/evals/new/:templateId" element={<RequireOrg><UseEvaluator /></RequireOrg>} />
         <Route path="llm-as-a-judge/custom" element={<RequireOrg><CustomEvaluator /></RequireOrg>} />
         <Route path="llm-as-a-judge/edit/:templateId" element={<RequireOrg><CustomEvaluator /></RequireOrg>} />
+        <Route path="llm-as-a-judge/evals/edit/:evaluationId" element={<RequireOrg><EditEvaluator /></RequireOrg>} />
         {/* Dashboards */}
         <Route path="project/:projectId/dashboards" element={<RequireOrg><Dashboards /></RequireOrg>} />
         <Route path="project/:projectId/dashboards/new" element={<RequireOrg><DashboardNew /></RequireOrg>} />

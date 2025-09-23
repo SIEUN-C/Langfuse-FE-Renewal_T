@@ -6,30 +6,27 @@ import {
     evalTraceTableCols,
     datasetFormFilterColsWithOptions,
     evalDatasetFormFilterCols,
-} from "./cols"; // ← cols.js 위치가 같다면 OK. 다르면 경로 조정
+} from "./cols";
 
 export default function TargetFilterBuilder({ projectId, value = "[]", onChange, disabled }) {
-    const [filterConfig, setFilterConfig] = useState([]); // [{key,label,type,operators,hasMetaKey,options}]
-    const [filters, setFilters] = useState([]);           // [{id,column,operator,value,metaKey?}]  column은 "키"
+    const [filterConfig, setFilterConfig] = useState([]);
+    const [filters, setFilters] = useState([]);
 
-    // 서버 옵션 불러와 정답 스키마에 주입
+    // 이 useEffect는 서버에서 필터 옵션을 불러오는 역할을 하므로 그대로 둡니다.
     useEffect(() => {
         if (!projectId) return;
-
-        // 0) 기본 컬럼 세팅(옵션 없이) → UI가 바로 열린다
+        // ... (기존 옵션 로딩 코드는 변경 없음) ...
         const baseTrace = tracesTableColsWithOptions({}, evalTraceTableCols);
         const baseDs = datasetFormFilterColsWithOptions({ datasetId: [] }, evalDatasetFormFilterCols);
         setFilterConfig([...baseTrace, ...baseDs].map(c => ({
             key: c.id, label: c.name, type: mapTypeFromDefinition(c),
             operators: pickOps(c), hasMetaKey: c.id === "metadata", options: c.options || [],
         })));
-
         Promise.all([
             tracesFilterOptions({ projectId }).catch(() => null),
             allDatasetMeta({ projectId }).catch(() => []),
         ])
             .then(([fo, datasets]) => {
-                // 1) 서버가 준 distinct 값만 추려 런타임 옵션으로 변환
                 const runtime = {
                     name: (fo?.name?.values ?? []).map(v => ({ value: v })),
                     environment: (fo?.environment?.values ?? []).map(v => ({ value: v })),
@@ -37,49 +34,64 @@ export default function TargetFilterBuilder({ projectId, value = "[]", onChange,
                     score_categories: (fo?.score_categories?.values ?? []).map(v => ({ value: v })),
                     scores_avg: fo?.scores_avg?.values ?? [],
                 };
-
-                // 2) 정답 컬럼 세트 + 옵션 주입
                 const traceCols = tracesTableColsWithOptions(runtime, evalTraceTableCols);
                 const datasetCols = datasetFormFilterColsWithOptions(
                     { datasetId: (Array.isArray(datasets) ? datasets : []).map(d => ({ value: d.id, label: d.name })) },
                     evalDatasetFormFilterCols
                 );
-
-                // 3) FilterBuilder 설정 포맷으로 변환 (키/라벨/타입/연산자)
                 const cols = [...traceCols, ...datasetCols].map(c => ({
-                    key: c.id,                  // ★ 내부/서버 일치 키
-                    label: c.name,              // 표시용 라벨
-                    type: mapTypeFromDefinition(c),
-                    operators: pickOps(c),
-                    hasMetaKey: c.id === "metadata",
+                    key: c.id, label: c.name, type: mapTypeFromDefinition(c),
+                    operators: pickOps(c), hasMetaKey: c.id === "metadata",
                     options: c.options || [],
                 }));
-
                 setFilterConfig(cols);
             })
             .catch(() => setFilterConfig([]));
     }, [projectId]);
 
-    // 상위(JSON 문자열) → 내부 배열
+    // ========================[수정 1/3: useEffect 로직 변경]========================
+    // 주석: 부모로부터 받은 value prop이 변경될 때만 내부 상태를 업데이트합니다.
     useEffect(() => {
         try {
+            // 현재 내부 상태를 외부 포맷(JSON 문자열)으로 변환
+            const internalStateAsString = JSON.stringify(toUiJson(filters, filterConfig));
+            
+            // 외부에서 받은 값과 내부 상태를 변환한 값이 이미 같다면, 아무것도 하지 않습니다.
+            // 이렇게 하면 불필요한 재동기화를 막아 루프를 차단합니다.
+            if (internalStateAsString === (value || "[]")) {
+                return;
+            }
+
+            // 외부 값이 바뀌었으므로 내부 상태를 업데이트합니다.
             const arr = JSON.parse(value || "[]");
-            const next = toBuilderFilters(arr);
-            // 동등성 비교로 불필요 렌더 방지
-            const currStr = JSON.stringify(toUiJson(filters, filterConfig));
-            const nextStr = JSON.stringify(toUiJson(next, filterConfig));
-            if (currStr !== nextStr) setFilters(next);
+            setFilters(toBuilderFilters(arr));
         } catch {
             setFilters([]);
         }
-    }, [value, filterConfig]); // filters는 의존성 제외 (동등성 가드로 처리)
+    }, [value, filterConfig]); // `filters`를 의존성 배열에서 제거하는 것이 매우 중요합니다.
+    // ========================================================================
 
-    // 내부 배열 → 상위(JSON 문자열)
+
+    // ========================[수정 2/3: useEffect 삭제 및 핸들러 추가]========================
+    // 주석: 무한 루프의 원인이었던 "내부 -> 외부" 동기화 useEffect를 완전히 삭제합니다.
+    /*
     useEffect(() => {
-        if (disabled) return;
-        const s = JSON.stringify(toUiJson(filters, filterConfig));
-        if (s !== (value || "[]")) onChange?.(s);
+      if (disabled) return;
+      const s = JSON.stringify(toUiJson(filters, filterConfig));
+      if (s !== (value || "[]")) onChange?.(s);
     }, [filters, onChange, disabled, value, filterConfig]);
+    */
+
+    // 주석: 대신, 사용자가 FilterBuilder를 조작했을 때만 부모에게 알리는 핸들러 함수를 만듭니다.
+    const handleFilterChange = (newFilters) => {
+        // 1. 내부 상태를 먼저 업데이트합니다.
+        setFilters(newFilters);
+        // 2. 변경된 내부 상태를 외부 포맷으로 변환하여 부모에게 알립니다(onChange 호출).
+        if (!disabled) {
+            onChange?.(JSON.stringify(toUiJson(newFilters, filterConfig)));
+        }
+    };
+    // ========================================================================
 
     if (!Array.isArray(filterConfig) || filterConfig.length === 0) {
         return <div style={{ opacity: .7, fontSize: 12 }}>Loading filter metadata…</div>;
@@ -87,12 +99,17 @@ export default function TargetFilterBuilder({ projectId, value = "[]", onChange,
     return (
         <FilterBuilder
             filters={filters}
-            onFilterChange={setFilters}
+            // ========================[수정 3/3: 새 핸들러 연결]========================
+            // 주석: onFilterChange prop에 setFilters 대신 새로 만든 핸들러를 연결합니다.
+            onFilterChange={handleFilterChange}
+            // =================================================================
             filterConfig={filterConfig}
             disabled={disabled}
         />
     );
 }
+
+// ... helpers (mapTypeFromDefinition, pickOps, toBuilderFilters, toUiJson) ...
 
 /* ───────────────── helpers ───────────────── */
 

@@ -100,7 +100,7 @@ async function listTracesForPreview({ projectId, filterBE, filterUI, page, limit
                     orderBy: { column: col, order: 'DESC' },
                     page,
                     limit,
-                    filter: filterBE,
+                    filter: Array.isArray(filterBE) ? filterBE : [],
                     searchQuery: '',
                 };
                 const out = await trpcQuery('traces.allInput', inputBE, { silent: true });
