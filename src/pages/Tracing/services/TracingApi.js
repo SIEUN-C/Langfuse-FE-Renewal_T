@@ -1,5 +1,6 @@
 // src/pages/Tracing/TracingApi.js
 import { langfuse } from 'lib/langfuse';
+import axios from 'axios';
 
 /**
  * API 응답 값을 UI에 표시하기 안전한 문자열로 변환합니다.
@@ -7,13 +8,13 @@ import { langfuse } from 'lib/langfuse';
  * @returns {string}
  */
 const formatTraceValue = (value) => {
-    if (value === null || typeof value === 'undefined') {
-        return 'N/A';
-    }
-    if (typeof value === 'string') {
-        return value;
-    }
-    return JSON.stringify(value, null, 2);
+  if (value === null || typeof value === 'undefined') {
+    return 'N/A';
+  }
+  if (typeof value === 'string') {
+    return value;
+  }
+  return JSON.stringify(value, null, 2);
 }
 
 /**
@@ -64,6 +65,40 @@ export const deleteTrace = async (traceId) => {
   } catch (error) {
     console.error(`API Error in deleteTrace for ID ${traceId}:`, error);
     error.clientMessage = `Trace (ID: ${traceId}) 삭제에 실패했습니다. 권한이나 네트워크를 확인해주세요.`;
+    throw error;
+  }
+};
+
+/**
+ * 여러 트레이스의 비용, 토큰 등 메트릭 정보를 한 번에 가져옵니다.
+ * @param {Array<string>} traceIds - 메트릭을 조회할 트레이스 ID 목록
+ * @param {string} projectId - 프로젝트 ID
+ * @returns {Promise<Array<Object>>} 메트릭 정보 객체 목록
+ */
+export const fetchTraceMetrics = async (traceIds, projectId) => {
+  // traceIds가 비어있으면 불필요한 호출을 막기 위해 빈 배열을 반환합니다.
+  if (!traceIds || traceIds.length === 0) {
+    return [];
+  }
+
+  try {
+    const params = {
+      json : {
+        projectId: projectId,
+        traceIds: traceIds,
+        filter: [],
+      }
+    }
+
+    // tRPC 엔드포인트에 POST 요청을 보냅니다.
+    const url = `/api/trpc/traces.metrics?input=${encodeURIComponent(JSON.stringify(params))}`;
+    const response = await axios.get(url);
+    
+    return response.data?.result?.data?.json;
+
+  } catch (error) {
+    console.error("API Error in fetchTraceMetrics:", error);
+    error.clientMessage = '트레이스 메트릭 정보를 불러오는 데 실패했습니다.';
     throw error;
   }
 };
