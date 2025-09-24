@@ -126,7 +126,7 @@ const SignUpPage = () => {
 
         <p className={styles.signUpText}>
           Already have an account?{" "}
-          <a href="/auth/sign-in" className={styles.signUpLink}>
+          <a href="/login" className={styles.signUpLink}>
             Sign in
           </a>
         </p>

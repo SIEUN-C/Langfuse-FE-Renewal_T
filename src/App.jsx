@@ -114,7 +114,7 @@ export default function App() {
       {/* 로그인/회원가입 - Layout 외부 */}
       <Route path="/login" element={!session ? <Login /> : <Navigate to="/" />} />
       <Route path="/auth/sign-up" element={!session ? <SignUpPage /> : <Navigate to="/" />} />
-      <Route path="/signup" element={<Navigate to="/auth/sign-up" replace />} />
+      <Route path="/signup" element={<Navigate to="/login" replace />} />
 
       {/* 루트 */}
       <Route
