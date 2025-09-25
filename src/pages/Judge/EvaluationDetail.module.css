@@ -12,6 +12,7 @@
 .panelHeader {
   display: flex;
   align-items: center;
+  justify-content: space-between; /* 추가 또는 확인 */
   gap: 0.75rem;
   padding: 0.75rem 1rem;
   background-color: #1e293b;
@@ -28,7 +29,6 @@
 }
 
 .closeButton {
-  margin-left: auto;
   background: none;
   border: none;
   font-size: 1.5rem;
@@ -309,4 +309,46 @@ input:checked+.slider:before {
   /* 세로/가로 모두 */
   overscroll-behavior: contain;
   /* 바닥/천장 도달해도 배경 스크롤 금지 */
+}
+
+/* --- 헤더 액션 버튼 (신규 추가) --- */
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* 버튼 사이 간격 */
+}
+
+/* 네비게이션 버튼 그룹 (신규 추가) */
+.navButtonGroup {
+  display: flex;
+  align-items: center;
+  border: 1px solid #334155; /* 테두리 색상 조정 */
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+/* 개별 네비게이션 버튼 (신규 추가) */
+.navButton {
+  background-color: transparent;
+  border: none;
+  padding: 6px 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8; /* 아이콘 색상 */
+}
+
+/* 버튼 사이에 구분선 추가 (신규 추가) */
+.navButton:first-child {
+  border-right: 1px solid #334155; /* 테두리 색상 조정 */
+}
+
+.navButton:hover:not(:disabled) {
+  background-color: #334155; /* 호버 시 배경색 */
+}
+
+.navButton:disabled {
+  color: #475569; /* 비활성화 시 색상 */
+  cursor: not-allowed;
 }

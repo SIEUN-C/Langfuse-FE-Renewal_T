@@ -1,3 +1,5 @@
+// src/Pages/Evaluation/Judge/EvaluationDetail.jsx
+
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import EvaluationForm from './components/EvaluationForm';
@@ -10,8 +12,14 @@ import { toScopeArray, computeFinalStatus, isEditable } from './components/evals
 import { getEvaluatorConfigById } from './services/judgeApi';
 import { updateEvalJob } from './services/evaluatorsApi';
 
-
-const EvaluationDetail = ({ onClose }) => {
+// 주석: 부모 컴포넌트로부터 네비게이션 관련 props를 전달받도록 수정합니다.
+const EvaluationDetail = ({
+  onClose,
+  onNavigatePrev,
+  onNavigateNext,
+  isPrevDisabled,
+  isNextDisabled
+}) => {
   const { projectId } = useProjectId();
   const [searchParams] = useSearchParams();
   const peekId = searchParams.get('peek');
@@ -197,7 +205,30 @@ const EvaluationDetail = ({ onClose }) => {
       <div className={styles.panelHeader}>
         <span>Running evaluator</span>
         <span className={styles.evaluatorId}>{detail.id}</span>
-        <button onClick={onClose} className={styles.closeButton}>×</button>
+ {/* ========================[수정 시작]======================== */}
+        {/* 주석: 네비게이션 버튼 그룹과 닫기 버튼을 포함하는 컨테이너입니다. */}
+        <div className={styles.headerActions}>
+          <div className={styles.navButtonGroup}>
+             {/* 주석: 아이콘 컴포넌트를 '∧K' 텍스트로 변경합니다. */}
+            <button
+              className={styles.navButton}
+              onClick={onNavigatePrev}
+              disabled={isPrevDisabled}
+            >
+              ∧K
+            </button>
+            {/* 주석: 아이콘 컴포넌트를 '∨J' 텍스트로 변경합니다. */}
+            <button
+              className={styles.navButton}
+              onClick={onNavigateNext}
+              disabled={isNextDisabled}
+            >
+              ∨J
+            </button>
+          </div>
+          <button onClick={onClose} className={styles.closeButton}>×</button>
+        </div>
+        {/* ========================[수정 끝]======================== */}
       </div>
 
       {/* 메인 콘텐츠 */}

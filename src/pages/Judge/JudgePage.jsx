@@ -23,6 +23,9 @@ import ColumnVisibilityModal from "components/ColumnVisibilityModal/ColumnVisibi
 import { useColumnVisibility } from "hooks/useColumnVisibility";
 import { colorSchemeDark } from "ag-grid-community";
 
+// 주석: 공통 네비게이션 훅을 import합니다.
+import { useListNavigator } from "hooks/useListNavigator";
+
 const JudgePage = () => {
   const [activeTab, setActiveTab] = useState("running");
   const [evaluators, setEvaluators] = useState([]);
@@ -197,6 +200,8 @@ const JudgePage = () => {
   }, [peekId, handleClosePanel]);
   // ========================[수정 끝 (3/5)]========================
 
+  
+
   const handleSetupEvaluator = () => navigate(`setup`);
   const handleOpenDefaultModel = () => navigate(`default-model`);
   const handleCustomEvaluator = () => navigate(`custom`);
@@ -240,6 +245,27 @@ const JudgePage = () => {
       item.name?.toLowerCase().includes(searchValue.toLowerCase())
     );
   }, [evaluatorLibrary, searchValue]);
+
+
+  // 주석: 이 부분을 filteredEvaluators가 선언된 이후로 옮깁니다.
+
+  const setSelectedEvaluatorId = useCallback((id) => {
+    const next = new URLSearchParams(searchParams);
+    next.set('peek', id);
+    setSearchParams(next, { replace: true });
+  }, [searchParams, setSearchParams]);
+
+  const {
+    currentIndex,
+    handleNext,
+    handlePrevious,
+  } = useListNavigator(
+    !!peekId,
+    filteredEvaluators, // 이제 이 변수에 안전하게 접근 가능
+    peekId,
+    setSelectedEvaluatorId,
+    handleClosePanel
+  );
 
   return (
     <div className={styles.pageLayout}>
@@ -338,7 +364,16 @@ const JudgePage = () => {
       {/* 주석: 상세 패널을 감싸는 div에 위에서 생성한 ref를 연결합니다. */}
       {peekId && (
         <div className={styles.peekPanel} ref={panelRef}>
-          <EvaluationDetail onClose={handleClosePanel} />
+          {/* ========================[수정 시작 (3/3)]======================== */}
+          {/* 주석: useListNavigator에서 받은 함수와 상태를 props로 전달합니다. */}
+          <EvaluationDetail
+            onClose={handleClosePanel}
+            onNavigatePrev={handlePrevious}
+            onNavigateNext={handleNext}
+            isPrevDisabled={currentIndex <= 0}
+            isNextDisabled={currentIndex >= filteredEvaluators.length - 1}
+          />
+          {/* ========================[수정 끝 (3/3)]======================== */}
         </div>
       )}
 
