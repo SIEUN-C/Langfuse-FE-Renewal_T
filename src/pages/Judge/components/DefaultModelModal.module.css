@@ -37,6 +37,7 @@
 }
 .iconBtn,
 .closeBtn {
+  position: relative; /* <<<<<<< 이 줄을 .iconBtn 규칙에 추가 */
   background: transparent;
   color: #a9b7d1;
   border: 1px solid #2a3853;
@@ -163,4 +164,16 @@
   justify-content: flex-end;
   gap: 12px;
   margin-top: 8px;
+}
+
+/* --- 변경 표시 아이콘 (신규 추가) --- */
+.modifiedIndicator {
+  position: absolute;
+  top: 5px; /* 버튼 상단에서의 위치 조정 */
+  right: 5px; /* 버튼 우측에서의 위치 조정 */
+  width: 8px;
+  height: 8px;
+  background-color: white;
+  border-radius: 50%;
+  border: 1px solid #0f1623; /* 배경색과 동일한 테두리로 경계선 명확화 */
 }

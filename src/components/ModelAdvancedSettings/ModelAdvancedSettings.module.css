@@ -237,3 +237,17 @@
   color: #999;
   cursor: not-allowed;
 }
+
+/* ... 기존 CSS 코드 맨 아래에 추가 ... */
+
+/* --- 변경 표시 아이콘 (신규 추가) --- */
+.modifiedIndicator {
+  position: absolute;
+  top: 4px; /* 버튼 상단에서의 위치 */
+  right: 4px; /* 버튼 우측에서의 위치 */
+  width: 8px;
+  height: 8px;
+  background-color: white; /* 흰색 점 */
+  border-radius: 50%;
+  border: 1px solid #334155; /* 어두운 테마에서 잘 보이도록 테두리 추가 */
+}

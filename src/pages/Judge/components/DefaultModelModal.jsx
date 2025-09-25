@@ -1,3 +1,4 @@
+//src\pages\Judge\components\DefaultModelModal.jsx
 import React, { useEffect, useRef, useState, useMemo } from "react";
 import styles from "./DefaultModelModal.module.css";
 import { Settings2 } from 'lucide-react';
@@ -29,6 +30,12 @@ export default function DefaultModelModal({
   const [ismodalOpen, setIsModalOpen] = useState(false);
   const settingsButtonRef = useRef(null);
   const [modelSettings, setModelSettings] = useState(DEFAULT_SETTINGS);
+
+  // 주석: 현재 모델 설정(modelSettings)이 기본값(DEFAULT_SETTINGS)과 다른지 비교합니다.
+  //       JSON.stringify를 사용해 두 객체를 간단하게 비교합니다.
+  const isSettingsModified = useMemo(() => {
+    return JSON.stringify(modelSettings) !== JSON.stringify(DEFAULT_SETTINGS);
+  }, [modelSettings]);
 
   // ESC로 닫기 & 모달 열릴 때 첫 포커스
   useEffect(() => {
@@ -181,11 +188,13 @@ export default function DefaultModelModal({
             Default model configuration
           </h2>
           <div className={styles.dmcHeaderActions}>
+             {/* 주석: isSettingsModified가 true일 때만 흰색 점(modifiedIndicator)을 표시합니다. */}
             <button
               ref={settingsButtonRef}
               className={styles.iconBtn}
               onClick={() => setIsModalOpen(true)}>
               <Settings2 />
+              {isSettingsModified && <span className={styles.modifiedIndicator}></span>}
             </button>
             <button
               className={styles.closeBtn}
