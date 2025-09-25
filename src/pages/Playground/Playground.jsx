@@ -35,10 +35,13 @@ import SchemaPanel from "./components/SchemaPanel";
 import VariablesPanel from "./components/VariablesPanel";
 import StreamSettingsPopover from "./components/StreamSettingsPopover";
 import ModelHeader from "./components/ModelHeader";
-import ModelAdvancedSettings, { DEFAULT_SETTINGS } from "../../components/ModelAdvancedSettings/ModelAdvancedSettings";
 
 // 세션에서 현재 사용 가능한 org/projects를 가져오는 유틸
 import { fetchSession } from "../Settings/lib/sessionOrg";
+
+// (상단 import 구문들 아래에 DEFAULT_SETTINGS를 import 해야 함)
+import ModelAdvancedSettings, { DEFAULT_SETTINGS } from "../../components/ModelAdvancedSettings/ModelAdvancedSettings";
+
 
 const API_URL = "/api/chatCompletion";
 
@@ -81,21 +84,21 @@ function PlaygroundComponent({
   const [isStreamSettingsOpen, setIsStreamSettingsOpen] = useState(false);
 
   // 모델 고급 설정
+  // 1. DEFAULT_SETTINGS를 사용해 modelAdv의 초기 상태를 완전하게 만듦.
   const [modelAdv, setModelAdv] = useState({
-    useTemperature: false,
-    useTopP: false,
-    useMaxTokens: false,
+    ...DEFAULT_SETTINGS,
+    // Playground에서만 추가로 사용하는 값이 있다면 여기에 유지함.
     useFrequencyPenalty: false,
     usePresencePenalty: false,
-    temperature: 0.7,
-    topP: 1,
-    maxTokens: 4096,
     frequencyPenalty: 0,
     presencePenalty: 0,
     stopInput: "",
     apiKeyOverride: "",
   });
-  const updateModelAdv = (patch) => setModelAdv((p) => ({ ...p, ...patch }));
+
+  // 2. 자식 컴포넌트에서 전달받은 '함수'를 setModelAdv에 그대로 전달하도록 수정함.
+  const updateModelAdv = (updater) => setModelAdv(updater);
+
   const [isModelAdvOpen, setIsModelAdvOpen] = useState(false);
   const modelAdvBtnRef = useRef(null);
 
