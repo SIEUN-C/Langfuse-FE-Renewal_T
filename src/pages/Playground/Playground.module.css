@@ -723,3 +723,18 @@
   display: flex;
   justify-content: flex-end;
 }
+
+/* ========================[추가 시작]======================== */
+/* 고급 설정 변경 시 아이콘 위에 표시될 흰색 점(표시자) 스타일 */
+.modifiedIndicator {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 7px;
+  height: 7px;
+  background-color: white;
+  border-radius: 50%;
+  /* 버튼 배경색과 비슷한 어두운 색으로 테두리를 주어 깔끔하게 보이도록 함 */
+  border: 1px solid #293548;
+}
+/* ========================[추가 끝]======================== */

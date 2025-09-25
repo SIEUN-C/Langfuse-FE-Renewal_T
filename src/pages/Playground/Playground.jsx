@@ -102,6 +102,21 @@ function PlaygroundComponent({
   const [isModelAdvOpen, setIsModelAdvOpen] = useState(false);
   const modelAdvBtnRef = useRef(null);
 
+  // ========================[추가 시작]========================
+  // 뭘 수정했는지 주석: useMemo를 사용해 현재 고급 설정(modelAdv)이 기본값(DEFAULT_SETTINGS)과 다른지 여부를 계산함.
+  // 이 값은 ModelHeader로 전달되어 아이콘에 변경 표시(흰색 점)를 하는 데 사용됨.
+  const isModelAdvModified = useMemo(() => {
+    // DEFAULT_SETTINGS에 있는 키들만 비교 대상으로 삼아 새로운 객체를 만듦
+    const settingsToCompare = Object.keys(DEFAULT_SETTINGS).reduce((acc, key) => {
+      acc[key] = modelAdv[key];
+      return acc;
+    }, {});
+    // 두 객체를 문자열로 변환하여 일치 여부를 비교함
+    return JSON.stringify(settingsToCompare) !== JSON.stringify(DEFAULT_SETTINGS);
+  }, [modelAdv]);
+  // ========================[추가 끝]========================
+
+
   // Tools/Schemas 훅
   const tools = useTools(PROJECT_ID);
   const schemas = useSchemas(PROJECT_ID);
@@ -211,6 +226,8 @@ function PlaygroundComponent({
   const canSubmit = hasContent && !!selectedProvider && !!selectedModel;
   const togglePanel = (name) => setActivePanel((p) => (p === name ? null : name));
 
+
+  
   async function submitNonStreaming(body) {
     const res = await fetch(API_URL, {
       method: "POST",
@@ -331,6 +348,7 @@ function PlaygroundComponent({
           showRemoveButton={showRemoveButton}
           projectId={PROJECT_ID}
           providerForAdv={selectedProvider}
+          isModelAdvModified={isModelAdvModified}
           onResetModelAdv={() => setModelAdv(DEFAULT_SETTINGS)}
         />
         {isSavePopoverOpen && (

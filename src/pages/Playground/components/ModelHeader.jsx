@@ -36,6 +36,9 @@ export default function ModelHeader({
     onRemove,
     showRemoveButton,
 
+    // 뭘 수정했는지 주석: 설정이 변경되었는지 여부를 boolean 값으로 받음.
+    isModelAdvModified,
+
     // 컨텍스트
     projectId,
     providerForAdv, // selectedProvider 그대로 넘겨주면 됨
@@ -92,9 +95,12 @@ export default function ModelHeader({
                     title="Model advanced settings"
                     aria-haspopup="dialog"
                     aria-expanded={isModelAdvOpen}
-                    style={{ marginLeft: 6 }}
+                    // 자식 요소(흰색 점)의 위치 기준점이 되도록 relative 속성을 추가함.
+                    style={{ marginLeft: 6, position: "relative" }}
                 >
                     <SlidersHorizontal size={16} />
+                    {/* isModelAdvModified가 true일 때만 흰색 점을 표시함. */}
+                    {isModelAdvModified && <span className={styles.modifiedIndicator}></span>}
                 </button>
 
                 {/* 고급 설정 팝오버 */}
