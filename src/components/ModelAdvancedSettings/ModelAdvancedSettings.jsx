@@ -21,7 +21,7 @@ const ModelAdvancedSettings = ({
   open,
   onClose,
   anchorRef,
-  settings,
+  settings = {}, // <<<<<<< 이 부분을 수정
   onSettingChange,
   projectId,
   provider,
@@ -36,6 +36,8 @@ const ModelAdvancedSettings = ({
 
   // --- JSON 유효성 검사 ---
   useEffect(() => {
+    // 주석: settings prop이 없을 경우를 대비한 안전장치를 추가합니다.
+    if (!settings) return;
     // additionalOptions가 활성화되어 있을 때만 유효성을 검사합니다.
     if (settings.additionalOptions) {
       const jsonString = settings.additionalOptionsValue ?? '';
@@ -56,7 +58,8 @@ const ModelAdvancedSettings = ({
       // 토글이 꺼지면 경고 상태를 초기화합니다.
       setIsJsonValid(true);
     }
-  }, [settings.additionalOptions, settings.additionalOptionsValue]);
+ // 주석: useEffect의 의존성 배열에도 optional chaining(?.)을 사용해 안전하게 접근합니다.
+  }, [settings?.additionalOptions, settings?.additionalOptionsValue]);
 
   // --- API Key Fetching Logic ---
   useEffect(() => {
@@ -108,8 +111,9 @@ const ModelAdvancedSettings = ({
 
       setPosition({ top, left });
     }
-    // 💡 의존성 배열에 'settings'를 추가하여 settings가 바뀔 때마다 이 로직이 재실행되도록 합니다.
-  }, [open, anchorRef, useFixedPosition, settings]);
+   // 주석: 의존성 배열에서 'settings'를 제거하여 불필요한 재계산을 방지하고
+    //       무한 루프 오류를 해결합니다.
+  }, [open, anchorRef, useFixedPosition]);
 
   // --- Close on Outside Click / Escape Key ---
   useEffect(() => {
@@ -137,9 +141,20 @@ const ModelAdvancedSettings = ({
   const toFloat = (v, fallback) => (Number.isFinite(parseFloat(v)) ? parseFloat(v) : fallback);
   const toInt = (v, fallback) => (Number.isFinite(parseInt(v, 10)) ? parseInt(v, 10) : fallback);
 
+  // const update = (newParams) => {
+  //   onSettingChange({ ...settings, ...newParams });
+  // };
+  // ========================[수정 시작]========================
+  // 주석: onSettingChange 함수를 "함수형 업데이트" 방식으로 호출합니다.
+  //       이렇게 하면 복잡한 컴포넌트 구조에서도 항상 최신 상태를 기반으로
+  //       안정적인 업데이트를 보장할 수 있습니다.
   const update = (newParams) => {
-    onSettingChange({ ...settings, ...newParams });
+    onSettingChange(prevSettings => ({
+      ...prevSettings,
+      ...newParams,
+    }));
   };
+  // ========================[수정 끝]========================
 
   const handleManageKeys = () => navigate(`/project/${projectId}/settings/llm-connections`);
 

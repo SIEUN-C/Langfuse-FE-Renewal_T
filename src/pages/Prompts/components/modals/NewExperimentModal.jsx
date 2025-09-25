@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import styles from './NewExperimentModal.module.css';
-import { X, ChevronDown, Check, ExternalLink, Search } from 'lucide-react';
+import { X, ChevronDown, Check, Settings2, Search } from 'lucide-react';;
 import useProjectId from '../../../../hooks/useProjectId';
 import { fetchAllPromptNames, fetchVersionsForPrompt, fetchLlmConnections, fetchAllDatasetNames } from '../../services/NewExperimentModalApi';
 import Modal from '../../../../components/Modal/Modal';
@@ -42,6 +42,11 @@ const NewExperimentModal = ({ isOpen, onClose, onSubmit, promptName, promptVersi
 
   const [isAdvancedSettingsOpen, setAdvancedSettingsOpen] = useState(false);
   const settingsButtonRef = useRef(null);
+
+  // 주석: 현재 모델 설정이 기본값과 다른지 비교하는 로직을 추가합니다.
+  const isSettingsModified = useMemo(() => {
+    return JSON.stringify(modelSettings) !== JSON.stringify(DEFAULT_SETTINGS);
+  }, [modelSettings]);
 
   const [promptSearchQuery, setPromptSearchQuery] = useState('');
   const [isPromptDropdownOpen, setPromptDropdownOpen] = useState(false);
@@ -286,13 +291,16 @@ const NewExperimentModal = ({ isOpen, onClose, onSubmit, promptName, promptVersi
               <div style={{ position: 'relative' }}>
                 <div className={styles.sectionHeader}>
                   <h3 className={styles.sectionTitle}>Model</h3>
+                  {/* 주석: isSettingsModified가 true일 때만 흰색 점을 표시하고,
+                             버튼 아이콘을 Settings2로 변경합니다. */}
                   <button
                     ref={settingsButtonRef}
                     className={styles.iconButton}
                     title="Model Advanced Settings"
                     onClick={() => setAdvancedSettingsOpen(prev => !prev)}
                   >
-                    <ExternalLink size={16} />
+                    <Settings2 size={16} />
+                    {isSettingsModified && <span className={styles.modifiedIndicator}></span>}
                   </button>
                 </div>
                 
