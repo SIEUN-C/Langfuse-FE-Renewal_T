@@ -1,11 +1,12 @@
 // src/Pages/Evaluation/Judge/JudgePage.jsx
 
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import styles from "./JudgePage.module.css";
 import EvaluatorsTable from "./components/EvaluatorsTable";
 import EvaluatorLibrary from "./components/EvaluatorLibrary";
 import EvaluationDetail from "./EvaluationDetail";
-import { useNavigate, useSearchParams } from "react-router-dom";
+// 주석: 'react-router-dom'에서 useLocation 훅을 import합니다.
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import useProjectId from "hooks/useProjectId";
 import { Pencil, Columns } from 'lucide-react';
 import { getAllEvaluatorConfigs, getAllDatasetMeta, deleteEvalJob } from "./services/judgeApi";
@@ -31,6 +32,10 @@ const JudgePage = () => {
   const navigate = useNavigate();
   const { projectId } = useProjectId();
   const [searchParams, setSearchParams] = useSearchParams();
+// 주석: useLocation hook을 사용하여 현재 경로 정보를 가져오고,
+  //       상세 패널 DOM을 참조하기 위한 ref를 생성합니다.
+  const location = useLocation();
+  const panelRef = useRef(null);
   const peekId = searchParams.get('peek')
   const [defaultModel, setDefaultModel] = useState(null);
   const [isColumnVisibleModalOpen, setIsColumnVisibleModalOpen] = useState(false);
@@ -155,10 +160,42 @@ const JudgePage = () => {
     setSearchParams(next, { replace: true });
   };
 
-  const handleClosePanel = () => {
-    searchParams.delete('peek');
-    setSearchParams(searchParams);
-  }
+  // 주석: useCallback으로 감싸 불필요한 재선언을 방지합니다.
+  const handleClosePanel = useCallback(() => {
+    const newSearchParams = new URLSearchParams(searchParams);
+    newSearchParams.delete('peek');
+    setSearchParams(newSearchParams, { replace: true });
+  }, [searchParams, setSearchParams]);
+
+  // ========================[수정 시작 (2/5)]========================
+  // 주석: 페이지 경로(location.pathname)가 변경될 때마다 패널을 닫습니다.
+  useEffect(() => {
+    handleClosePanel();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
+  // ========================[수정 끝 (2/5)]========================
+
+
+  // ========================[수정 시작 (3/5)]========================
+  // 주석: 패널 외부를 클릭했을 때 패널을 닫는 로직입니다.
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      // 테이블의 row 클릭은 무시하여 패널이 바로 다시 열리는 현상을 방지합니다.
+      if (event.target.closest('tr')) {
+        return;
+      }
+      if (panelRef.current && !panelRef.current.contains(event.target)) {
+        handleClosePanel();
+      }
+    };
+    if (peekId) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [peekId, handleClosePanel]);
+  // ========================[수정 끝 (3/5)]========================
 
   const handleSetupEvaluator = () => navigate(`setup`);
   const handleOpenDefaultModel = () => navigate(`default-model`);
@@ -298,8 +335,9 @@ const JudgePage = () => {
         </main>
       </div>
 
+      {/* 주석: 상세 패널을 감싸는 div에 위에서 생성한 ref를 연결합니다. */}
       {peekId && (
-        <div className={styles.peekPanel}>
+        <div className={styles.peekPanel} ref={panelRef}>
           <EvaluationDetail onClose={handleClosePanel} />
         </div>
       )}
