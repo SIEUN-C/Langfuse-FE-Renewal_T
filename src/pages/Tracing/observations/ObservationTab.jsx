@@ -6,6 +6,10 @@ import { listGenerations, getObservationById } from '../services/ObservationApi'
 import { buildFilterStateWithRange, squeezeBuilderFilters, filterByTypeGroups } from '../utils/FilterMapping';
 import ObservationDetailPanel from './ObservationDetailPanel';
 import { SEARCH_MODE } from '../config/SearchMode';
+import ColumnVisibilityModal from 'components/ColumnVisibilityModal/ColumnVisibilityModal';
+import { useColumnVisibility } from 'hooks/useColumnVisibility';
+import { Columns } from 'lucide-react'
+import FilterButton from 'components/FilterButton/FilterButton';
 
 const pick = (...vals) => vals.find(v => v !== undefined && v !== null);
 
@@ -16,6 +20,7 @@ export default function ObservationsTab({
     selectedEnvs,
     timeRangeFilter,
     builderFilters = [],
+    visibleColumns,
 }) {
     const [rows, setRows] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -187,7 +192,7 @@ export default function ObservationsTab({
             {error && <div style={{ color: '#ff6b6b', margin: '8px 0' }}>{error}</div>}
 
             <DataTable
-                columns={makeObservationColumns(projectId).map(c => ({ ...c, visible: true }))}
+                columns={visibleColumns}
                 data={rows}
                 keyField="id"
                 onRowClick={async (row) => {
@@ -205,7 +210,7 @@ export default function ObservationsTab({
                     pageSize: 50,
                     pageSizeOptions: [10, 20, 30, 50],
                     position: "fixed-bottom"
-                  }}
+                }}
             />
         </>
     );

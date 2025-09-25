@@ -13,7 +13,6 @@ import ColumnVisibilityModal from '../../components/ColumnVisibilityModal/Column
 import { useColumnVisibility } from 'hooks/useColumnVisibility.js';
 import FilterButton from 'components/FilterButton/FilterButton';
 import { Columns, Plus, Edit, AlertCircle, LayoutGrid, Download } from 'lucide-react';
-import { createTrace, updateTrace } from './CreateTrace.jsx';
 import { langfuse } from '../../lib/langfuse.js';
 import { fetchTraces, deleteTrace, fetchTraceMetrics } from './services/TracingApi.js';
 import { fetchTraceDetails } from './services/TraceDetailApi.js';
@@ -27,6 +26,7 @@ import RowHeightDropdown from 'components/RowHeightDropdown/RowHeightDropdown.js
 
 // Observation 추가
 import ObservationsTab from './Observations/ObservationTab.jsx';
+import { makeObservationColumns } from './config/ObservationColumns.jsx';
 
 // 에러 메시지를 표시하는 별도의 컴포넌트
 const ErrorBanner = ({ message, onDismiss }) => {
@@ -47,7 +47,8 @@ const Tracing = () => {
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchType, setSearchType] = useState('IDs / Names');
-  const [isColumnModalOpen, setIsColumnModalOpen] = useState(false);
+  const [isTraceColumnModalOpen, setIsTraceColumnModalOpen] = useState(false);
+  const [isObsColumnModalOpen, setIsObsColumnModalOpen] = useState(false);
   const [favoriteState, setFavoriteState] = useState({});
   const [selectedRows, setSelectedRows] = useState(new Set());
   const [pendingTraceId, setPendingTraceId] = useState(null);
@@ -57,12 +58,6 @@ const Tracing = () => {
   const [builderFiltersTraces, setBuilderFiltersTraces] = useState(() => {
     const c = tracingFilterConfig[0];
     return [{ id: 1, column: c.key, operator: c.operators[0], value: '', metaKey: '' }];
-  });
-
-  // 행 밀도(기본 medium). 초기값은 로컬스토리지에서 복원
-  const [rowDensity, setRowDensity] = useState(() => {
-    try { return localStorage.getItem("tracing.rowDensity") || "md"; }
-    catch { return "md"; }
   });
 
   // Observations 탭 필터 상태 (기본 8개 선택)
@@ -223,15 +218,23 @@ const Tracing = () => {
     setFavoriteState(newFavoriteState);
   };
 
-  const columnDefinitions = useMemo(() => getTraceTableColumns(null, rowHeight), [rowHeight]);
-
+  const traceColumnDefinitions = useMemo(() => getTraceTableColumns(null, rowHeight), [rowHeight]);
   const {
-    columns,
-    visibleColumns,
-    toggleColumnVisibility,
-    setAllColumnsVisible,
-    restoreDefaults,
-  } = useColumnVisibility(columnDefinitions);
+    columns: traceColumnVisibilities,
+    visibleColumns: traceVisibleColumns,
+    toggleColumnVisibility: toggleTraceColumnVisibility,
+    setAllColumnsVisible: setAllTraceColumnsVisible,
+    restoreDefaults: restoreTraceDefaults,
+  } = useColumnVisibility(traceColumnDefinitions);
+
+  const obsColumnDefinitions = useMemo(() => makeObservationColumns(projectId, rowHeight), [projectId, rowHeight]);
+  const {
+    columns: obsColumnVisibilities,
+    visibleColumns: obsVisibleColumns,
+    toggleColumnVisibility: toggleObsColumnVisibility,
+    setAllColumnsVisible: setAllObsColumnsVisible,
+    restoreDefaults: restoreObsDefaults,
+  } = useColumnVisibility(obsColumnDefinitions);
 
   const loadTraces = useCallback(async () => {
     if (!projectId) return;
@@ -273,29 +276,6 @@ const Tracing = () => {
   }, [projectId]);
 
   useEffect(() => { loadTraces(); }, [loadTraces]);
-
-  const handleCreateClick = async () => {
-    if (!projectId) {
-      setError("Project ID가 설정되지 않았습니다. 잠시 후 다시 시도해주세요.");
-      return;
-    }
-    const newTraceId = await createTrace(projectId);
-    if (newTraceId) {
-      setPendingTraceId(newTraceId);
-    }
-  };
-
-  const handleUpdateClick = async () => {
-    const traceIdToUpdate = window.prompt("업데이트할 Trace의 ID를 입력하세요:");
-    if (!traceIdToUpdate) return;
-    const traceToUpdate = traces.find(t => t.id === traceIdToUpdate.trim());
-    if (!traceToUpdate) {
-      setError(`ID '${traceIdToUpdate}'에 해당하는 Trace를 찾을 수 없습니다.`);
-      return;
-    }
-    const langfuseTraceObject = langfuse.trace({ id: traceToUpdate.id, _dangerouslyIgnoreCorruptData: true });
-    await updateTrace(langfuseTraceObject, loadTraces);
-  };
 
   const handleDeleteTrace = useCallback(async (traceId) => {
     if (window.confirm(`정말로 이 트레이스를 삭제하시겠습니까? ID: ${traceId}`)) {
@@ -374,9 +354,16 @@ const Tracing = () => {
             <button className={styles.tableViewButton}>
               Table View
             </button>
-            <FilterButton onClick={() => setIsColumnModalOpen(true)} style={{ marginLeft: '8px' }}>
-              <Columns size={16} /> Columns ({visibleColumns.length}/{columns.length})
-            </FilterButton>
+            {activeTab === 'Traces' && (
+              <FilterButton onClick={() => setIsTraceColumnModalOpen(true)} style={{ marginLeft: '8px' }}>
+                <Columns size={16} /> Columns ({traceVisibleColumns.length}/{traceColumnDefinitions.length})
+              </FilterButton>
+            )}
+            {activeTab === 'Observations' && (
+              <FilterButton onClick={() => setIsObsColumnModalOpen(true)} style={{ marginLeft: '8px' }}>
+                <Columns size={16} /> Columns ({obsVisibleColumns.length}/{obsColumnDefinitions.length})
+              </FilterButton>
+            )}
             {/* 행 높이 아이콘 버튼 */}
             <RowHeightDropdown
               value={rowHeight}
@@ -395,7 +382,7 @@ const Tracing = () => {
             isLoading ? <div>Loading traces...</div> :
               !error && (
                 <DataTable
-                  columns={visibleColumns}
+                  columns={traceVisibleColumns}
                   data={filteredTraces}
                   keyField="id"
                   renderEmptyState={() => <div>No traces found.</div>}
@@ -428,13 +415,12 @@ const Tracing = () => {
                 selectedEnvs={selectedEnvs}
                 timeRangeFilter={timeRangeFilter}
                 builderFilters={builderFilters}
+                visibleColumns={obsVisibleColumns || []}
               />
             ) : (
               <div style={{ opacity: .7, marginTop: 8 }}>Loading project…</div>
             )
           )}
-
-
         </div>
       </div>
 
@@ -448,14 +434,26 @@ const Tracing = () => {
         document.body
       )}
 
-      <ColumnVisibilityModal
-        isOpen={isColumnModalOpen}
-        onClose={() => setIsColumnModalOpen(false)}
-        columns={columns}
-        toggleColumnVisibility={toggleColumnVisibility}
-        setAllColumnsVisible={setAllColumnsVisible}
-        onRestoreDefaults={restoreDefaults}
-      />
+      {activeTab === 'Traces' && (
+        <ColumnVisibilityModal
+          isOpen={isTraceColumnModalOpen}
+          onClose={() => setIsTraceColumnModalOpen(false)}
+          columns={traceColumnVisibilities}
+          toggleColumnVisibility={toggleTraceColumnVisibility}
+          setAllColumnsVisible={setAllTraceColumnsVisible}
+          onRestoreDefaults={restoreTraceDefaults}
+        />
+      )}
+      {activeTab === 'Observations' && (
+        <ColumnVisibilityModal
+          isOpen={isObsColumnModalOpen}
+          onClose={() => setIsObsColumnModalOpen(false)}
+          columns={obsColumnVisibilities}
+          toggleColumnVisibility={toggleObsColumnVisibility}
+          setAllColumnsVisible={setAllObsColumnsVisible}
+          onRestoreDefaults={restoreObsDefaults}
+        />
+      )}
     </div>
   );
 };
