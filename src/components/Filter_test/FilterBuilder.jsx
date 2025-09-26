@@ -1,9 +1,7 @@
-// src/features/filters/components/FilterBuilder.jsx
 import React from "react";
 // 설정 파일에서 연산자 목록을 가져옵니다.
 import { filterOperators } from "./config/filterOperators";
-// MultiSelect 컴포넌트는 별도로 구현해야 합니다.
-// import { MultiSelect } from "./MultiSelect"; 
+import styles from './FilterBuilder.module.css'
 
 export function FilterBuilder({ filters, setFilters, columns }) {
     // 새 필터 추가
@@ -127,20 +125,20 @@ export function FilterBuilder({ filters, setFilters, columns }) {
     };
 
     return (
-        <div className="filter-builder-container">
+        <div className={styles.filterContainer}>
             {filters.map((filter, index) => {
                 const selectedColumn = columns.find((c) => c.name === filter.column);
                 const isObjectFilter = filter.type === "stringObject" || filter.type === "numberObject";
 
                 return (
-                    <div key={index} className="filter-row">
+                    <div key={index} className={styles.filterRow}>
                         <span>{index === 0 ? "Where" : "And"}</span>
 
                         {/* 컬럼 선택 */}
                         <select
                             value={selectedColumn?.id ?? ""}
                             onChange={(e) => handleColumnChange(index, e.target.value)}
-                            className="filter-select"
+                            className={styles.select}
                         >
                             <option value="" disabled>컬럼 선택</option>
                             {columns.map((col) => (
@@ -157,7 +155,7 @@ export function FilterBuilder({ filters, setFilters, columns }) {
                                 value={filter.key ?? ""}
                                 onChange={(e) => handleFilterChange(index, { key: e.target.value })}
                                 placeholder="key (예: Correctness)"
-                                className="filter-input"
+                                className={styles.input}
                             />
                         )}
 
@@ -166,7 +164,7 @@ export function FilterBuilder({ filters, setFilters, columns }) {
                             value={filter.operator}
                             disabled={!filter.type}
                             onChange={(e) => handleFilterChange(index, { operator: e.target.value })}
-                            className="filter-select"
+                            className={styles.select}
                         >
                             {filter.type &&
                                 filterOperators[filter.type]?.map((op) => (
@@ -179,15 +177,17 @@ export function FilterBuilder({ filters, setFilters, columns }) {
                         {/* 값 입력 (동적 UI) */}
                         {renderValueInput(filter, index)}
 
-                        <button onClick={() => removeFilter(index)} className="remove-filter-btn">
+                        <button onClick={() => removeFilter(index)} className={styles.removeButton}>
                             &times;
                         </button>
                     </div>
                 );
             })}
-            <button onClick={addNewFilter} className="add-filter-btn">
-                + Add Filter
-            </button>
+            <div className={styles.actions}>
+                <button onClick={addNewFilter} className={styles.addButton}>
+                    + Add filter
+                </button>
+            </div>
         </div>
     );
 }
