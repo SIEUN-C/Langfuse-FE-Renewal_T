@@ -91,6 +91,9 @@
   transform: translateX(-100%);
 }
 
+
+/* --- ✨ 수정 시작: 연결선 CSS를 더 안정적인 구조로 변경 --- */
+
 .timelineList, .nodeChildren {
   list-style: none;
   margin: 0;
@@ -100,32 +103,51 @@
 }
 
 .timelineList {
-  padding-left: 16px;
+  padding: 8px 0 8px 16px;
 }
 
 .nodeChildren {
+  position: relative;
   padding-left: 24px;
 }
-
 
 .nodeContainer {
   position: relative;
 }
 
-/* Vertical line for children */
+/* 각 항목의 가로 연결선 (ㄱ 모양의 윗부분) */
 .nodeContainer::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 8px; /* (Icon width / 2) - (line width / 2) */
-  width: 1px;
-  height: 100%;
+  top: 20px;
+  left: -16px;
+  width: 16px;
+  height: 1px;
   background-color: #30363d;
 }
 
-.nodeContainer:last-child::before {
-  height: 20px; /* Connect only to the item, not below */
+/* 각 항목의 세로 연결선 (ㄱ 모양의 아랫부분) */
+.nodeContainer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -16px;
+  width: 1px;
+  background-color: #30363d;
 }
+
+/* 마지막 자식 항목은 세로선이 아이콘 중앙까지만 그려지도록 함 */
+.nodeContainer:last-child::after {
+  height: 20px;
+}
+
+/* 최상위 항목과 그 직속 자식은 연결선이 필요 없음 */
+.timelineList > .nodeContainer::before,
+.timelineList > .nodeContainer::after {
+  display: none;
+}
+/* --- ✨ 수정 끝 --- */
 
 
 .timelineItem {
@@ -136,33 +158,18 @@
   border-radius: 6px;
   cursor: pointer;
   font-size: 13px;
-  position: relative;
-  margin-left: -24px;
 }
-
-/* Horizontal line connector */
-.timelineItem::before {
-  content: '';
-  position: absolute;
-  top: 20px;
-  left: -15px; /* Adjust based on padding and icon size */
-  width: 16px;
-  height: 1px;
-  background-color: #30363d;
-}
-
 .timelineItem:hover { background-color: #161b22; }
 .timelineItem.selected { background-color: rgba(47, 129, 247, 0.2); }
 
 .itemIcon {
-  position: relative;
-  z-index: 1;
   color: #7d8590;
   margin-top: 2px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   gap: 4px;
+  width: 36px;
 }
 
 .timelineItem.selected .itemIcon,
@@ -219,6 +226,13 @@
   height: 16px;
 }
 
+.usageText {
+  padding-left: 44px; /* itemIcon 너비 + gap */
+  font-size: 12px;
+  color: #6b7280;
+  padding-top: 2px;
+  padding-bottom: 6px;
+}
 
 .status {
   padding: 16px;

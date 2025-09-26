@@ -52,43 +52,31 @@ const findObservationInTrace = (trace, observationId) => {
     return findRecursively(trace.observations);
 };
 
-// ObservationNode 컴포넌트는 변경 없이 그대로 유지합니다.
-const ObservationNode = ({ node, allNodes, level, onSelect, selectedId, fullTraceDetails }) => {
- // ▼▼▼▼▼▼ 디버깅용 코드: 이 부분을 추가해주세요 ▼▼▼▼▼▼
-  // // "ChatOpenAI" 항목일 경우에만 그 내용을 화면에 출력합니다.
-  // if (node.name === "ChatOpenAI") {
-  //   console.log("ChatOpenAI Node Data:", node); // F12 개발자 도구 콘솔에도 출력
-  //   return <pre data-is-portal="true">{JSON.stringify(node, null, 2)}</pre>;
-  // }
-  // ▲▲▲▲▲▲ 디버깅용 코드: 이 부분을 추가해주세요 ▲▲▲▲▲▲
- 
+/*
+ * 수정: level prop과 관련된 로직을 모두 제거합니다.
+ * 내용: 들여쓰기(indentation)를 CSS에서 관리하도록 변경하여,
+ * 자바스크립트를 통한 동적 스타일링을 제거하고 구조를 단순화합니다.
+*/
+const ObservationNode = ({ node, allNodes, onSelect, selectedId, fullTraceDetails }) => {
   const [isOpen, setIsOpen] = useState(true);
   const children = useMemo(() => allNodes.filter(n => n.parentObservationId === node.id), [allNodes, node.id]);
 
   const getIcon = (type) => {
     switch (type) {
-      case 'SPAN':
-        return <ArrowRightLeft size={16} className={styles.spanIcon} />;
-      case 'GENERATION':
-        return <GitBranch size={16} className={styles.generationIcon} />;
-      default:
-        return <MessageSquare size={16} />;
+      case 'SPAN': return <ArrowRightLeft size={16} className={styles.spanIcon} />;
+      case 'GENERATION': return <GitBranch size={16} className={styles.generationIcon} />;
+      default: return <MessageSquare size={16} />;
     }
   };
 
   const hasChildren = children.length > 0;
-  /*
-   * 수정: 간소화된 `node` 객체 대신, `fullTraceDetails`에서 찾은 상세 정보 객체를 사용합니다.
-   */
-  // --- ✨ 수정 시작 ---
   const detailedNode = useMemo(() => findObservationInTrace(fullTraceDetails, node.id) ?? node, [fullTraceDetails, node]);
   const usageText = formatUsageString(detailedNode.usage);
-  // --- ✨ 수정 끝 ---
+
   return (
     <li className={styles.nodeContainer}>
       <div
         className={`${styles.timelineItem} ${selectedId === node.id ? styles.selected : ''}`}
-        style={{ paddingLeft: `${level * 24}px` }}
         data-observation-id={node.id}
         onClick={() => onSelect(node.id)}
       >
@@ -104,47 +92,25 @@ const ObservationNode = ({ node, allNodes, level, onSelect, selectedId, fullTrac
         <div className={styles.itemContent}>
           <div className={styles.itemHeader}>
             <span className={styles.itemName}>{node.name}</span>
-            {node.latency != null && <span className={styles.latency}>{node.latency.toFixed(2)}s</span>}
+            {detailedNode.latency != null && <span className={styles.latency}>{(detailedNode.latency).toFixed(2)}s</span>}
           </div>
-          {/*
-            * 수정: 기존 scores(점수) 표시 로직을 복원합니다.
-            * 내용: 토큰 사용량 추가로 인해 실수로 삭제되었던 점수 표시 기능을 다시 추가합니다.
-            */}
-          {/* --- ✨ 수정 시작 --- */}
-          {node.scores && node.scores.length > 0 && (
+          {detailedNode.scores && detailedNode.scores.length > 0 && (
             <div className={styles.scoreTags}>
-              {node.scores.map((score, i) => (
+              {detailedNode.scores.map((score, i) => (
                 <span key={scoreKey(score, node.id, i)} className={styles.scoreTag}>
                   {score.name}: {Number(score.value ?? 0).toFixed(2)} <MessageCircle size={12} />
                 </span>
               ))}
             </div>
           )}
-          {/* --- ✨ 수정 끝 --- */}
         </div>
       </div>
 
-{/*
-        * 수정: "GENERATION" 타입 노드 바로 아래에만 토큰 사용량을 표시합니다.
-        * 내용: "ChatOpenAI"와 같은 생성(Generation) 단계에서만 요청하신 <Input → Output (∑ Total)> 형식으로
-        * 토큰 정보를 표시하도록 수정했습니다.
-        * CSS 파일 수정 없이, 들여쓰기(padding-left)를 동적으로 계산하여 부모 항목과 정렬했습니다.
-      */}
-      {/* --- ✨ 추가 시작 --- */}
-      {node.type === 'GENERATION' && usageText && (
-        <div 
-          style={{ 
-            paddingLeft: `${level * 24 + 44}px`, // 아이콘과 텍스트 시작 위치에 맞게 들여쓰기
-            fontSize: '12px', 
-            color: '#6b7280', 
-            paddingTop: '2px',
-            paddingBottom: '6px'
-          }}
-        >
+      {detailedNode.type === 'GENERATION' && usageText && (
+        <div className={styles.usageText}>
           {usageText}
         </div>
       )}
-      {/* --- ✨ 추가 끝 --- */}
 
       {isOpen && hasChildren && (
         <ul className={styles.nodeChildren}>
@@ -153,10 +119,9 @@ const ObservationNode = ({ node, allNodes, level, onSelect, selectedId, fullTrac
               key={child.id}
               node={child}
               allNodes={allNodes}
-              level={level + 1}
               selectedId={selectedId}
               onSelect={onSelect}
-              fullTraceDetails={fullTraceDetails} // ✨ prop 전달
+              fullTraceDetails={fullTraceDetails}
             />
           ))}
         </ul>
