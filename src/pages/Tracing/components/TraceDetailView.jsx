@@ -145,6 +145,25 @@ const MetaTable = ({ data }) => {
 };
 
 
+/*
+ * 수정: Latency 단위를 통일하는 헬퍼 함수를 추가합니다.
+ * 내용: isObservation 플래그를 확인하여, Observation의 latency(ms)는 1000으로 나누어 초(s)로 변환하고,
+ * Trace의 latency(s)는 그대로 사용하여 단위를 일치시킵니다.
+*/
+// --- ✨ 추가 시작 ---
+const formatLatency = (latency, isObservation) => {
+  if (latency == null) return 'N/A';
+  // Observation의 latency는 ms 단위이므로 1000으로 나누어 초(s)로 변환
+  const latencyInSeconds = isObservation ? latency / 1000 : latency;
+  return `Latency: ${latencyInSeconds.toFixed(2)}s`;
+};
+// --- ✨ 추가 끝 ---
+
+
+
+
+
+
 // 메인 TraceDetailView 컴포넌트
 const TraceDetailView = ({ details, isLoading, error }) => {
   const [viewFormat, setViewFormat] = useState('Formatted');
@@ -357,11 +376,13 @@ const TraceDetailView = ({ details, isLoading, error }) => {
           {isObservation ? (
             <>
               <div className={styles.pills}>
+                {/* --- ✨ 수정 시작 --- */}
                 {details.latency != null && (
                   <div className={`${styles.pill} ${styles.pillDark}`}>
-                    Latency: {details.latency.toFixed(2)}s
+                    {formatLatency(details.latency, true)}
                   </div>
                 )}
+                {/* --- ✨ 수정 끝 --- */}
                 <div className={`${styles.pill} ${styles.pillDark}`}>
                   Env: {details.environment ?? 'default'}
                 </div>
@@ -414,11 +435,13 @@ const TraceDetailView = ({ details, isLoading, error }) => {
                 <div className={`${styles.pill} ${styles.pillDark}`}>
                   Env: {details.environment ?? 'default'}
                 </div>
+                 {/* --- ✨ 수정 시작 --- */}
                 {details.latency != null && (
                   <div className={`${styles.pill} ${styles.pillDark}`}>
-                    Latency: {details.latency.toFixed(2)}s
+                    {formatLatency(details.latency, false)}
                   </div>
                 )}
+                 {/* --- ✨ 수정 끝 --- */}
               </div>
               <div className={styles.costBar}>
                 {details.cost != null && (
