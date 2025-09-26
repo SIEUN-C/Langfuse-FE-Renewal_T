@@ -33,7 +33,9 @@ export const getTraceTableColumns = (projectId, rowHeight) => {
       accessor: (row) => row.name,
       defaultVisible: true,
     },
-    {
+    // 기존 input 컬럼을 다음과 같이 수정합니다:
+
+   {
       id: 'input',
       header: 'Input',
       accessor: (row) => {
@@ -43,32 +45,117 @@ export const getTraceTableColumns = (projectId, rowHeight) => {
           return '-'
         }
 
-        try {
-          const parsedInput = JSON.parse(inputComment)
-
-          if (rowHeight === 'small') {
-            const compactInput = JSON.stringify(parsedInput);
-
-            return (
-              <span className={`${styles.commentBox} ${styles[rowHeight]}`}>
-                {compactInput}
-              </span>
-            );
-          } else {
-            const formattedInput = JSON.stringify(parsedInput, null, 2);
-
-            return (
-              <span className={`${styles.commentBox} ${styles[rowHeight]}`}>
-                <pre>{formattedInput}</pre>
-              </span>
-            );
-          }
-        } catch (error) {
+        // Row height가 'small'일 때: 원본 문자열 그대로 표시 (JSON 파싱하지 않음)
+        if (rowHeight === 'small') {
           return (
             <span className={`${styles.commentBox} ${styles[rowHeight]}`}>
               {inputComment}
             </span>
-          )
+          );
+        }
+
+        // Row height가 'medium' 또는 'large'일 때: JSON 파싱 시도
+        try {
+          const parsedInput = JSON.parse(inputComment);
+          
+          // 파싱된 객체를 첫 번째 사진처럼 구조화해서 표시
+          const formatObjectWithStructure = (obj, depth = 0) => {
+            const indent = '  '.repeat(depth);
+            
+            if (Array.isArray(obj)) {
+              const itemsText = obj.length === 1 ? '1 item' : `${obj.length} items`;
+              let result = `[ *${itemsText}*\n`;
+              
+              obj.forEach((item, index) => {
+                if (typeof item === 'object' && item !== null) {
+                  const objectKeys = Object.keys(item);
+                  const keysText = objectKeys.length === 1 ? '1 item' : `${objectKeys.length} items`;
+                  result += `${indent}  ${index}: { *${keysText}*\n`;
+                  
+                  Object.entries(item).forEach(([key, value]) => {
+                    // 문자열 값에서 따옴표 처리를 개선
+                    let displayValue;
+                    if (typeof value === 'string') {
+                      // 이미 따옴표로 감싸진 문자열인지 확인
+                      if (value.startsWith('"') && value.endsWith('"')) {
+                        displayValue = value; // 이미 따옴표가 있으면 그대로 사용
+                      } else {
+                        displayValue = `"${value}"`; // 따옴표가 없으면 추가
+                      }
+                    } else {
+                      displayValue = value;
+                    }
+                    result += `${indent}    ${key}: ${displayValue}\n`;
+                  });
+                  
+                  result += `${indent}  }\n`;
+                } else {
+                  let displayValue;
+                  if (typeof item === 'string') {
+                    // 이미 따옴표로 감싸진 문자열인지 확인
+                    if (item.startsWith('"') && item.endsWith('"')) {
+                      displayValue = item; // 이미 따옴표가 있으면 그대로 사용
+                    } else {
+                      displayValue = `"${item}"`; // 따옴표가 없으면 추가
+                    }
+                  } else {
+                    displayValue = item;
+                  }
+                  result += `${indent}  ${index}: ${displayValue}\n`;
+                }
+              });
+              
+              result += `${indent}]`;
+              return result;
+            }
+            
+            if (typeof obj === 'object' && obj !== null) {
+              const objectKeys = Object.keys(obj);
+              const keysText = objectKeys.length === 1 ? '1 item' : `${objectKeys.length} items`;
+              let result = `{ *${keysText}*\n`;
+              
+              Object.entries(obj).forEach(([key, value]) => {
+                // 문자열 값에서 따옴표 처리를 개선
+                let displayValue;
+                if (typeof value === 'string') {
+                  // 이미 따옴표로 감싸진 문자열인지 확인
+                  if (value.startsWith('"') && value.endsWith('"')) {
+                    displayValue = value; // 이미 따옴표가 있으면 그대로 사용
+                  } else {
+                    displayValue = `"${value}"`; // 따옴표가 없으면 추가
+                  }
+                } else {
+                  displayValue = value;
+                }
+                result += `${indent}  ${key}: ${displayValue}\n`;
+              });
+              
+              result += `${indent}}`;
+              return result;
+            }
+            
+            return String(obj);
+          };
+
+          return (
+            <div className={`${styles.commentBox} ${styles[rowHeight]}`}>
+              <pre style={{ 
+                fontFamily: 'monospace', 
+                margin: 0,
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-word'
+              }}>
+                {formatObjectWithStructure(parsedInput)}
+              </pre>
+            </div>
+          );
+        } catch (error) {
+          // JSON 파싱 실패 시 원본 문자열 표시
+          return (
+            <span className={`${styles.commentBox} ${styles[rowHeight]}`}>
+              {inputComment}
+            </span>
+          );
         }
       },
       defaultVisible: true,

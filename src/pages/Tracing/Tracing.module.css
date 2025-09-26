@@ -161,43 +161,20 @@
   /* 삭제 아이콘에 어울리는 빨간색으로 변경 */
 }
 
-.small {
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 1;
-  line-clamp: 1;
-  min-width: 300px;
-}
-.medium {
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 8;
-  line-clamp: 8;
-  min-width: 300px;
-}
-.large {
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 15;
-  line-clamp: 15;
-  min-width: 300px;
-}
 
+/* --- ✨ 수정 시작: Row Height 관련 스타일을 정리하고 명확하게 분리 --- */
+
+/* 공통 스타일: 모든 Row Height에 적용되는 기본 설정 */
 .commentBox {
-  /* --- 스타일 복원 --- */
-  display: inline-block; /* 너비에 맞게 표시되도록 block으로 변경 */
   padding: 4px 8px;
   border: 1px solid #475569;
   border-radius: 6px;
   color: #cbd5e1;
   font-size: 12px;
-  width: 100%; /* 부모(td) 너비를 꽉 채우도록 설정 */
-  box-sizing: border-box; /* 패딩과 테두리가 너비에 포함되도록 설정 */
+  width: 100%;
+  box-sizing: border-box;
   
-  /* --- 줄바꿈 및 높이 조절 --- */
+  /* 텍스트를 여러 줄로 자르기 위한 필수 속성들 */
   display: -webkit-box;
   -webkit-box-orient: vertical;
   overflow: hidden;
@@ -205,7 +182,27 @@
   white-space: normal;
   word-break: break-word;
   line-height: 1.5;
+  min-width: 300px; /* 최소 너비는 공통으로 관리 */
 }
+
+/* Small, Medium, Large 각각의 줄 수만 명확하게 지정 */
+.small {
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+}
+.medium {
+  -webkit-line-clamp: 8;
+  line-clamp: 8;
+}
+.large {
+  -webkit-line-clamp: 15;
+  line-clamp: 15;
+}
+/* --- ✨ 수정 끝 --- */
+
+
+
+
 .cellButton {
   display: inline-block;
   align-items: center;
