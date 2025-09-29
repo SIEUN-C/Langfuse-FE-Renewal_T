@@ -183,6 +183,35 @@ export const deletePromptVersion = async (promptVersionId, projectId) => {
   }
 };
 
+
+// ▼▼▼ updatePromptVersionLabels 함수를 아래 코드로 완전히 교체해주세요. ▼▼▼
+/**
+ * [tRPC] 프롬프트 버전의 라벨을 업데이트합니다. (네트워크 로그 기반 최종 수정)
+ * @param {string} promptId - 라벨을 수정할 프롬프트 버전의 DB ID
+ * @param {string[]} labels - 새로운 라벨 목록 배열
+ * @param {string} projectId - 프로젝트 ID
+ */
+export const updatePromptVersionLabels = async (promptId, labels, projectId) => {
+  if (!projectId) throw new Error("Project ID is required.");
+  if (!promptId) throw new Error("Prompt Version ID is required.");
+
+  try {
+    // 네트워크 로그에서 확인된 정확한 tRPC 프로시저 이름으로 수정합니다.
+    await axios.post('/api/trpc/prompts.setLabels', {
+      json: {
+        projectId,
+        promptId, // [수정] 파라미터 키를 'promptVersionId'에서 'promptId'로 변경합니다.
+        labels,
+      },
+    });
+  } catch (error) {
+    console.error(`Failed to update labels for prompt version ${promptId}:`, error);
+    const errorMessage = error.response?.data?.error?.message || 'Failed to update labels.';
+    throw new Error(errorMessage);
+  }
+};
+// ▲▲▲ 여기까지 교체 ▲▲▲
+
 /**
  * [tRPC] 프롬프트의 태그를 업데이트합니다.
  * @param {string} promptName - 프롬프트 이름

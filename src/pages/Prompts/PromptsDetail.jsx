@@ -17,11 +17,13 @@ import {
   MessageCircle,
   Tag,
   FileText,
+  UploadCloud, //  이 아이콘을 추가해주세요!
 } from 'lucide-react';
 import DuplicatePromptModal from './components/modals/DuplicatePromptModal.jsx';
 import { duplicatePrompt } from './services/DuplicatePromptModalApi.js';
 import { fetchPromptVersions } from './services/PromptsDetailApi.js';
-import { deletePromptVersion, fetchPrompts } from './services/PromptsApi.js';
+import { deletePromptVersion, fetchPrompts, updatePromptVersionLabels } from './services/PromptsApi.js';
+import AddVersionLabelModal from './components/modals/AddVersionLabelModal.jsx';
 import NewExperimentModal from './components/modals/NewExperimentModal.jsx';
 import SidePanel from '../../components/SidePanel/SidePanel.jsx';
 import Comments from '../../components/Comments/Comments.jsx';
@@ -94,6 +96,9 @@ export default function PromptsDetail() {
   const [isExperimentModalOpen, setExperimentModalOpen] = useState(false);
   const [isVersionMenuOpen, setVersionMenuOpen] = useState(false);
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
+  // ▼▼▼ 아래 2줄 추가 ▼▼▼
+  const [isLabelModalOpen, setLabelModalOpen] = useState(false);
+  const [versionForLabeling, setVersionForLabeling] = useState(null);
 
   // Comments 훅
   const {
@@ -325,6 +330,33 @@ export default function PromptsDetail() {
     setVersionMenuOpen(false);
   };
 
+  const handleOpenLabelModal = (version) => {
+    setVersionForLabeling(version);
+    setLabelModalOpen(true);
+  };
+
+  // ▼▼▼ handleUpdateLabels 함수를 아래 코드로 통째로 교체해주세요. ▼▼▼
+  const handleUpdateLabels = async (labels) => {
+    // state에 저장된 'versionForLabeling' 객체를 사용하여 API 호출
+    if (!versionForLabeling) {
+      alert("오류: 라벨을 수정할 버전이 선택되지 않았습니다.");
+      return;
+    }
+
+    try {
+      // versionForLabeling.dbId가 promptVersionId에 해당합니다.
+      await updatePromptVersionLabels(versionForLabeling.dbId, labels, projectId);
+      
+      setLabelModalOpen(false);
+      setVersionForLabeling(null);
+      loadPromptData(); // 성공 시 데이터 다시 로드하여 화면 갱신
+    } catch (error) {
+      console.error("Failed to update labels:", error);
+      alert(`라벨 업데이트 실패: ${error.message}`);
+    }
+  };
+// ▲▲▲ 여기까지 교체 ▲▲▲
+
   // 로딩 상태
   if (isLoading) {
     return <div className={styles.container}><div className={styles.placeholder}>프롬프트를 불러오는 중...</div></div>;
@@ -380,20 +412,32 @@ export default function PromptsDetail() {
                 className={`${styles.versionItem} ${selectedVersion?.id === version.id ? styles.selected : ''}`}
                 onClick={() => setSelectedVersion(version)}
               >
-                <div className={styles.versionTitle}>
-                  <span className={styles.versionLabel}>#{version.id}</span>
-                </div>
-                <div className={styles.tagsContainer}>
-                  {version.labels.map(label => (
-                    <span key={label} className={label.toLowerCase() === 'production' ? styles.statusTagProd : styles.statusTagLatest}>
-                      <GitCommitHorizontal size={12} />{label}
-                    </span>
-                  ))}
-                </div>
-                <div className={styles.versionMeta}>
-                  {version.commitMessage && <p>{version.commitMessage}</p>}
-                  <p>{version.details} by {version.author}</p>
-                </div>
+                 {/* ▼▼▼ 이 부분을 수정합니다 ▼▼▼ */}
+              <div className={styles.versionTitle}>
+                <span className={styles.versionLabel}>#{version.id}</span>
+                <button
+                  className={styles.addLabelButton}
+                  onClick={(e) => {
+                    e.stopPropagation(); // li의 onClick 이벤트 전파 방지
+                    handleOpenLabelModal(version);
+                  }}
+                  title="Add prompt version label"
+                >
+                  <UploadCloud size={16} />
+                </button>
+              </div>
+              <div className={styles.tagsContainer}>
+                {version.labels.map(label => (
+                  <span key={label} className={label.toLowerCase() === 'production' ? styles.statusTagProd : styles.statusTagLatest}>
+                    <GitCommitHorizontal size={12} />{label}
+                  </span>
+                ))}
+              </div>
+              <div className={styles.versionMeta}>
+                {version.commitMessage && <p>{version.commitMessage}</p>}
+                <p>{version.details} by {version.author}</p>
+              </div>
+              {/* ▲▲▲ 여기까지 수정 ▲▲▲ */}
               </li>
             ))}
           </ul>
@@ -606,6 +650,19 @@ export default function PromptsDetail() {
           onDeleteComment={removeComment}
         />
       </SidePanel>
+      {isLabelModalOpen && versionForLabeling && (
+        <AddVersionLabelModal
+          isOpen={isLabelModalOpen}
+          onClose={() => setLabelModalOpen(false)}
+          // ▼▼▼ 이 부분을 수정합니다 ▼▼▼
+          onSubmit={handleUpdateLabels} // 함수를 직접 전달하는 방식으로 단순화
+          // ▲▲▲ 여기까지 수정 ▲▲▲
+          version={versionForLabeling}
+          availableLabels={
+            Array.from(new Set(versions.flatMap(v => v.labels)))
+          }
+        />
+      )}
     </div>
   );
 }

@@ -196,7 +196,53 @@
   padding: 8px;
   border-radius: 6px;
   cursor: pointer;
+  position: relative; /* 자식 요소의 position absolute 기준이 되도록 추가 */
 }
+
+/* 버전 아이템 내부 컨텐츠를 감싸는 새 컨테이너 */
+.versionItemContent {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start; /* 아이템 상단 정렬 */
+  width: 100%;
+}
+
+/* 기존 버전 정보(제목, 태그, 메타)를 감싸는 컨테이너 */
+.versionDetailsContainer {
+  flex-grow: 1;
+  overflow: hidden; /* 내용이 길어지면 숨김 처리 */
+}
+
+/* 라벨 추가 버튼 스타일 */
+.addLabelButton {
+  background: #27272a;
+  border: 1px solid #3f3f46;
+  color: #a1a1aa;
+  padding: 4px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 8px; /* 왼쪽 내용과의 간격 */
+  
+  /* 호버 전에는 숨김 */
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+}
+
+/* li(versionItem)에 호버했을 때 버튼 보이기 */
+.versionItem:hover .addLabelButton {
+  opacity: 1;
+  visibility: visible;
+}
+
+.addLabelButton:hover {
+  background-color: #3f3f46;
+  color: #e4e4e7;
+}
+
 
 .versionItem:hover {
   background-color: #1e293b;
@@ -710,3 +756,16 @@
 }
 
 /* --- ▲▲▲ [추가] 우측 패널 헤더 스타일 ▲▲▲ --- */
+
+/* ... (기존 CSS 코드 맨 아래에 추가) ... */
+
+.statusTagCustom {
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background-color: #374151; /* 회색 계열 */
+  color: #d1d5db;
+}
