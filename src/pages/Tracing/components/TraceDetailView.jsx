@@ -1,8 +1,9 @@
 // src/Pages/Tracing/TraceDetailView.jsx
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom'; // useNavigate 추가
 import ReactDOM from 'react-dom'; // ReactDOM을 import 합니다.
 import styles from './TraceDetailView.module.css';
-import { Copy, List, Clipboard, Plus, SquarePen, ChevronDown, MessageCircle, Info } from 'lucide-react';
+import { Copy, List, Clipboard, Plus, SquarePen, ChevronDown, MessageCircle, Info, Play } from 'lucide-react';
 import Toast from '../../../components/Toast/Toast.jsx';
 import SidePanel from '../../../components/SidePanel/SidePanel.jsx';
 import Comments from '../../../components/Comments/Comments.jsx';
@@ -166,14 +167,31 @@ const formatLatency = (latency, isObservation) => {
 
 // 메인 TraceDetailView 컴포넌트
 const TraceDetailView = ({ details, isLoading, error }) => {
+  const navigate = useNavigate(); // 2. useNavigate 훅을 초기화합니다.
   const [viewFormat, setViewFormat] = useState('Formatted');
   const [toastInfo, setToastInfo] = useState({ isVisible: false, message: '' });
   const [isDatasetModalOpen, setIsDatasetModalOpen] = useState(false);
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
 
+  // ▼▼▼ 3. 드롭다운 메뉴 관리를 위한 state와 ref를 추가합니다. ▼▼▼
+  const [isPlaygroundMenuOpen, setPlaygroundMenuOpen] = useState(false);
+  const playgroundMenuRef = useRef(null);
+
   // 툴팁 관련 상태는 그대로 유지
   const [usageTooltip, setUsageTooltip] = useState({ visible: false, style: {}, data: null });
-  // usagePillRef는 더 이상 필요 없으므로 삭제합니다.
+
+// ▼▼▼ 4. 외부 클릭 감지 로직을 추가합니다. ▼▼▼
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (playgroundMenuRef.current && !playgroundMenuRef.current.contains(event.target)) {
+        setPlaygroundMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const isObservation = details && 'type' in details && 'traceId' in details;
   const objectType = isObservation ? 'OBSERVATION' : 'TRACE';
@@ -209,6 +227,27 @@ const TraceDetailView = ({ details, isLoading, error }) => {
       alert(`오류: ${result.error}`);
     }
     return result;
+  };
+
+  // ▼▼▼ 5. Playground 이동 핸들러 함수를 추가합니다. ▼▼▼
+ // Playground 이동 핸들러 함수를 아래와 같이 수정합니다.
+  const handleGoToPlayground = () => {
+    // 메시지 배열이 없는 경우를 위한 방어 코드
+    if (!details?.messages || !Array.isArray(details.messages)) return;
+
+    // ▼▼▼ 'assistant' 역할을 제외한 메시지만 필터링하는 로직 추가 ▼▼▼
+    const questionMessages = details.messages.filter(
+      (message) => message.role !== 'assistant'
+    );
+
+    // 필터링된 "질문"에 해당하는 메시지만 sessionStorage에 저장
+    sessionStorage.setItem(
+      'promptDataForPlayground',
+      JSON.stringify({ messages: questionMessages })
+    );
+    
+    // Playground 페이지로 이동
+    navigate('/playground');
   };
 
   const handleCopy = (text, type) => {
@@ -297,6 +336,9 @@ const TraceDetailView = ({ details, isLoading, error }) => {
   const name = details.name ?? 'N/A';
   const id = details.id;
 
+  // ▼▼▼ 6. 'ChatOpenAI'인지 확인하는 변수를 추가합니다. ▼▼▼
+  const isChatOpenAI = name.includes('ChatOpenAI');
+
   const formatTimestamp = (isoString) => {
     if (!isoString) return 'N/A';
     const date = new Date(isoString);
@@ -339,14 +381,34 @@ const TraceDetailView = ({ details, isLoading, error }) => {
             </button>
           </div>
           <div className={styles.infoBarActions}>
+            {/* ▼▼▼ 7. Playground 버튼 로직을 수정합니다. ▼▼▼ */}
             {isObservation ? (
-              <div className={styles.annotateButton}>
-                <button>Playground</button>
-                <div className={styles.annotateButtonChevron}>
-                  <ChevronDown size={16} />
+              // isChatOpenAI 조건이 참일 때만 Playground 버튼을 렌더링
+              isChatOpenAI && (
+                <div className={styles.playgroundDropdownContainer} ref={playgroundMenuRef}>
+                  <button
+                    className={styles.actionButton}
+                    onClick={() => setPlaygroundMenuOpen(prev => !prev)}
+                  >
+                    <Play size={14} /> Playground
+                  </button>
+                  {isPlaygroundMenuOpen && (
+                    <div className={styles.playgroundDropdownMenu}>
+                      <div className={styles.playgroundDropdownItem} onClick={handleGoToPlayground}>
+                        Fresh playground
+                      </div>
+                      <div 
+                        className={`${styles.playgroundDropdownItem} ${styles.disabled}`} 
+                        onClick={() => alert('Add to existing 기능은 아직 구현되지 않았습니다.')}
+                      >
+                        Add to existing
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
+              )
             ) : (
+              // 기존 Add to dataset 버튼 로직
               <button
                 className={styles.actionButton}
                 onClick={() => setIsDatasetModalOpen(true)}
@@ -354,18 +416,18 @@ const TraceDetailView = ({ details, isLoading, error }) => {
                 <Plus size={14} /> Add to datasets
               </button>
             )}
-
+            
             <button
               className={`${styles.iconButton} ${styles.actionButtonSecondary} ${styles.commentButton}`}
               onClick={() => setIsCommentsOpen(true)}
-              aria-label={`Open comments${commentCount ? `, ${commentCount} items` : ''}`}
-              title={`Comments${commentCount ? ` (${commentCountLabel})` : ''}`}
+              // ...
             >
               <MessageCircle size={16} />
               {commentCount > 0 && (
                 <span className={styles.commentBadge}>{commentCountLabel}</span>
               )}
             </button>
+            {/* ▲▲▲ 여기까지 수정 ▲▲▲ */}
 
           </div>
         </div>

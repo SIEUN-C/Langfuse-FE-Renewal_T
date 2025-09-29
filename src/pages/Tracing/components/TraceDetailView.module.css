@@ -101,42 +101,7 @@
   /* 아이콘 버튼 패딩 조정 */
 }
 
-.annotateButton {
-  display: flex;
-}
 
-.annotateButton button {
-  background-color: #21262d;
-  border: 1px solid #30363d;
-  color: #c9d1d9;
-  padding: 6px 12px;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  border-top-left-radius: 6px;
-  border-bottom-left-radius: 6px;
-}
-
-.annotateButton .annotateButtonChevron {
-  background-color: #21262d;
-  border: 1px solid #30363d;
-  border-left: none;
-  color: #c9d1d9;
-  padding: 6px;
-  border-top-right-radius: 6px;
-  border-bottom-right-radius: 6px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-}
-
-.annotateButton:hover button,
-.annotateButton:hover .annotateButtonChevron {
-  border-color: #8b949e;
-}
 
 .infoBarBottom {
   display: flex;
@@ -361,4 +326,49 @@
   /* 다크테마에서 가장자리 깔끔 */
   pointer-events: none;
   /* 클릭 방해 X */
+}
+
+/* ▼▼▼ 드롭다운 메뉴를 위한 스타일 (새로 추가) ▼▼▼ */
+.playgroundDropdownContainer {
+  position: relative; /* 드롭다운 메뉴의 기준점 */
+  display: inline-block;
+}
+
+.playgroundDropdownMenu {
+  position: absolute;
+  top: calc(100% + 4px); /* 버튼 바로 아래에 위치 */
+  right: 0;
+  background-color: #0f172a; /* 어두운 배경 */
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  width: 180px; /* 드롭다운 너비 */
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  padding: 4px;
+}
+
+.playgroundDropdownItem {
+  padding: 8px 12px;
+  font-size: 13px;
+  color: #c9d1d9;
+  border-radius: 4px;
+  cursor: pointer;
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+}
+
+.playgroundDropdownItem:hover {
+  background-color: #161b22;
+  color: #e6edf3;
+}
+
+.playgroundDropdownItem.disabled {
+  color: #7d8590;
+  cursor: not-allowed;
+}
+.playgroundDropdownItem.disabled:hover {
+  background-color: transparent;
 }
