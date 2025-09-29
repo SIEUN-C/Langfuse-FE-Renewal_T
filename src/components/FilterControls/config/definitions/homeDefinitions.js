@@ -1,4 +1,4 @@
-export const tracesFilterDefs = [
+export const homeFilterDefs = [
     {
         name: "Trace Name",
         id: "traceName",

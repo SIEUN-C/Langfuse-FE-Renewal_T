@@ -24,20 +24,20 @@ const FilterBuilder = ({ filters, onFilterChange, filterConfig }) => {
     // ==================== STATE 관리 ====================
     const [isOpen, setIsOpen] = useState(false); // 드롭다운 열림/닫힘 상태
     const [dropdownPosition, setDropdownPosition] = useState({}); // 동적 드롭다운 위치
-    
+
     // REF 관리
     const containerRef = useRef(null); // 전체 컨테이너 참조
     const menuRef = useRef(null); // 드롭다운 메뉴 참조
-    
+
     // 날짜 선택 팝업 상태
-    const [datePickerState, setDatePickerState] = useState({ 
-        isOpen: false, 
-        filterId: null, 
-        triggerRef: null 
+    const [datePickerState, setDatePickerState] = useState({
+        isOpen: false,
+        filterId: null,
+        triggerRef: null
     });
 
     // ==================== 유틸리티 함수 ====================
-    
+
     /**
      * 컬럼 키로 설정 정보 조회
      * @param {string} columnKey - 컬럼 키
@@ -46,19 +46,19 @@ const FilterBuilder = ({ filters, onFilterChange, filterConfig }) => {
     const getColumnConfig = (columnKey) => filterConfig.find(c => c.key === columnKey);
 
     // ==================== 필터 관리 함수 ====================
-    
+
     /**
      * 새 필터 추가
      * 기본값으로 첫 번째 컬럼과 첫 번째 연산자 사용
      */
     const addFilter = () => {
         const defaultColumn = filterConfig[0];
-        const newFilter = { 
-            id: Date.now(), 
-            column: defaultColumn.key, 
-            operator: defaultColumn.operators[0], 
-            value: '', 
-            metaKey: '' 
+        const newFilter = {
+            id: Date.now(),
+            column: defaultColumn.key,
+            operator: defaultColumn.operators[0],
+            value: '',
+            metaKey: ''
         };
         onFilterChange([...filters, newFilter]);
     };
@@ -70,11 +70,7 @@ const FilterBuilder = ({ filters, onFilterChange, filterConfig }) => {
      */
     const removeFilter = (id) => {
         const newFilters = filters.filter(f => f.id !== id);
-        if (newFilters.length === 0) {
-            addFilter(); // 필터가 모두 제거되면 기본 필터 추가
-        } else {
-            onFilterChange(newFilters);
-        }
+        onFilterChange(newFilters);
     };
 
     /**
@@ -86,16 +82,17 @@ const FilterBuilder = ({ filters, onFilterChange, filterConfig }) => {
     const updateFilter = (id, field, value) => {
         onFilterChange(prev => prev.map(f => {
             if (f.id !== id) return f;
-            
+
             // 컬럼 변경 시 연산자와 값 초기화
             if (field === 'column') {
                 const newColumnConfig = getColumnConfig(value);
-                return { 
-                    ...f, 
-                    column: value, 
-                    operator: newColumnConfig.operators[0], 
-                    value: '', 
-                    metaKey: '' 
+                return {
+                    ...f,
+                    column: value,
+                    operator: newColumnConfig.operators[0],
+                    value: '',
+                    metaKey: '',
+                    type: newColumnConfig.type
                 };
             }
             return { ...f, [field]: value };
@@ -103,7 +100,7 @@ const FilterBuilder = ({ filters, onFilterChange, filterConfig }) => {
     };
 
     // ==================== 드롭다운 위치 계산 ====================
-    
+
     /**
      * 화면 경계를 고려한 드롭다운 위치 계산
      * 화면을 벗어나면 자동으로 위치 조정
@@ -124,7 +121,7 @@ const FilterBuilder = ({ filters, onFilterChange, filterConfig }) => {
         };
 
         // ========== 가로 위치 계산 ==========
-        
+
         // 기본 위치: 중앙 정렬 (right: 50%, transform: translateX(50%))
         let rightOffset = '50%';
         let transformX = '50%';
@@ -152,7 +149,7 @@ const FilterBuilder = ({ filters, onFilterChange, filterConfig }) => {
         }
 
         // ========== 세로 위치 계산 ==========
-        
+
         // 아래쪽으로 넘치는 경우 위쪽에 표시
         if (container.bottom + menu.height + 4 > viewport.height) {
             position.top = 'auto';
@@ -163,7 +160,7 @@ const FilterBuilder = ({ filters, onFilterChange, filterConfig }) => {
     };
 
     // ==================== 입력 컴포넌트 렌더링 ====================
-    
+
     /**
      * 데이터 타입별 값 입력 컴포넌트 렌더링
      * @param {object} filter - 필터 객체
@@ -173,12 +170,16 @@ const FilterBuilder = ({ filters, onFilterChange, filterConfig }) => {
         const config = getColumnConfig(filter.column);
         if (!config) return null;
 
+        if (filter.operator === 'is null' || filter.operator === 'is not null') {
+            return <div className={styles.valueInput} />;
+        }
+
         switch (config.type) {
-            case 'date':
+            case 'datetime':
                 // 날짜 선택 버튼
                 return (
-                    <button 
-                        className={styles.dateButton} 
+                    <button
+                        className={styles.dateButton}
                         onClick={(e) => handleOpenDatePicker(e, filter.id)}
                     >
                         <Calendar size={14} />
@@ -187,19 +188,51 @@ const FilterBuilder = ({ filters, onFilterChange, filterConfig }) => {
                         </span>
                     </button>
                 );
-                
+
+            case 'boolean':
+                return (
+                    <select
+                        className={`${styles.select} ${styles.valueInput}`}
+                        value={filter.value}
+                        onChange={e => updateFilter(filter.id, 'value', e.target.value)}
+                    >
+                        <option value="">Select...</option>
+                        <option value="true">True</option>
+                        <option value="false">False</option>
+                    </select>
+                );
+
+            case 'stringOptions':
+            case 'arrayOptions':
+            case 'categoryOptions':
+                const formattedOptions = (config.options && config.options.length > 0 && typeof config.options[0] === 'object' && config.options[0] !== null)
+                    ? config.options.map(opt => opt.value)
+                    : config.options || [];
+                return (
+                    <div className={styles.valueInput}>
+                        <MultiSelectDropdown
+                            options={formattedOptions}
+                            // 값은 쉼표로 구분된 문자열이므로, 이를 배열로 변환하여 전달
+                            value={Array.isArray(filter.value) ? filter.value : (filter.value ? String(filter.value).split(',') : [])}
+                            // 변경된 값(배열)을 다시 쉼표로 구분된 문자열로 변환하여 저장
+                            onChange={value => updateFilter(filter.id, 'value', value.join(','))}
+                            placeholder="Select options..."
+                        />
+                    </div>
+                );
+
             case 'number':
                 // 숫자 입력창
                 return (
-                    <input 
-                        type="number" 
-                        className={`${styles.input} ${styles.valueInput}`} 
-                        value={filter.value} 
-                        placeholder="0" 
-                        onChange={e => updateFilter(filter.id, 'value', e.target.value)} 
+                    <input
+                        type="number"
+                        className={`${styles.input} ${styles.valueInput}`}
+                        value={filter.value}
+                        placeholder="0"
+                        onChange={e => updateFilter(filter.id, 'value', e.target.value)}
                     />
                 );
-                
+
             case 'categorical':
                 // 다중 선택 드롭다운
                 return (
@@ -212,34 +245,34 @@ const FilterBuilder = ({ filters, onFilterChange, filterConfig }) => {
                         />
                     </div>
                 );
-                
+
             case 'string':
             default:
                 // 텍스트 입력창 (기본값)
                 return (
-                    <input 
-                        type="text" 
-                        className={`${styles.input} ${styles.valueInput}`} 
-                        value={filter.value} 
-                        placeholder="value" 
-                        onChange={e => updateFilter(filter.id, 'value', e.target.value)} 
+                    <input
+                        type="text"
+                        className={`${styles.input} ${styles.valueInput}`}
+                        value={filter.value}
+                        placeholder="value"
+                        onChange={e => updateFilter(filter.id, 'value', e.target.value)}
                     />
                 );
         }
     };
 
     // ==================== 날짜 선택 관리 ====================
-    
+
     /**
      * 날짜 선택 팝업 열기
      * @param {Event} event - 클릭 이벤트
      * @param {number} filterId - 필터 ID
      */
     const handleOpenDatePicker = (event, filterId) => {
-        setDatePickerState({ 
-            isOpen: true, 
-            filterId, 
-            triggerRef: { current: event.currentTarget } 
+        setDatePickerState({
+            isOpen: true,
+            filterId,
+            triggerRef: { current: event.currentTarget }
         });
     };
 
@@ -262,7 +295,7 @@ const FilterBuilder = ({ filters, onFilterChange, filterConfig }) => {
     };
 
     // ==================== COMPUTED VALUES ====================
-    
+
     /**
      * 현재 선택된 필터의 날짜값 (날짜 선택 팝업용)
      */
@@ -274,13 +307,13 @@ const FilterBuilder = ({ filters, onFilterChange, filterConfig }) => {
     /**
      * 활성 필터 개수 계산 (값이 입력된 필터만)
      */
-    const activeFilterCount = useMemo(() => 
-        filters.filter(f => String(f.value || '').trim() !== '').length, 
+    const activeFilterCount = useMemo(() =>
+        filters.filter(f => String(f.value || '').trim() !== '').length,
         [filters]
     );
 
     // ==================== EFFECTS ====================
-    
+
     /**
      * 드롭다운 외부 클릭 감지 및 위치 계산
      */
@@ -306,7 +339,7 @@ const FilterBuilder = ({ filters, onFilterChange, filterConfig }) => {
         // 이벤트 리스너 등록
         document.addEventListener('mousedown', handleClickOutside);
         window.addEventListener('resize', handleResize);
-        
+
         // 드롭다운이 열릴 때 위치 계산
         if (isOpen) {
             // DOM 업데이트 후 위치 계산을 위해 setTimeout 사용
@@ -321,12 +354,12 @@ const FilterBuilder = ({ filters, onFilterChange, filterConfig }) => {
     }, [isOpen]); // isOpen 변경 시에만 실행
 
     // ==================== RENDER ====================
-    
+
     return (
         <div className={styles.container} ref={containerRef}>
             {/* 필터 버튼 - 클릭 시 드롭다운 토글 */}
             <FilterButton onClick={() => setIsOpen(!isOpen)}>
-                <Filter size={14} /> 
+                <Filter size={14} />
                 Filters
                 {/* 활성 필터 개수 표시 배지 */}
                 {activeFilterCount > 0 && (
@@ -336,8 +369,8 @@ const FilterBuilder = ({ filters, onFilterChange, filterConfig }) => {
 
             {/* 드롭다운 메뉴 - 동적 위치 적용 */}
             {isOpen && (
-                <div 
-                    className={styles.dropdownMenu} 
+                <div
+                    className={styles.dropdownMenu}
                     ref={menuRef}
                     style={dropdownPosition} // 동적으로 계산된 위치 적용
                 >
@@ -350,11 +383,11 @@ const FilterBuilder = ({ filters, onFilterChange, filterConfig }) => {
                                 <span className={styles.conjunction}>
                                     {index === 0 ? 'Where' : 'And'}
                                 </span>
-                                
+
                                 {/* 컬럼 선택 드롭다운 */}
-                                <select 
-                                    className={styles.select} 
-                                    value={filter.column} 
+                                <select
+                                    className={styles.select}
+                                    value={filter.column}
                                     onChange={e => updateFilter(filter.id, 'column', e.target.value)}
                                 >
                                     {filterConfig.map(opt => (
@@ -363,7 +396,7 @@ const FilterBuilder = ({ filters, onFilterChange, filterConfig }) => {
                                         </option>
                                     ))}
                                 </select>
-                                
+
                                 {/* 메타키 입력창 (hasMetaKey가 true인 컬럼만) */}
                                 {columnConfig?.hasMetaKey && (
                                     <input
@@ -376,22 +409,22 @@ const FilterBuilder = ({ filters, onFilterChange, filterConfig }) => {
                                 )}
 
                                 {/* 연산자 선택 드롭다운 */}
-                                <select 
-                                    className={styles.select} 
-                                    value={filter.operator} 
+                                <select
+                                    className={styles.select}
+                                    value={filter.operator}
                                     onChange={e => updateFilter(filter.id, 'operator', e.target.value)}
                                 >
                                     {(columnConfig?.operators || []).map(opt => (
                                         <option key={opt} value={opt}>{opt}</option>
                                     ))}
                                 </select>
-                                
+
                                 {/* 값 입력 컴포넌트 (타입별로 다름) */}
                                 {renderValueInput(filter)}
-                                
+
                                 {/* 필터 제거 버튼 */}
-                                <button 
-                                    className={styles.removeButton} 
+                                <button
+                                    className={styles.removeButton}
                                     onClick={() => removeFilter(filter.id)}
                                 >
                                     <X size={16} />
@@ -399,7 +432,7 @@ const FilterBuilder = ({ filters, onFilterChange, filterConfig }) => {
                             </div>
                         );
                     })}
-                    
+
                     {/* 필터 추가 버튼 */}
                     <button className={styles.addButton} onClick={addFilter}>
                         <Plus size={14} /> Add filter

@@ -7,8 +7,12 @@ export const useFilteredData = (
     filters,          // useFilterState에서 온 필터 조건 배열
     columnDefs,       // 해당 페이지의 컬럼 정의 파일 (예: tracesTableFilterDefs)
     searchQuery,      // 검색어
-    searchType        // 검색 타입
+    searchType,        // 검색 타입
+    selectedEnvs,
+    timeRange,
 ) => {
+    const selectedEnvNames = useMemo(() => new Set(selectedEnvs.map(e => e.name)), [selectedEnvs]);
+
     const filteredData = useMemo(() => {
         let tempData = [...rawData];
 
@@ -33,6 +37,17 @@ export const useFilteredData = (
             });
         }
 
+        if (selectedEnvNames.size > 0) {
+            tempData = tempData.filter(item => selectedEnvNames.has(item.environment || 'default'));
+        }
+
+        const { startDate, endDate } = timeRange;
+        if (startDate && endDate) {
+            tempData = tempData.filter(item => {
+                const itemTimestamp = dayjs(item.timestamp);
+                return itemTimestamp.isAfter(startDate) && itemTimestamp.isBefore(endDate);
+            });
+        }
         // 2. 필터 빌더 필터링
         const activeFilters = filters.filter(
             (f) => (f.value !== undefined && f.value !== "" && f.value !== null && (!Array.isArray(f.value) || f.value.length > 0))
@@ -43,7 +58,7 @@ export const useFilteredData = (
         if (activeFilters.length > 0) {
             tempData = tempData.filter((item) => {
                 return activeFilters.every((filter) => {
-                    const columnDef = columnDefs.find((c) => c.name === filter.column);
+                    const columnDef = columnDefs.find((c) => c.id === filter.column);
                     if (!columnDef) return true;
 
                     const itemValue = item[columnDef.id];
@@ -60,7 +75,7 @@ export const useFilteredData = (
                         return false;
                     }
 
-                    switch (filter.type) {
+                    switch (columnDef.type) {
                         case "string":
                         case "stringObject": {
                             const itemString = String(itemValue).toLowerCase();
@@ -85,8 +100,8 @@ export const useFilteredData = (
                             return false;
                         }
                         case "boolean": {
-                            if (filter.operator === "=") return itemValue === filterValue;
-                            if (filter.operator === "<>") return itemValue !== filterValue;
+                            if (filter.operator === "=") return String(itemValue) === filterValue;
+                            if (filter.operator === "<>") return String(itemValue) !== filterValue;
                             return true;
                         }
                         case "datetime": {
@@ -99,7 +114,9 @@ export const useFilteredData = (
                             return true;
                         }
                         case "stringOptions": { // 보통 단일 값 필터링에 사용 (예: environment)
-                            const filterValues = Array.isArray(filterValue) ? filterValue.map(v => String(v).toLowerCase()) : [];
+                            const filterValues = (typeof filterValue === 'string' && filterValue)
+                                ? filterValue.split(',').map(v => String(v).toLowerCase())
+                                : [];
                             const itemString = String(itemValue).toLowerCase();
 
                             if (filter.operator === "any of") return filterValues.includes(itemString);
@@ -107,7 +124,9 @@ export const useFilteredData = (
                             return true;
                         }
                         case "arrayOptions": { // 보통 배열 값 필터링에 사용 (예: tags)
-                            const filterValues = Array.isArray(filterValue) ? filterValue.map(v => String(v).toLowerCase()) : [];
+                            const filterValues = (typeof filterValue === 'string' && filterValue)
+                                ? filterValue.split(',').map(v => String(v).toLowerCase())
+                                : [];
                             const itemValues = Array.isArray(itemValue) ? itemValue.map(v => String(v).toLowerCase()) : [];
 
                             if (filter.operator === "any of") return filterValues.some(v => itemValues.includes(v));
@@ -124,7 +143,7 @@ export const useFilteredData = (
         }
 
         return tempData;
-    }, [rawData, filters, columnDefs, searchQuery, searchType]);
+    }, [rawData, filters, columnDefs, searchQuery, searchType, selectedEnvNames, timeRange]);
 
     return filteredData;
 };

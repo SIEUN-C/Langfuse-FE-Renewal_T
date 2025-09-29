@@ -17,10 +17,11 @@ import { langfuse } from '../../lib/langfuse.js';
 import { fetchTraces, deleteTrace, fetchTraceMetrics } from './services/TracingApi.js';
 import { fetchTraceDetails } from './services/TraceDetailApi.js';
 import { getProjects } from '../../api/settings/ProjectApi.js';
-// --- ▼▼▼ [추가] filter ▼▼▼ ---
-import { tracingFilterConfig } from 'components/FilterControls/filterConfig';
-import { observationsFilterConfig } from './config/ObservationFilterConfig.js';
-// --- ▲▲▲ [추가] filter ▲▲▲ ---
+
+import { useFilteredData } from 'hooks/useFilteredData.js';
+import { getTracesFilterConfig, getObservationsFilterConfig } from 'components/FilterControls/config/configBuilder.js';
+import { tracesFilterDefs } from 'components/FilterControls/config/definitions/traceDefinitions.js';
+import { observationsFilterDefs } from 'components/FilterControls/config/definitions/observationsDefinitions.js';
 
 import RowHeightDropdown from 'components/RowHeightDropdown/RowHeightDropdown.jsx'
 
@@ -54,22 +55,64 @@ const Tracing = () => {
   const [pendingTraceId, setPendingTraceId] = useState(null);
   const [selectedTraceId, setSelectedTraceId] = useState(null);
   const [rowHeight, setRowHeight] = useState('small')
-  // Traces 탭 필터 상태
-  const [builderFiltersTraces, setBuilderFiltersTraces] = useState(() => {
-    const c = tracingFilterConfig[0];
-    return [{ id: 1, column: c.key, operator: c.operators[0], value: '', metaKey: '' }];
-  });
 
-  // Observations 탭 필터 상태 (기본 8개 선택)
-  const [builderFiltersObs, setBuilderFiltersObs] = useState(() => ([
-    {
-      id: 1,
-      column: 'Type',
-      operator: 'any of',
-      value: ['GENERATION', 'SPAN', 'EVENT', 'AGENT', 'TOOL', 'CHAIN', 'RETRIEVER', 'EVALUATOR'],
-      metaKey: ''
-    },
-  ]));
+  const baseTraceFilterColumns = useMemo(() => getTracesFilterConfig(), []);
+  const observationsFilterColumns = useMemo(() => getObservationsFilterConfig(), []);
+
+  const [builderFiltersTraces, setBuilderFiltersTraces] = useState([]);
+  const [builderFiltersObs, setBuilderFiltersObs] = useState([]);
+
+  const dynamicTraceFilterColumns = useMemo(() => {
+    // Name
+    const nameOptions = [
+        // traces 배열에서 모든 name 값을 수집한 후, 중복을 제거
+        ...new Set(traces.map(trace => trace.name).filter(Boolean))
+    ];
+    const nameFilterDef = baseTraceFilterColumns.find(def => def.key === 'name');
+    if (nameFilterDef) {
+        nameFilterDef.options = nameOptions; // 찾은 항목에 동적 옵션을 주입
+    }
+
+    // Tags
+    const tagsOptions = [
+      // traces 배열의 모든 tags를 하나의 배열로 합친 후, 중복을 제거
+      ...new Set(traces.flatMap(trace => trace.tags || []).filter(Boolean))
+    ];
+
+    // 기본 필터 설정에서 'tags' 항목을 찾음
+    const tagsFilterDef = baseTraceFilterColumns.find(def => def.key === 'tags');
+    if (tagsFilterDef) {
+      tagsFilterDef.options = tagsOptions; // 찾은 항목에 동적 옵션을 주입
+    }
+
+    return baseTraceFilterColumns;
+
+  }, [traces, baseTraceFilterColumns]); // traces 데이터가 바뀔 때마다 재계산
+
+  useEffect(() => {
+    // Traces 필터 초기화
+    if (baseTraceFilterColumns.length > 0 && builderFiltersTraces.length === 0) {
+      const firstColumn = baseTraceFilterColumns[0];
+      setBuilderFiltersTraces([{
+        id: 1,
+        column: firstColumn.key,
+        type: firstColumn.type,
+        operator: firstColumn.operators[0],
+        value: '',
+      }]);
+    }
+    // Observations 필터 초기화
+    if (observationsFilterColumns.length > 0 && builderFiltersObs.length === 0) {
+      const typeColumn = observationsFilterColumns.find(c => c.key === 'type') || observationsFilterColumns[0];
+      setBuilderFiltersObs([{
+        id: 1,
+        column: typeColumn.key,
+        type: typeColumn.type,
+        operator: 'any of',
+        value: ['GENERATION', 'AGENT', 'TOOL', 'CHAIN', 'RETRIEVER', 'EVALUATOR', 'EMBEDDING', 'GUARDRAIL'],
+      }]);
+    }
+  }, [baseTraceFilterColumns, observationsFilterColumns, builderFiltersTraces, builderFiltersObs]);
 
   const [projectId, setProjectId] = useState(null);
 
@@ -126,86 +169,25 @@ const Tracing = () => {
   const { selectedEnvs, ...envFilterProps } = useEnvironmentFilter(allEnvironments);
 
   const isObsTab = activeTab === 'Observations';
-  const currentFilterConfig = isObsTab ? observationsFilterConfig : tracingFilterConfig;
+  const currentFilterColumns = isObsTab ? observationsFilterColumns : dynamicTraceFilterColumns;
   const builderFilters = isObsTab ? builderFiltersObs : builderFiltersTraces;
   const setBuilderFilters = isObsTab ? setBuilderFiltersObs : setBuilderFiltersTraces;
-
 
   const builderFilterProps = {
     filters: builderFilters,
     onFilterChange: setBuilderFilters,
-    filterConfig: currentFilterConfig
+    filterConfig: currentFilterColumns, // Pass 'columns' prop instead of 'filterConfig'
   };
 
-  const columnMapping = {
-    "ID": "id", "Name": "name", "Timestamp": "timestamp", "User ID": "userId", "Session ID": "sessionId", "Version": "version", "Release": "release", "Tags": "tags", "Input Tokens": "inputTokens", "Output Tokens": "outputTokens", "Total Tokens": "totalTokens", "Latency (s)": "latency", "Input Cost ($)": "inputCost", "Output Cost ($)": "outputCost", "Total Cost ($)": "totalCost", "Environment": "environment"
-  };
-
-  const filteredTraces = useMemo(() => {
-    let tempTraces = traces;
-
-    if (searchQuery.trim()) {
-      const lowercasedQuery = searchQuery.toLowerCase().trim();
-      tempTraces = tempTraces.filter(trace => {
-        if (searchType === 'IDs / Names') {
-          return (
-            trace.id?.toLowerCase().includes(lowercasedQuery) ||
-            trace.name?.toLowerCase().includes(lowercasedQuery)
-          );
-        }
-        if (searchType === 'Full Text') {
-          return Object.values(trace).some(val =>
-            String(val).toLowerCase().includes(lowercasedQuery)
-          );
-        }
-        return true;
-      });
-    }
-
-    const selectedEnvNames = new Set(selectedEnvs.map(e => e.name));
-    if (selectedEnvNames.size > 0) {
-      tempTraces = tempTraces.filter(trace => selectedEnvNames.has(trace.environment));
-    }
-
-    const { startDate, endDate } = timeRangeFilter;
-    if (startDate && endDate) {
-      tempTraces = tempTraces.filter(trace => {
-        // [수정됨] 이제 trace.timestamp는 신뢰할 수 있는 ISO 형식이므로 dayjs가 안정적으로 파싱합니다.
-        const traceTimestamp = dayjs(trace.timestamp);
-        return traceTimestamp.isAfter(startDate) && traceTimestamp.isBefore(endDate);
-      });
-    }
-
-    const activeFilters = builderFilters.filter(f => String(f.value).trim() !== '');
-    if (activeFilters.length > 0) {
-      tempTraces = tempTraces.filter(trace => {
-        return activeFilters.every(filter => {
-          const traceKey = columnMapping[filter.column];
-          if (!traceKey) return true;
-          const traceValue = trace[traceKey];
-          const filterValue = filter.value;
-          if (traceValue === null || traceValue === undefined) return false;
-          const traceString = String(traceValue).toLowerCase();
-          const filterString = String(filterValue).toLowerCase();
-          switch (filter.operator) {
-            case '=': return traceString === filterString;
-            case 'contains': return traceString.includes(filterString);
-            case 'does not contain': return !traceString.includes(filterString);
-            case 'starts with': return traceString.startsWith(filterString);
-            case 'ends with': return traceString.endsWith(filterString);
-            case '>': return Number(traceValue) > Number(filterValue);
-            case '<': return Number(traceValue) < Number(filterValue);
-            case '>=': return Number(traceValue) >= Number(filterValue);
-            case '<=': return Number(traceValue) <= Number(filterValue);
-            case 'any of': return filterString.split(',').some(val => traceString.includes(val.trim()));
-            case 'none of': return !filterString.split(',').some(val => traceString.includes(val.trim()));
-            default: return true;
-          }
-        });
-      });
-    }
-    return tempTraces;
-  }, [traces, searchQuery, searchType, selectedEnvs, timeRangeFilter, builderFilters]);
+  const filteredTraces = useFilteredData(
+    traces,
+    builderFiltersTraces,
+    tracesFilterDefs,
+    searchQuery,
+    searchType,
+    selectedEnvs,
+    timeRangeFilter
+  );
 
   const toggleFavorite = useCallback((traceId) => {
     setFavoriteState(prev => ({ ...prev, [traceId]: !prev[traceId] }));
@@ -392,6 +374,7 @@ const Tracing = () => {
                   selectedRows={selectedRows}
                   onCheckboxChange={setSelectedRows}
                   onFavoriteClick={toggleFavorite}
+                  showFavorite={true}
                   favoriteState={favoriteState}
                   onToggleAllFavorites={toggleAllFavorites}
                   showDelete={true}

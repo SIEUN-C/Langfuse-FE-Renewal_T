@@ -38,16 +38,6 @@
   box-sizing: border-box;
 }
 
-/* 모바일 대응 */
-@media (max-width: 768px) {
-  .dropdownMenu {
-    min-width: 90vw; /* 모바일에서는 화면 너비에 맞춤 */
-    left: 50% !important; /* 강제 중앙 정렬 */
-    right: auto !important;
-    transform: translateX(-50%) !important;
-  }
-}
-
 /* ==================== 필터 행 스타일 ==================== */
 .filterRow {
   display: flex;
@@ -58,15 +48,6 @@
   flex-wrap: wrap;
 }
 
-/* 모바일에서 필터 행 세로 배치 */
-@media (max-width: 768px) {
-  .filterRow {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-  }
-}
-
 /* ==================== 조건 연결어 스타일 ==================== */
 .conjunction {
   color: #8a8a9e;
@@ -74,15 +55,6 @@
   width: 60px;
   flex-shrink: 0;
   text-align: left;
-}
-
-/* 모바일에서 조건 연결어 */
-@media (max-width: 768px) {
-  .conjunction {
-    width: 100%;
-    text-align: center;
-    font-weight: bold;
-  }
 }
 
 /* ==================== 입력 요소 공통 스타일 ==================== */
@@ -115,23 +87,15 @@
 }
 
 /* 메타키 입력창 */
-.metaKeyInput {
-  width: 90px;
+.filterRow .metaKeyInput {
   flex-shrink: 0;
+  width: 90px;
 }
 
 /* 값 입력창 - 가변 너비 */
-.valueInput {
-  flex-grow: 1;
-  min-width: 120px;
-}
-
-/* 모바일에서 입력 요소 전체 너비 사용 */
-@media (max-width: 768px) {
-  .select, .metaKeyInput, .valueInput {
-    width: 100%;
-    flex-grow: 1;
-  }
+.filterRow .valueInput {
+  flex-grow: 0;
+  width: 300px;
 }
 
 /* ==================== 버튼 스타일 ==================== */
@@ -169,15 +133,6 @@
 .addButton:hover {
   background-color: #4a4a6a;
   color: #ffffff;
-}
-
-/* 모바일에서 버튼 전체 너비 */
-@media (max-width: 768px) {
-  .addButton {
-    width: 100%;
-    justify-content: center;
-    align-self: stretch;
-  }
 }
 
 /* ==================== 필터 카운트 배지 ==================== */
@@ -236,9 +191,9 @@
 }
 
 /* ==================== 다중 선택 컨테이너 ==================== */
-.valueInput > div {
+/* .valueInput > div {
   flex-grow: 1;
-}
+} */
 
 /* ==================== 접근성 개선 ==================== */
 
@@ -259,20 +214,6 @@
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
-}
-
-/* ==================== 고해상도 대응 ==================== */
-@media (min-resolution: 2dppx) {
-  .dropdownMenu {
-    /* 고해상도에서 더 선명한 그림자 */
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-  }
-}
-
-/* ==================== 다크모드 추가 대응 ==================== */
-@media (prefers-color-scheme: dark) {
-  /* 이미 다크 테마가 기본이므로 추가 조정 불필요 */
-  /* 필요시 여기에 다크모드 전용 스타일 추가 */
 }
 
 /* ==================== 로딩 상태 스타일 (향후 확장용) ==================== */

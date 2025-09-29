@@ -1,4 +1,4 @@
-export const judgeFilterDefs = [
+export const judgeFilterDefs = (JobConfigState) => [
   {
     name: "Status",
     id: "status",

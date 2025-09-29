@@ -1,4 +1,4 @@
-export const promptsFilterDefs = [
+export const promptsFilterDefs = (PromptType) => [
   {
     name: "Name",
     id: "name",

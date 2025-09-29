@@ -18,13 +18,13 @@ export const evaluationDetailFilterDefs = [
         internal: 't."name"',
         options: [], // 런타임에 채워짐
     },
-    {
-        name: "Environment",
-        id: "environment",
-        type: "stringOptions",
-        internal: 't."environment"',
-        options: [], // 런타임에 채워짐
-    },
+    // {
+    //     name: "Environment",
+    //     id: "environment",
+    //     type: "stringOptions",
+    //     internal: 't."environment"',
+    //     options: [], // 런타임에 채워짐
+    // },
     {
         name: "Timestamp",
         id: "timestamp",
