@@ -74,14 +74,14 @@ export const useFilteredData = (
                         }
                         case "number":
                         case "numberObject": {
-                            const numitemValue = Number(itemValue);
+                            const numItemValue = Number(itemValue);
                             const numFilterValue = Number(filterValue);
-                            if (isNaN(numitemValue) || isNaN(numFilterValue)) return false;
-                            if (filter.operator === "=") return numitemValue === numFilterValue;
-                            if (filter.operator === ">") return numitemValue > numFilterValue;
-                            if (filter.operator === "<") return numitemValue < numFilterValue;
-                            if (filter.operator === ">=") return numitemValue >= numFilterValue;
-                            if (filter.operator === "<=") return numitemValue <= numFilterValue;
+                            if (isNaN(numItemValue) || isNaN(numFilterValue)) return false;
+                            if (filter.operator === "=") return numItemValue === numFilterValue;
+                            if (filter.operator === ">") return numItemValue > numFilterValue;
+                            if (filter.operator === "<") return numItemValue < numFilterValue;
+                            if (filter.operator === ">=") return numItemValue >= numFilterValue;
+                            if (filter.operator === "<=") return numItemValue <= numFilterValue;
                             return false;
                         }
                         case "boolean": {

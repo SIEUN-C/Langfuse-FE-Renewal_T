@@ -7,9 +7,9 @@ import { DataTable } from '../../components/DataTable/DataTable.jsx';
 import { sessionTableColumns } from './sessionColumns.jsx';
 import FilterButton from '../../components/FilterButton/FilterButton.jsx';
 import FilterControls from '../../components/FilterControls/FilterControls.jsx';
-// import DateRangePicker from 'components/DateRange/DateRangePicker.jsx';
-import { useEnvironmentFilter } from '../../components/Filter_test/hooks/useEnvironmentFilter.js'; // 추가
-import { useTimeRangeFilter } from '../../components/Filter_test/hooks/useTimeRangeFilter.js'; // 추가
+
+import { useEnvironmentFilter } from '../../hooks/useEnvironmentFilter.js'; // 추가
+import { useTimeRangeFilter } from '../../hooks/useTimeRangeFilter.js'; // 추가
 import dayjs from 'dayjs'; // 추가
 import { fetchSessions } from './SessionApi.js';
 import { sessionsFilterConfig } from '../../components/FilterControls/filterConfig.js'; // [수정] sessionsFilterConfig를 import 합니다.
@@ -146,7 +146,6 @@ const Sessions = () => {
                 <div className={styles.filterLeft}>
                     {/* DateRangePicker 대신 FilterControls를 사용합니다. */}
                     <FilterControls 
-                        onRefresh={loadSessions} 
                         envFilterProps={envFilterProps}
                         timeRangeFilterProps={timeRangeFilter}
                         builderFilterProps={builderFilterProps} 
