@@ -8,7 +8,7 @@ import useProjectId from 'hooks/useProjectId';
 import { rowsFromConfigMapping, buildVarValuesFromTrace, fillPrompt } from "./components/evalMapping";
 import { toUpdateConfigFromForm } from "./components/evalMapping";
 import { useMemo } from "react";
-import { toScopeArray, computeFinalStatus, isEditable } from './components/evalstatus';
+import { toScopeArray, computeFinalStatus, isEditable } from './components/evalStatus';
 import { getEvaluatorConfigById } from './services/judgeApi';
 import { updateEvalJob } from './services/evaluatorsApi';
 

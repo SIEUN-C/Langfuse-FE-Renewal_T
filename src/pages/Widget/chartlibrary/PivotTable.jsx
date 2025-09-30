@@ -22,10 +22,10 @@ import {
   extractMetricValues,
   sortPivotTableRows,
   DEFAULT_ROW_LIMIT,
-} from "../utils/pivot-table-utils.js";
-import { getNextSortState } from "../utils/sort-types.js";
-import { numberFormatter } from "../utils/number-utils.js";
-import { formatMetricName } from "../../Dashboards/utils/widget-utils.js";
+} from "../utils/pivotTableUtils.js";
+import { getNextSortState } from "../utils/sortTypes.js";
+import { numberFormatter } from "../utils/numberUtils.js";
+import { formatMetricName } from "../../Dashboards/utils/widgetUtils.js";
 import ChartContainer from "./ChartContainer.jsx";
 import styles from './chart-library.module.css';
 
@@ -266,7 +266,7 @@ function formatColumnHeader(metricName) {
  * 5. 테이블 렌더링
  * 
  * @param {Object} props - 컴포넌트 props
- * @param {import('./chart-props.js').DataPoint[]} props.data - 차트 쿼리의 데이터 포인트 배열
+ * @param {import('./chartProps.js').DataPoint[]} props.data - 차트 쿼리의 데이터 포인트 배열
  * @param {Object} [props.config] - 차원과 메트릭을 포함한 피벗 테이블 설정
  * @param {string[]} [props.config.dimensions] - 차원 필드명 배열 (최대 2개)
  * @param {string[]} [props.config.metrics] - 메트릭 필드명 배열

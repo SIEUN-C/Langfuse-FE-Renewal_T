@@ -3,7 +3,7 @@ import {
   listScoreConfigs,
   createScoreConfig,
   updateScoreConfigStatus,
-} from "./lib/ScoreApi.trpc.js";
+} from "./lib/scoreApiTrpc.js";
 
 import React, {
   useCallback,

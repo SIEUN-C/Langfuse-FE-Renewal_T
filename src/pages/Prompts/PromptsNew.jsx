@@ -8,7 +8,7 @@ import LineNumberedTextarea from '../../components/LineNumberedTextarea/LineNumb
 import CodeBlock from '../../components/CodeBlock/CodeBlock.jsx';
 import FormPageLayout from '../../components/Layouts/FormPageLayout.jsx';
 import FormGroup from '../../components/Form/FormGroup.jsx';
-import { createPromptOrVersion } from './services/PromptsNewApi.js';
+import { createPromptOrVersion } from './services/promptsNewApi.js';
 import useProjectId from 'hooks/useProjectId';
 
 const PromptsNew = () => {

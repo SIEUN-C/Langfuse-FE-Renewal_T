@@ -15,7 +15,7 @@ import ColumnMenu from '../../layouts/ColumnMenu.jsx';
 import SidePanel from '../../components/SidePanel/SidePanel.jsx'
 import NewModelForm from './form/NewModelForm.jsx';
 
-import { listModelsPaged, getModel, createModel, deleteModel } from "./lib/ModelsApi.trpc.js";
+import { listModelsPaged, getModel, createModel, deleteModel } from "./lib/modelsApiTrpc.js";
 
 // ──────────────────────────────────────
 // Cell Renderers

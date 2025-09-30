@@ -2,10 +2,10 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { DataTable } from 'components/DataTable/DataTable';
 import { makeObservationColumns } from '../config/ObservationColumns';
-import { listGenerations, getObservationById } from '../services/ObservationApi';
+import { listGenerations, getObservationById } from '../services/observationApi';
 import { buildFilterStateWithRange, squeezeBuilderFilters, filterByTypeGroups } from '../utils/FilterMapping';
 import ObservationDetailPanel from './ObservationDetailPanel';
-import { SEARCH_MODE } from '../config/SearchMode';
+import { SEARCH_MODE } from '../config/searchMode';
 import ColumnVisibilityModal from 'components/ColumnVisibilityModal/ColumnVisibilityModal';
 import { useColumnVisibility } from 'hooks/useColumnVisibility';
 import { Columns } from 'lucide-react'

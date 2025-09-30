@@ -21,9 +21,9 @@ import styles from './chart-library.module.css';
  * - 최대 8개 정도의 카테고리를 가진 데이터
  * 
  * @param {Object} props - 컴포넌트 props
- * @param {import('./chart-props.js').DataPoint[]} props.data - 파이 차트 데이터 배열
+ * @param {import('./chartProps.js').DataPoint[]} props.data - 파이 차트 데이터 배열
  *        각 객체는 { dimension: string, metric: number } 구조
- * @param {import('./chart-props.js').ChartConfig} [props.config] - 차트 설정 객체
+ * @param {import('./chartProps.js').ChartConfig} [props.config] - 차트 설정 객체
  *        테마 설정(라이트/다크 모드 색상) 포함
  * @param {boolean} [props.accessibilityLayer=true] - 접근성 기능 활성화 여부
  *        스크린 리더 지원, 색상 대비 최적화 등

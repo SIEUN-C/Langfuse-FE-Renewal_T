@@ -11,12 +11,12 @@ import CustomPagination from "./CustomPagination";
 
 import {
   getModel as trpcGetModel,             // models.getById
-} from "./lib/ModelsApi.trpc";
+} from "./lib/modelsApiTrpc";
 import {
   fetchGenerationsPage,                  // generations.all
   fetchGenerationsCount,                 // generations.countAll
   fetchScoreColumns,                     // scores.getScoreColumns
-} from "./lib/ModelsApi.trpc";
+} from "./lib/modelsApiTrpc";
 
 const TIME_WINDOWS = [
   { label: "Past 24 hours", value: "24h", ms: 24 * 60 * 60 * 1000 },

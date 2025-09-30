@@ -13,7 +13,7 @@ import {
 } from 'recharts';
 import { getColorsForCategories } from '../../utils/getColorsForCategories';
 import { compactNumberFormatter } from '../../utils/numbers';
-import { dashboardDateRangeAggregationSettings } from '../../utils/date-range-utils';
+import { dashboardDateRangeAggregationSettings } from '../../utils/dateRangeUtils';
 import Tooltip from './Tooltip';
 
 const CustomizedDot = (props) => {

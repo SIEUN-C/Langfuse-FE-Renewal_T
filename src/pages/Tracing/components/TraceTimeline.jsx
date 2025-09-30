@@ -15,7 +15,7 @@ import {
   GitBranch,
   ListTree
 } from 'lucide-react';
-import { fetchObservationsForTrace } from '../services/TraceTimelineApi';
+import { fetchObservationsForTrace } from '../services/traceTimelineApi';
 
 
 // 안전한 key 생성기: id/scoreId 우선, 없으면 name+ownerId+index

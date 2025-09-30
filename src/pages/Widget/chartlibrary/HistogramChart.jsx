@@ -3,7 +3,7 @@
 
 import React from "react";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
-import { compactSmallNumberFormatter } from "../utils/number-utils.js";
+import { compactSmallNumberFormatter } from "../utils/numberUtils.js";
 import ChartContainer from "./ChartContainer.jsx";
 import styles from './chart-library.module.css';
 
@@ -19,8 +19,8 @@ import styles from './chart-library.module.css';
  * 5. 빈 데이터 상태 처리
  * 
  * @param {Object} props - 컴포넌트 props
- * @param {import('./chart-props.js').DataPoint[]} props.data - 히스토그램 데이터 배열
- * @param {import('./chart-props.js').ChartConfig} [props.config] - 차트 설정 (원본 호환성)
+ * @param {import('./chartProps.js').DataPoint[]} props.data - 히스토그램 데이터 배열
+ * @param {import('./chartProps.js').ChartConfig} [props.config] - 차트 설정 (원본 호환성)
  * @param {boolean} [props.accessibilityLayer] - 접근성 기능 활성화 여부
  * @returns {React.ReactElement} 렌더링된 히스토그램 차트
  */
@@ -32,7 +32,7 @@ const HistogramChart = ({ data, config, accessibilityLayer }) => {
    * 1. ClickHouse 히스토그램: { metric: [[lower, upper, height], ...] }
    * 2. 일반 데이터 포인트: [{ dimension: string, metric: number }, ...]
    * 
-   * @param {import('./chart-props.js').DataPoint[]} data - 입력 데이터 포인트
+   * @param {import('./chartProps.js').DataPoint[]} data - 입력 데이터 포인트
    * @returns {Array<{binLabel: string, count: number, lower?: number, upper?: number, height?: number}>} 
    *          변환된 히스토그램 데이터
    */

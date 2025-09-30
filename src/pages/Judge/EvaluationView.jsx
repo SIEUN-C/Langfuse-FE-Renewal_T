@@ -14,7 +14,7 @@ import { getEvaluationJobs, getEvaluatorConfigById, getAllEvaluatorConfigs } fro
 import styles from './EvaluationView.module.css';
 // 주석: 기존 'ColumnVisibilityPanel' 대신 공통 모달 컴포넌트를 import 합니다.
 import ColumnVisibilityModal from '../../components/ColumnVisibilityModal/ColumnVisibilityModal';
-import { computeFinalStatus } from './components/evalstatus'; //To update Evaluator status_finished
+import { computeFinalStatus } from './components/evalStatus'; //To update Evaluator status_finished
 import RowHeightDropdown from 'components/RowHeightDropdown/RowHeightDropdown';
 
 

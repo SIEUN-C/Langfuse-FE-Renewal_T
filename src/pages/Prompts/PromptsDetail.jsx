@@ -20,8 +20,8 @@ import {
   UploadCloud, //  이 아이콘을 추가해주세요!
 } from 'lucide-react';
 import DuplicatePromptModal from './components/modals/DuplicatePromptModal.jsx';
-import { duplicatePrompt } from './services/DuplicatePromptModalApi.js';
-import { fetchPromptVersions } from './services/PromptsDetailApi.js';
+import { duplicatePrompt } from './services/duplicatePromptModalApi.js';
+import { fetchPromptVersions } from './services/promptsDetailApi.js';
 import { deletePromptVersion, fetchPrompts, updatePromptVersionLabels } from './services/PromptsApi.js';
 import AddVersionLabelModal from './components/modals/AddVersionLabelModal.jsx';
 import NewExperimentModal from './components/modals/NewExperimentModal.jsx';

@@ -1,6 +1,6 @@
 // src/Pages/Tracing/Observations/IOCell.jsx
 import { useEffect, useState } from 'react';
-import { getObservationById } from '../services/ObservationApi';
+import { getObservationById } from '../services/observationApi';
 import styles from '../Tracing.module.css';
 
 function stringifyMessages(messages) {

@@ -1,12 +1,12 @@
 // src/Pages/Tracing/TraceDetailPanel.jsx
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { X, Maximize, Minimize, HardDrive, ChevronUp, ChevronDown } from 'lucide-react';
-import { fetchTraceDetails } from '../services/TraceDetailApi.js';
-import { fetchObservationDetails } from '../services/ObservationDetailApi.js';
+import { fetchTraceDetails } from '../services/traceDetailApi.js';
+import { fetchObservationDetails } from '../services/observationDetailApi.js';
 import styles from './TraceDetailPanel.module.css';
 import TraceDetailView from './TraceDetailView.jsx';
 import TraceTimeline from './TraceTimeline.jsx';
-import { ChatMlArraySchema } from '../utils/chatml.schema.js';
+import { ChatMlArraySchema } from '../utils/chatmlSchema.js';
 import { parseMaybeJSONDeep, decodeUnicodeLiterals } from '../utils/json.js'
 import { useListNavigator } from 'hooks/useListNavigator.js';
 import NewLlmConnectionModal from 'pages/Playground/NewLlmConnectionModal.jsx';

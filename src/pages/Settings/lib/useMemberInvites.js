@@ -4,7 +4,7 @@ import {
   listInvitesFromOrg,
   createInvite,
   cancelInvite as cancelInviteApi, // ✅ 추가
-} from "./MemberInvites";
+} from "./memberInvites";
 import { resolveOrgId } from "./sessionOrg";
 
 export default function useMemberInvites(projectId) {

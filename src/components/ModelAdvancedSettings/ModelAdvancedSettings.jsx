@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './ModelAdvancedSettings.module.css';
-import { fetchLlmApiKeys } from './ModelAdvancedSettingsApi';
+import { fetchLlmApiKeys } from './modelAdvancedSettingsApi';
 import CodeBlock from 'components/CodeBlock/CodeBlock'
 
 export const DEFAULT_SETTINGS = {

@@ -3,7 +3,7 @@
 // 1. 'trpc' 대신 'trpcQuery' 함수를 직접 import 하는 부분 (이전 단계에서 완료)
 // 주석: 기존 trpcQuery 옆에 trpcMutation을 추가로 import하여
 //       'trpcMutation is not defined' 오류를 해결합니다.
-import { trpcQuery, trpcMutation } from "../../Playground/services/trpc.client";
+import { trpcQuery, trpcMutation } from "../../Playground/services/trpcClient";
 
 
 

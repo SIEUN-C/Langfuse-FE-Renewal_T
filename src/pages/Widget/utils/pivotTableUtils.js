@@ -17,8 +17,8 @@
  * - Supports future expansion beyond current 2-dimension limit
  */
 
-import { isNotNullOrUndefined } from './type-utils.js';
-import { getNextSortState } from './sort-types.js';
+import { isNotNullOrUndefined } from './typeUtils.js';
+import { getNextSortState } from './sortTypes.js';
 
 /**
  * Default dimension limit for pivot table data rows

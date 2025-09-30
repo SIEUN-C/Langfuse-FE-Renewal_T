@@ -2,8 +2,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { Clipboard, Trash2 } from "lucide-react";
 import commonStyles from "../layout/SettingsCommon.module.css";
 import apiKeyStyles from "../layout/Apikeys.module.css";
-import { updateOrgApiKeyNote } from "../lib/OrgApiKeys"; // 백엔드 호출(조직 API키 노트 업데이트)
-import { updateProjectApiKeyNote } from "../lib/ProjectApiKeys";
+import { updateOrgApiKeyNote } from "../lib/orgApiKeys"; // 백엔드 호출(조직 API키 노트 업데이트)
+import { updateProjectApiKeyNote } from "../lib/projectApiKeys";
 
 function NoteCell({ keyId, initialValue, organizationId, projectId, onPatched }) {
   const [editing, setEditing] = useState(false);

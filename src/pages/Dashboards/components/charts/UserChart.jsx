@@ -4,10 +4,10 @@ import { DashboardCard } from '../cards/DashboardCard';
 import { compactNumberFormatter } from '../../utils/numbers';
 import TabComponent from './TabsComponent';
 import TotalMetric from './TotalMetric';
-import { totalCostDashboardFormatted } from '../../utils/dashboard-utils';
+import { totalCostDashboardFormatted } from '../../utils/dashboardUtils';
 import NoDataOrLoading from './NoDataOrLoading';
 import { widgetAPI } from '../../services/dashboardApi';
-import { mapLegacyUiTableFilterToView } from '../../utils/widget-utils';
+import { mapLegacyUiTableFilterToView } from '../../utils/widgetUtils';
 
 // ExpandListButton 컴포넌트 (재사용)
 const ExpandListButton = ({ 

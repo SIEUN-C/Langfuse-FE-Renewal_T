@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import styles from './SessionDetail.module.css';
 import { Star } from 'lucide-react';
-import { fetchSessionDetails } from './SessionDetailApi';
+import { fetchSessionDetails } from './sessionDetailApi';
 
 // 메타데이터의 특정 키-값 쌍을 렌더링하는 헬퍼 컴포넌트
 const MetaDataItem = ({ label, value }) => {

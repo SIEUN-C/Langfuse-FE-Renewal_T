@@ -7,8 +7,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 
-import { fetchTraceDetails } from './services/TraceDetailApi';
-import { fetchObservationDetails } from './services/ObservationDetailApi';
+import { fetchTraceDetails } from './services/traceDetailApi';
+import { fetchObservationDetails } from './services/observationDetailApi';
 import TraceDetailView from './components/TraceDetailView';
 import TraceTimeline from './components/TraceTimeline';
 import styles from './components/TraceDetailPanel.module.css';

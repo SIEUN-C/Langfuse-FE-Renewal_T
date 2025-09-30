@@ -14,9 +14,9 @@ import { useColumnVisibility } from 'hooks/useColumnVisibility.js';
 import FilterButton from 'components/FilterButton/FilterButton';
 import { Columns, Plus, Edit, AlertCircle, LayoutGrid, Download } from 'lucide-react';
 import { langfuse } from '../../lib/langfuse.js';
-import { fetchTraces, deleteTrace, fetchTraceMetrics } from './services/TracingApi.js';
-import { fetchTraceDetails } from './services/TraceDetailApi.js';
-import { getProjects } from '../../api/settings/ProjectApi.js';
+import { fetchTraces, deleteTrace, fetchTraceMetrics } from './services/tracingApi.js';
+import { fetchTraceDetails } from './services/traceDetailApi.js';
+import { getProjects } from '../../api/settings/projectApi.js';
 
 import { useFilteredData } from 'hooks/useFilteredData.js';
 import { getTracesFilterConfig, getObservationsFilterConfig } from 'components/FilterControls/config/configBuilder.js';

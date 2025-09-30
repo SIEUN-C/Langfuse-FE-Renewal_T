@@ -31,7 +31,7 @@ import FilterControls from "../../components/FilterControls/FilterControls";
 
 // ===== API 서비스 =====
 import { dashboardAPI, widgetAPI } from "../Dashboards/services/dashboardApi";
-import { dashboardDateRangeAggregationSettings } from "../Dashboards/utils/date-range-utils";
+import { dashboardDateRangeAggregationSettings } from "../Dashboards/utils/dateRangeUtils";
 
 // ===== 유틸리티 =====
 import { useDebounce } from "../Dashboards/hooks/useDebounce";

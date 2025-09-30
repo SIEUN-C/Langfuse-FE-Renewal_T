@@ -8,7 +8,7 @@ import { DashboardCard } from '../cards/DashboardCard';
 import BaseTimeSeriesChart from './BaseTimeSeriesChart';
 import TabComponent from './TabsComponent';
 import { latencyFormatter } from '../../utils/numbers';
-import { dashboardDateRangeAggregationSettings } from '../../utils/date-range-utils';
+import { dashboardDateRangeAggregationSettings } from '../../utils/dateRangeUtils';
 import NoDataOrLoading from './NoDataOrLoading';
 import {
  ModelSelectorPopover,

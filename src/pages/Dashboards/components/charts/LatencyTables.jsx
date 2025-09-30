@@ -5,7 +5,7 @@ import LeftAlignedCell from './LeftAlignedCell';
 import { DashboardCard } from '../cards/DashboardCard';
 import { DashboardTable } from '../cards/DashboardTable';
 import { widgetAPI } from '../../services/dashboardApi';
-import { createTracesTimeFilter } from '../../utils/dashboard-utils';
+import { createTracesTimeFilter } from '../../utils/dashboardUtils';
 
 /* eslint-disable react-refresh/only-export-components */
 

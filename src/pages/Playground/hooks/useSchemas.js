@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { SchemasAPI } from "../services/schemas.service";
+import { SchemasAPI } from "../services/schemasService";
 
 export default function useSchemas(projectId) {
     const [available, setAvailable] = useState([]);

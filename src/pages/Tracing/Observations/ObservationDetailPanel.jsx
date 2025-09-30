@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { X, ChevronUp, ChevronDown, Expand } from 'lucide-react';
-import { getObservationById } from '../services/ObservationApi';
-import { fetchTraceDetails } from '../services/TraceDetailApi';
+import { getObservationById } from '../services/observationApi';
+import { fetchTraceDetails } from '../services/traceDetailApi';
 import TraceTimeline from '../components/TraceTimeline';
 import TraceDetailView from '../components/TraceDetailView';
 import styles from '../components/TraceDetailPanel.module.css';

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ToolsAPI } from "../services/tools.service"
+import { ToolsAPI } from "../services/toolsService"
 
 export default function useTools(projectId) {
     const [available, setAvailable] = useState([]);

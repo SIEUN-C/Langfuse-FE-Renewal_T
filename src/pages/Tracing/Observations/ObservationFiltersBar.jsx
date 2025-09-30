@@ -1,8 +1,8 @@
 import React, { useMemo } from 'react';
 import FilterControls from 'components/FilterControls/FilterControls';
 import SearchInput from 'components/SearchInput/SearchInput';
-import { observationsFilterConfig } from '../config/ObservationFilterConfig';
-import { SEARCH_MODE } from '../config/SearchMode';
+import { observationsFilterConfig } from '../config/observationFilterConfig';
+import { SEARCH_MODE } from '../config/searchMode';
 
 /**
  * 상단 툴바: Search + TimeRange + Env + Builder + Refresh

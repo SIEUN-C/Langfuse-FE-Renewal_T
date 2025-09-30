@@ -6,10 +6,10 @@ import { DashboardCard } from "../cards/DashboardCard";
 import { DashboardTable } from "../cards/DashboardTable";
 import { compactNumberFormatter } from "../../utils/numbers";
 import TotalMetric from "./TotalMetric";
-import { totalCostDashboardFormatted } from "../../utils/dashboard-utils";
+import { totalCostDashboardFormatted } from "../../utils/dashboardUtils";
 import { truncate } from "../../utils/string";
 import { widgetAPI } from "../../services/dashboardApi";
-import { createTracesTimeFilter } from "../../utils/dashboard-utils";
+import { createTracesTimeFilter } from "../../utils/dashboardUtils";
 
 // DocPopup 미니 컴포넌트 (ModelCostTable 전용)
 const DocPopup = ({ description, href }) => {

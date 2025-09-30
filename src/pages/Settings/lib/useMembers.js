@@ -4,12 +4,12 @@ import {
   listProjectMembers,
   inviteProjectMember,
   updateProjectMemberRole,
-} from "./ProjectMembers";
+} from "./projectMembers";
 import {
   listOrgMembers,
   inviteOrgMember,
   updateOrgMemberRole,
-} from "./OrgMembers";
+} from "./orgMembers";
 import { resolveOrgId } from "./sessionOrg";
 import { removeMembershipUniversal } from "./removeMembership";
 

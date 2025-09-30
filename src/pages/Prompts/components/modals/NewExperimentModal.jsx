@@ -4,10 +4,10 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import styles from './NewExperimentModal.module.css';
 import { X, ChevronDown, Check, Settings2, Search } from 'lucide-react';;
 import useProjectId from '../../../../hooks/useProjectId';
-import { fetchAllPromptNames, fetchVersionsForPrompt, fetchLlmConnections, fetchAllDatasetNames } from '../../services/NewExperimentModalApi';
+import { fetchAllPromptNames, fetchVersionsForPrompt, fetchLlmConnections, fetchAllDatasetNames } from '../../services/newExperimentModalApi';
 import Modal from '../../../../components/Modal/Modal';
 import NewLLMConnectionsForm from '../../../Settings/form/NewLLMConnectionsForm';
-import { saveLlmConnection } from '../../../../api/settings/LLMApi';
+import { saveLlmConnection } from '../../../../api/settings/llmApi';
 import { publicKey, secretKey } from '../../../../lib/langfuse';
 import ModelAdvancedSettings, { DEFAULT_SETTINGS } from '../../../../components/ModelAdvancedSettings/ModelAdvancedSettings';
 

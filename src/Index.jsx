@@ -7,7 +7,7 @@ import { BrowserRouter } from "react-router-dom";
 
 // ✅ Redux Provider 추가
 import { Provider } from "react-redux";
-import { store } from "./state/store";
+import { store } from "./state/store.js";
 
 const rootElement = document.getElementById("root");
 const root = ReactDOM.createRoot(rootElement);

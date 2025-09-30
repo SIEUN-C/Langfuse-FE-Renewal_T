@@ -5,9 +5,9 @@ import {
   createProjectApiKey,
   deleteProjectApiKey,
   updateProjectApiKeyNote,
-} from "./ProjectApiKeys";
+} from "./projectApiKeys";
 // (필요시) org 라우터 폴백용
-import { listOrgApiKeys, updateOrgApiKeyNote as updateOrgNote } from "./OrgApiKeys";
+import { listOrgApiKeys, updateOrgApiKeyNote as updateOrgNote } from "./orgApiKeys";
 import { resolveOrgId } from "./sessionOrg"; // 폴백 시 orgId 구할 때만 사용
 
 /**

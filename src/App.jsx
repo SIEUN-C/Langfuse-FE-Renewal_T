@@ -46,7 +46,7 @@ import EditWidget from "./pages/Widget/pages/EditWidget";
 import SettingsPage from "./pages/Settings/SettingsPage";
 import General from "./pages/Settings/General";
 import ApiKeys from "./pages/Settings/ApiKeys";
-import LLMConnections from "./pages/Settings/LLMConnections";
+import LLMConnections from "./pages/Settings/LlmConnections";
 import Models from "./pages/Settings/Models";
 import ModelDetail from "./pages/Settings/ModelDetail";
 import Members from "./pages/Settings/Members";

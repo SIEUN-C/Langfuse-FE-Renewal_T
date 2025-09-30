@@ -5,7 +5,7 @@
 
 /**
  * Groups data by dimension to prepare it for time series breakdowns
- * @param {import('./chart-props.js').DataPoint[]} data - Array of data points
+ * @param {import('./chartProps.js').DataPoint[]} data - Array of data points
  * @returns {Array<Object>} Grouped data suitable for Recharts time series
  */
 export const groupDataByTimeDimension = (data) => {
@@ -31,7 +31,7 @@ export const groupDataByTimeDimension = (data) => {
   
   /**
    * Extracts unique dimension values from data points
-   * @param {import('./chart-props.js').DataPoint[]} data - Array of data points
+   * @param {import('./chartProps.js').DataPoint[]} data - Array of data points
    * @returns {string[]} Array of unique dimension values
    */
   export const getUniqueDimensions = (data) => {

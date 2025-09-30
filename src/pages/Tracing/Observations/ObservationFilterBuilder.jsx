@@ -1,6 +1,6 @@
 import React from 'react';
 import FilterBuilder from 'components/FilterControls/FilterBuilder';
-import { observationsFilterConfig } from '../config/ObservationFilterConfig';
+import { observationsFilterConfig } from '../config/observationFilterConfig';
 
 /**
  * 관측치 탭 전용 FilterBuilder 래퍼

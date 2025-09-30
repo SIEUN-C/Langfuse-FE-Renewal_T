@@ -4,14 +4,14 @@ import styles from './Sessions.module.css';
 import { Columns } from 'lucide-react';
 import ColumnVisibilityModal from '../../components/ColumnVisibilityModal/ColumnVisibilityModal.jsx';
 import { DataTable } from '../../components/DataTable/DataTable.jsx';
-import { sessionTableColumns } from './sessionColumns.jsx';
+import { sessionTableColumns } from './SessionColumns.jsx';
 import FilterButton from '../../components/FilterButton/FilterButton.jsx';
 import FilterControls from '../../components/FilterControls/FilterControls.jsx';
 
 import { useEnvironmentFilter } from '../../hooks/useEnvironmentFilter.js'; // 추가
 import { useTimeRangeFilter } from '../../hooks/useTimeRangeFilter.js'; // 추가
 import dayjs from 'dayjs'; // 추가
-import { fetchSessions } from './SessionApi.js';
+import { fetchSessions } from './sessionApi.js';
 import { sessionsFilterConfig } from '../../components/FilterControls/filterConfig.js'; // [수정] sessionsFilterConfig를 import 합니다.
 
 const Sessions = () => {

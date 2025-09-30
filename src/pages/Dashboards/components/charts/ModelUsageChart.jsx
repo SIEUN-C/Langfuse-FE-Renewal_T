@@ -6,7 +6,7 @@ import BaseTimeSeriesChart from './BaseTimeSeriesChart';
 import { isEmptyTimeSeries } from '../../utils/hooks';
 import TabComponent from './TabsComponent';
 import TotalMetric from './TotalMetric';
-import { totalCostDashboardFormatted } from '../../utils/dashboard-utils';
+import { totalCostDashboardFormatted } from '../../utils/dashboardUtils';
 import { compactNumberFormatter } from '../../utils/numbers';
 import {
   ModelSelectorPopover,
