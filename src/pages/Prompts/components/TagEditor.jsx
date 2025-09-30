@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import styles from './TagEditor.module.css';
-import { updatePromptTags } from '../services/PromptsApi';
+import { updatePromptTags } from '../services/promptsApi';
 
 //--- TagEditor 컴포넌트를 Prompts.jsx 파일 내부에 직접 정의 ---
 const TagEditor = ({ promptName, tags, onSave, onClose, anchorEl, projectId }) => {

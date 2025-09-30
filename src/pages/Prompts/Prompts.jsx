@@ -11,7 +11,7 @@ import {
   Trash2,
   Tag,
 } from 'lucide-react';
-import { fetchPrompts, deletePrompt, updatePromptTags } from './services/PromptsApi.js';
+import { fetchPrompts, deletePrompt, updatePromptTags } from './services/promptsApi.js';
 import SearchInput from '../../components/SearchInput/SearchInput.jsx';
 import FilterControls from '../../components/FilterControls/FilterControls.jsx';
 import { promptsFilterConfig } from '../../components/FilterControls/filterConfig.js';

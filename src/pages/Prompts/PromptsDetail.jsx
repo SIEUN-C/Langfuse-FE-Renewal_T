@@ -22,7 +22,7 @@ import {
 import DuplicatePromptModal from './components/modals/DuplicatePromptModal.jsx';
 import { duplicatePrompt } from './services/duplicatePromptModalApi.js';
 import { fetchPromptVersions } from './services/promptsDetailApi.js';
-import { deletePromptVersion, fetchPrompts, updatePromptVersionLabels } from './services/PromptsApi.js';
+import { deletePromptVersion, fetchPrompts, updatePromptVersionLabels } from './services/promptsApi.js';
 import AddVersionLabelModal from './components/modals/AddVersionLabelModal.jsx';
 import NewExperimentModal from './components/modals/NewExperimentModal.jsx';
 import SidePanel from '../../components/SidePanel/SidePanel.jsx';
