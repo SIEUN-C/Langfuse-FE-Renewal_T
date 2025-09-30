@@ -4,14 +4,14 @@ import { useState, useMemo, useEffect } from 'react';
 // 프로젝트의 모든 환경 목록을 관리하는 훅
 export const useEnvironmentFilter = (allEnvironments) => {
   const [environments, setEnvironments] = useState(
-    allEnvironments.map(env => ({ ...env, checked: env.name === 'default' }))
+    allEnvironments.map(env => ({ ...env, checked: true }))
   );
   const [searchTerm, setSearchTerm] = useState('');
 
   // allEnvironments prop이 변경될 때 environments 상태를 리셋합니다.
   useEffect(() => {
     setEnvironments(
-      allEnvironments.map(env => ({ ...env, checked: env.name === 'default' }))
+      allEnvironments.map(env => ({ ...env, checked: true }))
     );
   }, [allEnvironments]);
 

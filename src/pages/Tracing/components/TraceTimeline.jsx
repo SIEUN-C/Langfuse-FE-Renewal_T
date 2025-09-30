@@ -92,7 +92,7 @@ const ObservationNode = ({ node, allNodes, onSelect, selectedId, fullTraceDetail
         <div className={styles.itemContent}>
           <div className={styles.itemHeader}>
             <span className={styles.itemName}>{node.name}</span>
-            {detailedNode.latency != null && <span className={styles.latency}>{(detailedNode.latency).toFixed(2)}s</span>}
+            {detailedNode.latency != null && <span className={styles.latency}>{(detailedNode.latency / 1000).toFixed(2)}s</span>}
           </div>
           {detailedNode.scores && detailedNode.scores.length > 0 && (
             <div className={styles.scoreTags}>
