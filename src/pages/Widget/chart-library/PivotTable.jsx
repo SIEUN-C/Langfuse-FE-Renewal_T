@@ -27,7 +27,7 @@ import { getNextSortState } from "../utils/sortTypes.js";
 import { numberFormatter } from "../utils/numberUtils.js";
 import { formatMetricName } from "../../Dashboards/utils/widgetUtils.js";
 import ChartContainer from "./ChartContainer.jsx";
-import styles from './chart-library.module.css';
+import styles from './chartLibrary.module.css';
 
 /**
  * 정적 컬럼 헤더 컴포넌트

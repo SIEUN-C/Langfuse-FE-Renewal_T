@@ -10,7 +10,7 @@ import PieChart from "./PieChart.jsx";
 import HistogramChart from "./HistogramChart.jsx";
 import BigNumber from "./BigNumber.jsx";
 import PivotTable from "./PivotTable.jsx";
-import styles from './chart-library.module.css';
+import styles from './chartLibrary.module.css';
 
 /**
  * 메인 차트 컴포넌트

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState, useMemo } from "react";
 import ChartContainer from "./ChartContainer.jsx";
-import styles from './chart-library.module.css';
+import styles from './chartLibrary.module.css';
 
 /**
  * 큰 숫자를 적절한 단위와 함께 포맷

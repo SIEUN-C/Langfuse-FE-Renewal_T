@@ -10,7 +10,7 @@ import {
   ResponsiveContainer,  // 반응형 크기 조절 컨테이너
   Tooltip,    // 마우스 호버 시 표시할 툴팁
 } from "recharts";
-import styles from "./chart-library.module.css";
+import styles from "./chartLibrary.module.css";
 
 /**
  * 시계열 데이터를 그룹핑하는 함수

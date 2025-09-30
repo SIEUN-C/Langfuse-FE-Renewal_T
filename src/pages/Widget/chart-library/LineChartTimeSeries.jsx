@@ -5,7 +5,7 @@ import React, { useMemo } from "react";
 import { Line, LineChart, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
 import { getUniqueDimensions, groupDataByTimeDimension } from "./utils.js";
 import ChartContainer from "./ChartContainer.jsx";
-import styles from './chart-library.module.css';
+import styles from './chartLibrary.module.css';
 
 /**
  * LineChartTimeSeries - 시계열 데이터를 선 그래프로 표시하는 컴포넌트

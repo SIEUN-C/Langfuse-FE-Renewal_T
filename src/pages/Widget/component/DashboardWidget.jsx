@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { widgetAPI } from "../../Dashboards/services/dashboardApi.js";
-import Chart from "../chartlibrary/Chart.jsx";
+import Chart from "../chart-library/Chart.jsx";
 import {
   formatMetricName,
   isTimeSeriesChart,

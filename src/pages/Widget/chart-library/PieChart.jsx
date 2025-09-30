@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { Pie, PieChart as PieChartComponent, ResponsiveContainer, Tooltip, Cell } from "recharts";
 import ChartContainer from "./ChartContainer.jsx";
-import styles from './chart-library.module.css';
+import styles from './chartLibrary.module.css';
 
 /**
  * PieChart 컴포넌트 - 데이터를 파이/도넛 차트로 표시

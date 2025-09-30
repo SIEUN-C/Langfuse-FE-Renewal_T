@@ -5,7 +5,7 @@ import React from "react";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
 import { compactSmallNumberFormatter } from "../utils/numberUtils.js";
 import ChartContainer from "./ChartContainer.jsx";
-import styles from './chart-library.module.css';
+import styles from './chartLibrary.module.css';
 
 /**
  * HistogramChart - 히스토그램/막대 차트로 데이터를 표시하는 컴포넌트

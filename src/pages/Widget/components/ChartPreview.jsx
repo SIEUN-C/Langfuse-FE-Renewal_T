@@ -1,7 +1,7 @@
 // src/Pages/Widget/components/ChartPreview.jsx - DashboardWidget과 완전 동일한 변환 로직 적용
 import React, { useMemo } from "react";
-import Chart from "../chartlibrary/Chart.jsx";
-import chartStyles from '../chart-library/chart-library.module.css';
+import Chart from "../chart-library/Chart.jsx";
+import chartStyles from '../chart-library/chartLibrary.module.css';
 import { formatMetricName } from "../../Dashboards/utils/widgetUtils.js";
 
 export default function ChartPreview({
