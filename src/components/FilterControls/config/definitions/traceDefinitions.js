@@ -1,8 +1,4 @@
-// 이 파일은 Traces 페이지에서 필터링 및 정렬할 수 있는 모든 열을 정의합니다.
-// id: 프론트엔드 내부 로직에서 사용하는 고유 식별자 (예: 'scores_avg')
-// name: UI에 표시되고 API 페이로드에 사용될 이름 (예: 'Scores (numeric)')
-// type: 데이터 유형 ('string', 'number', 'boolean' 등). 이 값은 filterOperators와 filterSchema에서 사용됩니다.
-// internal: (참고용) 데이터베이스 쿼리에 사용되는 내부 필드명
+// components/FilterControls/config/definitions/traceDefinitions.js
 
 export const tracesFilterDefs = [
   {
@@ -11,7 +7,12 @@ export const tracesFilterDefs = [
     type: "boolean",
     internal: "t.bookmarked",
   },
-  { name: "ID", id: "id", type: "string", internal: "t.id" },
+  {
+    name: "ID",
+    id: "id",
+    type: "string",
+    internal: "t.id"
+  },
   {
     name: "Name",
     id: "name",

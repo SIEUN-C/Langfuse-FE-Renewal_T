@@ -103,13 +103,13 @@ const Tracing = () => {
     }
     // Observations 필터 초기화
     if (observationsFilterColumns.length > 0 && builderFiltersObs.length === 0) {
-      const typeColumn = observationsFilterColumns.find(c => c.key === 'type') || observationsFilterColumns[0];
+      const typeColumn = observationsFilterColumns[0];
       setBuilderFiltersObs([{
         id: 1,
         column: typeColumn.key,
         type: typeColumn.type,
-        operator: 'any of',
-        value: ['GENERATION', 'AGENT', 'TOOL', 'CHAIN', 'RETRIEVER', 'EVALUATOR', 'EMBEDDING', 'GUARDRAIL'],
+        operator: typeColumn.operators[0],
+        value: '',
       }]);
     }
   }, [baseTraceFilterColumns, observationsFilterColumns, builderFiltersTraces, builderFiltersObs]);

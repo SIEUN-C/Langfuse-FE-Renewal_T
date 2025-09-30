@@ -1,3 +1,4 @@
+// components/FilterControls/config/configBuilder.js
 import { dashboardsFilterDefs } from './definitions/dashboardsDefinitions';
 import { evaluationDetailFilterDefs } from './definitions/evaluationDetailDefinitions';
 import { homeFilterDefs } from './definitions/homeDefinitions';

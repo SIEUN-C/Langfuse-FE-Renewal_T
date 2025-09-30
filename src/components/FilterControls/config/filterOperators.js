@@ -1,3 +1,4 @@
+// components/FilterControls/config/filterOperators.js
 export const filterOperators = {
   datetime: [">", "<", ">=", "<="],
   string: ["=", "contains", "does not contain", "starts with", "ends with"],
